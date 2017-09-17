@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using BobDono.Attributes;
 using BobDono.BL;
 using BobDono.Database;
@@ -15,6 +16,7 @@ namespace BobDono.Utils
     /// </summary>
     public static class BotContext
     {
+        private static DiscordClient _discordClient;
         public const string CommandStarter = "!";
 
         public static IHttpClientProvider HttpClientProvider { get; } 
@@ -24,7 +26,24 @@ namespace BobDono.Utils
         public static CharactersSearchQuery CharactersSearchQuery { get; }
         public static Dictionary<ModuleAttribute,List<CommandHandlerAttribute>> Commands { get; set; }
         public static ExceptionHandler ExceptionHandler { get; }
-        public static DiscordClient DiscordClient { get; set; }
+
+        public static DiscordClient DiscordClient
+        {
+            get { return _discordClient; }
+            set
+            {
+                _discordClient = value;
+
+                value.MessageCreated += args =>
+                {
+                    if (args.Channel.IsPrivate)
+                        NewPrivateMessage?.Invoke(args);
+                    return Task.CompletedTask;
+                };
+            }
+        }
+
+        public static event Delegates.CommandHandlerDelegate NewPrivateMessage;
         
 
         static BotContext()

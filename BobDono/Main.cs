@@ -82,9 +82,9 @@ namespace BobDono
                         if (methodAttribute.LimitToChannel != null)
                             handler.Predicates.Add(CommandPredicates.Channel);
 
-                        handler.Delegate =
-                            (Delegates.CommandHandlerDelegate) method.CreateDelegate(
-                                typeof(Delegates.CommandHandlerDelegate), instance);
+                        handler.DelegateAsync =
+                            (Delegates.CommandHandlerDelegateAsync) method.CreateDelegate(
+                                typeof(Delegates.CommandHandlerDelegateAsync), instance);
 
                         _handlers.Add(handler);
                     }
@@ -97,16 +97,8 @@ namespace BobDono
             await Task.Delay(-1);
         }
 
-        public static Dictionary<ulong,Action<MessageCreateEventArgs>> ChannelRouteOverrides { get; } = new Dictionary<ulong, Action<MessageCreateEventArgs>>();
-
         private async Task ClientOnMessageCreated(MessageCreateEventArgs messageCreateEventArgs)
         {
-            if (ChannelRouteOverrides.ContainsKey(messageCreateEventArgs.Channel.Id))
-            {
-                ChannelRouteOverrides[messageCreateEventArgs.Channel.Id].Invoke(messageCreateEventArgs);
-                return;
-            }
-
             if (messageCreateEventArgs.Author.IsBot)
                 return;
 
@@ -120,10 +112,10 @@ namespace BobDono
                         predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs)))
                     {
                         if (handlerEntry.Attribute.Awaitable)
-                            await handlerEntry.Delegate.Invoke(messageCreateEventArgs);
+                            await handlerEntry.DelegateAsync.Invoke(messageCreateEventArgs);
                         else
 #pragma warning disable 4014
-                            handlerEntry.Delegate.Invoke(messageCreateEventArgs);
+                            handlerEntry.DelegateAsync.Invoke(messageCreateEventArgs);
 #pragma warning restore 4014
                     }
                 }
