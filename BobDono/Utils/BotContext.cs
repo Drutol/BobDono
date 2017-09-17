@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
 using BobDono.Attributes;
 using BobDono.BL;
+using BobDono.Database;
 using BobDono.Interfaces;
 using BobDono.MalHell.Comm;
 using BobDono.MalHell.Queries;
+using DSharpPlus;
+using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Utils
 {
@@ -21,6 +24,8 @@ namespace BobDono.Utils
         public static CharactersSearchQuery CharactersSearchQuery { get; }
         public static Dictionary<ModuleAttribute,List<CommandHandlerAttribute>> Commands { get; set; }
         public static ExceptionHandler ExceptionHandler { get; }
+        public static DiscordClient DiscordClient { get; set; }
+        
 
         static BotContext()
         {

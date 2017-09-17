@@ -65,6 +65,7 @@ namespace BobDono.Modules
                 ThumbnailUrl = details.ImgUrl,
                 Color = DiscordColor.Brown
             };
+           
 
 
             await args.Channel.SendMessageAsync(null, false, builder.Build());

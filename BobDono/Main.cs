@@ -41,6 +41,8 @@ namespace BobDono
 
             _client.MessageCreated += ClientOnMessageCreated;
 
+            BotContext.DiscordClient = _client;
+
             var assembly = Assembly.GetEntryAssembly();
             List<(ModuleAttribute attr, Type module)> modules =
                 new List<(ModuleAttribute attr, Type module)>();
@@ -80,7 +82,7 @@ namespace BobDono
                         if (methodAttribute.LimitToChannel != null)
                             handler.Predicates.Add(CommandPredicates.Channel);
 
-                        handler.Executor =
+                        handler.Delegate =
                             (Delegates.CommandHandlerDelegate) method.CreateDelegate(
                                 typeof(Delegates.CommandHandlerDelegate), instance);
 
@@ -95,24 +97,35 @@ namespace BobDono
             await Task.Delay(-1);
         }
 
-
+        public static Dictionary<ulong,Action<MessageCreateEventArgs>> ChannelRouteOverrides { get; } = new Dictionary<ulong, Action<MessageCreateEventArgs>>();
 
         private async Task ClientOnMessageCreated(MessageCreateEventArgs messageCreateEventArgs)
         {
+            if (ChannelRouteOverrides.ContainsKey(messageCreateEventArgs.Channel.Id))
+            {
+                ChannelRouteOverrides[messageCreateEventArgs.Channel.Id].Invoke(messageCreateEventArgs);
+                return;
+            }
+
             if (messageCreateEventArgs.Author.IsBot)
                 return;
 
             foreach (var handlerEntry in _handlers)
             {
                 if (!handlerEntry.AreTypesEqual(typeof(MessageCreateEventArgs)))
-                    continue;
-
-                
+                    continue;                
                 try
                 {
                     if (handlerEntry.Predicates.All(predicate =>
                         predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs)))
-                        await handlerEntry.Executor.Invoke(messageCreateEventArgs);
+                    {
+                        if (handlerEntry.Attribute.Awaitable)
+                            await handlerEntry.Delegate.Invoke(messageCreateEventArgs);
+                        else
+#pragma warning disable 4014
+                            handlerEntry.Delegate.Invoke(messageCreateEventArgs);
+#pragma warning restore 4014
+                    }
                 }
                 catch (Exception e)
                 {

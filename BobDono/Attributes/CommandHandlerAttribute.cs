@@ -24,6 +24,7 @@ namespace BobDono.Attributes
 
         public bool Authorize { get; set; }
         public ulong? LimitToChannel { get; set; }
+        public bool Awaitable { get; set; } = true;
         public string HelpText { get; set; } = "This command doesn't need explanation just like a good painting.";
     }
 }

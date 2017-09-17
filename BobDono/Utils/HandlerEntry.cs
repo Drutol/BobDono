@@ -31,7 +31,7 @@ namespace BobDono.Utils
         public List<ICommandPredicate> Predicates { get; } =
             new List<ICommandPredicate>();
 
-        public Delegates.CommandHandlerDelegate Executor { get; set; }
+        public Delegates.CommandHandlerDelegate Delegate { get; set; }
 
         public bool AreTypesEqual(params Type[] types)
         {

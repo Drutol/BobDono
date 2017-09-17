@@ -261,3 +261,4 @@ __pycache__/
 *.pyc
 
 BobDono/Secrets.cs
+BobDono/bob.db
