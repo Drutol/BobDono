@@ -32,6 +32,8 @@ namespace BobDono.Utils
             new List<ICommandPredicate>();
 
         public Delegates.CommandHandlerDelegateAsync DelegateAsync { get; set; }
+        public Delegates.ContextualCommandHandlerDelegateAsync ContextualDelegateAsync { get; set; }
+
 
         public bool AreTypesEqual(params Type[] types)
         {

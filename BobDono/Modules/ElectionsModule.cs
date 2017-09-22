@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BobDono.Attributes;
 using BobDono.BL;
+using BobDono.Contexts;
 using BobDono.Database;
 using BobDono.Entities;
 using BobDono.Utils;
@@ -17,13 +18,28 @@ namespace BobDono.Modules
     [Module]
     public class ElectionsModule
     {
+        private List<ElectionContext> _electionsContexts;
+
+        public ElectionsModule()
+        {
+            Task.Run(() =>
+                {
+                    using (var db = new BobDatabaseContext())
+                    {
+                        _electionsContexts = db.Elections
+                            .Select(election => new ElectionContext(election))
+                            .ToList();
+                    }
+                });
+        }
+
         [CommandHandler(Regex = @"election create", Authorize = true, HumanReadableCommand = "election create",
-            HelpText = "Starts new election.",Awaitable = false)]
+            HelpText = "Starts new election.", Awaitable = false)]
         public async Task CreateElection(MessageCreateEventArgs args)
         {
             var cts = new CancellationTokenSource();
             var timeout = TimeSpan.FromMinutes(1);
-            var member = await BotContext.DiscordClient.Guilds.First().Value.GetMemberAsync(args.Author.Id);
+            var member = await BotContext.DiscordClient.GetNullsGuild().GetMemberAsync(args.Author.Id);
             var channel = await member.CreateDmChannelAsync();           
             await channel.SendMessageAsync("You are about to create new election, you can always cancel by typing `quit`.\nProvide short name for it:");
 
@@ -37,9 +53,6 @@ namespace BobDono.Modules
                     election.Name = await channel.GetNextMessageAsync(timeout, cts.Token);
                     await channel.SendMessageAsync("Longer description if you could:");
                     election.Description = await channel.GetNextMessageAsync(timeout, cts.Token);
-                    
-
-
                 }
                 catch (OperationCanceledException)
                 {

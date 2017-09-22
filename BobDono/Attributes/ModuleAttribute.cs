@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using BobDono.Interfaces;
 
 namespace BobDono.Attributes
 {
@@ -10,6 +11,8 @@ namespace BobDono.Attributes
         public string Description { get; set; }
         public bool Authorize { get; set; }
         public bool Hidden { get; set; }
+        public bool IsChannelContextual { get; set; }
 
+        public List<IModule> Contexts { get; } = new List<IModule>();
     }
 }

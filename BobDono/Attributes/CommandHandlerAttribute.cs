@@ -26,5 +26,7 @@ namespace BobDono.Attributes
         public ulong? LimitToChannel { get; set; }
         public bool Awaitable { get; set; } = true;
         public string HelpText { get; set; } = "This command doesn't need explanation just like a good painting.";
+
+        public ModuleAttribute ParentModuleAttribute { get; set; }
     }
 }

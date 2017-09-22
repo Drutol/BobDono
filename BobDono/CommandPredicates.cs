@@ -19,8 +19,9 @@ namespace BobDono
 
 
         public static AuthorizedFilter Authorize { get; } = new AuthorizedFilter();
-        public static ChannelFilter Channel { get;  } = new ChannelFilter();
-        public static RegexFilter Regex { get;  } = new RegexFilter();
+        public static ChannelFilter Channel { get; } = new ChannelFilter();
+        public static RegexFilter Regex { get; } = new RegexFilter();
+        public static ChannelContextFilter ChannelContext { get; } = new ChannelContextFilter();
 
 
         public abstract class ArgumentPredicate<TArg> : ICommandPredicate where TArg : class
@@ -54,6 +55,17 @@ namespace BobDono
             protected override bool MeetsCriteria(CommandHandlerAttribute attr, MessageCreateEventArgs arg)
             {
                 return System.Text.RegularExpressions.Regex.IsMatch(arg.Message.Content, attr.Regex);
+            }
+        }
+
+        public class ChannelContextFilter : ICommandPredicate
+        {
+            public bool MeetsCriteria(CommandHandlerAttribute attr, params object[] args)
+            {
+                var msgCreatedArgs = args[0] as MessageCreateEventArgs;
+                var module = args[1] as IModule;
+
+                return msgCreatedArgs.Channel.Id == module.ChannelIdContext.Value;
             }
         }
     }
