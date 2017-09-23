@@ -17,7 +17,7 @@ namespace BobDono.Modules
             {
                 await args.Channel.SendMessageAsync(string.Join("\n\n",
                     BotContext.ExceptionHandler.CaughtThings.Select(exception =>
-                        $"```{exception}```")));
+                        $"```{exception}```")).Substring(0,2000));
             }
             else
             {

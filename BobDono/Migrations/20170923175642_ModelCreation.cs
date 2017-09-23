@@ -90,34 +90,6 @@ namespace BobDono.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WaifuContenders",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    CustomImageUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    ProposerId = table.Column<long>(type: "INTEGER", nullable: true),
-                    SeedNumber = table.Column<int>(type: "INTEGER", nullable: false),
-                    WaifuId = table.Column<long>(type: "INTEGER", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WaifuContenders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_WaifuContenders_Users_ProposerId",
-                        column: x => x.ProposerId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_WaifuContenders_Waifus_WaifuId",
-                        column: x => x.WaifuId,
-                        principalTable: "Waifus",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "BracketStage",
                 columns: table => new
                 {
@@ -132,6 +104,41 @@ namespace BobDono.Migrations
                         name: "FK_BracketStage_Elections_ElectionId",
                         column: x => x.ElectionId,
                         principalTable: "Elections",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WaifuContenders",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    CustomImageUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    ElectionId = table.Column<long>(type: "INTEGER", nullable: true),
+                    ProposerId = table.Column<long>(type: "INTEGER", nullable: true),
+                    SeedNumber = table.Column<int>(type: "INTEGER", nullable: false),
+                    WaifuId = table.Column<long>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WaifuContenders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WaifuContenders_Elections_ElectionId",
+                        column: x => x.ElectionId,
+                        principalTable: "Elections",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WaifuContenders_Users_ProposerId",
+                        column: x => x.ProposerId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WaifuContenders_Waifus_WaifuId",
+                        column: x => x.WaifuId,
+                        principalTable: "Waifus",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -248,6 +255,11 @@ namespace BobDono.Migrations
                 name: "IX_Votes_UserId",
                 table: "Votes",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WaifuContenders_ElectionId",
+                table: "WaifuContenders",
+                column: "ElectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WaifuContenders_ProposerId",

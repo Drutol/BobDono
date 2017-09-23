@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BobDono.Attributes;
 using BobDono.BL;
+using BobDono.BL.Services;
 using BobDono.Contexts;
 using BobDono.Database;
 using BobDono.Entities;
@@ -34,15 +35,20 @@ namespace BobDono.Modules
                 });
         }
 
-        [CommandHandler(Regex = @"election create", Authorize = true, HumanReadableCommand = "election create",
-            HelpText = "Starts new election.", Awaitable = false)]
+        [CommandHandler(
+            Regex = @"election create", 
+            Authorize = true, 
+            HumanReadableCommand = "election create",
+            HelpText = "Starts new election.", 
+            Awaitable = false)]
         public async Task CreateElection(MessageCreateEventArgs args)
         {
             var cts = new CancellationTokenSource();
             var timeout = TimeSpan.FromMinutes(1);
             var guild = BotContext.DiscordClient.GetNullsGuild();
             var member = await guild.GetMemberAsync(args.Author.Id);
-            var channel = await member.CreateDmChannelAsync();           
+            var channel = await member.CreateDmChannelAsync();
+            var user = await UserService.Instance.GetOrCreateUser(args.Author);
             await channel.SendMessageAsync("You are about to create new election, you can always cancel by typing `quit`.\nProvide short name for it:");
 
             var election = new Election();
@@ -52,11 +58,10 @@ namespace BobDono.Modules
 
                 try
                 {
-                    election.Name = "lol";
-                    election.Description = "wy";
-                   // election.Name = await channel.GetNextMessageAsync(timeout, cts.Token);
+
+                    election.Name = await channel.GetNextMessageAsync(timeout, cts.Token);
                     await channel.SendMessageAsync("Longer description if you could:");
-                    //election.Description = await channel.GetNextMessageAsync(timeout, cts.Token);
+                    election.Description = await channel.GetNextMessageAsync(timeout, cts.Token);
                     int submissionDays = 2;
                     while (submissionDays == 0)
                     {
@@ -106,7 +111,7 @@ namespace BobDono.Modules
                 }
                 catch (Exception e)
                 {
-                    
+                    BotContext.ExceptionHandler.Handle(e);
                 }
 
             }
@@ -115,21 +120,7 @@ namespace BobDono.Modules
                 BotContext.NewPrivateMessage -= HandleQuit;
             }
 
-            try
-            {
-                election.Author = await UserService.Instance.GetOrCreateUser(args.Author);
-                using (var context = new BobDatabaseContext())
-                {
-                    context.Users.Attach(election.Author);
-                    election.Author.Elections.Add(election);
-                    context.SaveChanges();
-                }
-            }
-            catch (Exception e)
-            {
-
-            }
-
+            await ElectionService.Instance.CreateElection(election, user);
 
             void HandleQuit(MessageCreateEventArgs a)
             {

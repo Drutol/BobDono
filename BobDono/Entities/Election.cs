@@ -9,6 +9,8 @@ namespace BobDono.Entities
 {
     public class Election : IModelWithRelation
     {
+        private ICollection<WaifuContender> _contenders;
+        private ICollection<BracketStage> _bracketStages;
         public long Id { get; set; } = int.MinValue + 1000;
 
         public ulong DiscordChannelId { get; set; }
@@ -23,7 +25,11 @@ namespace BobDono.Entities
         public DateTime VotingStartDate { get; set; }
         public DateTime VotingEndDate { get; set; }
 
-        public virtual ICollection<BracketStage> BracketStages { get; set; }
+        public virtual ICollection<BracketStage> BracketStages =>
+            _bracketStages ?? (_bracketStages = new HashSet<BracketStage>());
+
+
+        public virtual ICollection<WaifuContender> Contenders { get; set; }
 
         public User Author { get; set; }
 
@@ -39,6 +45,11 @@ namespace BobDono.Entities
             modelBuilder.Entity<Election>()
                 .HasOne(e => e.Author)
                 .WithMany(a => a.Elections);
+
+            modelBuilder.Entity<Election>()
+                .HasMany(e => e.Contenders)
+                .WithOne(wc => wc.Election);
+
         }
     }
 }

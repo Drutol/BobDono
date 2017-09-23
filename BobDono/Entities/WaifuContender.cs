@@ -13,6 +13,7 @@ namespace BobDono.Entities
 
         public User Proposer { get; set; }
         public Waifu Waifu { get; set; }
+        public Election Election { get; set; }
 
         public string CustomImageUrl { get; set; }
 
@@ -23,6 +24,10 @@ namespace BobDono.Entities
             modelBuilder.Entity<WaifuContender>()
                 .HasMany(wc => wc.Votes)
                 .WithOne(v => v.Contender);
+
+            modelBuilder.Entity<WaifuContender>()
+                .HasOne(wc => wc.Election)
+                .WithMany(e => e.Contenders);
         }
     }
 }

@@ -163,6 +163,8 @@ namespace BobDono.Migrations
 
                     b.Property<string>("CustomImageUrl");
 
+                    b.Property<long?>("ElectionId");
+
                     b.Property<long?>("ProposerId");
 
                     b.Property<int>("SeedNumber");
@@ -170,6 +172,8 @@ namespace BobDono.Migrations
                     b.Property<long?>("WaifuId");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ElectionId");
 
                     b.HasIndex("ProposerId");
 
@@ -237,6 +241,10 @@ namespace BobDono.Migrations
 
             modelBuilder.Entity("BobDono.Entities.WaifuContender", b =>
                 {
+                    b.HasOne("BobDono.Entities.Election", "Election")
+                        .WithMany("Contenders")
+                        .HasForeignKey("ElectionId");
+
                     b.HasOne("BobDono.Entities.User", "Proposer")
                         .WithMany()
                         .HasForeignKey("ProposerId");
