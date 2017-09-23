@@ -9,12 +9,13 @@ namespace BobDono.Entities
 {
     public class Election : IModelWithRelation
     {
-        public long Id { get; set; }
+        public long Id { get; set; } = int.MinValue + 1000;
 
         public ulong DiscordChannelId { get; set; }
 
         public string Name { get; set; }
         public string Description { get; set; }
+        public int EntrantsPerUser { get; set; }
 
         public DateTime SubmissionsStartDate { get; set; }
         public DateTime SubmissionsEndDate { get; set; }
@@ -28,6 +29,9 @@ namespace BobDono.Entities
 
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Election>()
+                .HasKey(election => election.Id);
+
             modelBuilder.Entity<Election>()
                 .HasMany(e => e.BracketStages)
                 .WithOne(s => s.Election);

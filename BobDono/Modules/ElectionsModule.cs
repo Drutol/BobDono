@@ -10,6 +10,7 @@ using BobDono.Contexts;
 using BobDono.Database;
 using BobDono.Entities;
 using BobDono.Utils;
+using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
@@ -39,7 +40,8 @@ namespace BobDono.Modules
         {
             var cts = new CancellationTokenSource();
             var timeout = TimeSpan.FromMinutes(1);
-            var member = await BotContext.DiscordClient.GetNullsGuild().GetMemberAsync(args.Author.Id);
+            var guild = BotContext.DiscordClient.GetNullsGuild();
+            var member = await guild.GetMemberAsync(args.Author.Id);
             var channel = await member.CreateDmChannelAsync();           
             await channel.SendMessageAsync("You are about to create new election, you can always cancel by typing `quit`.\nProvide short name for it:");
 
@@ -50,11 +52,13 @@ namespace BobDono.Modules
 
                 try
                 {
-                    election.Name = await channel.GetNextMessageAsync(timeout, cts.Token);
+                    election.Name = "lol";
+                    election.Description = "wy";
+                   // election.Name = await channel.GetNextMessageAsync(timeout, cts.Token);
                     await channel.SendMessageAsync("Longer description if you could:");
-                    election.Description = await channel.GetNextMessageAsync(timeout, cts.Token);
-                    int submissionDays = 0;
-                    while (submissionDays <= 0)
+                    //election.Description = await channel.GetNextMessageAsync(timeout, cts.Token);
+                    int submissionDays = 2;
+                    while (submissionDays == 0)
                     {
                         await channel.SendMessageAsync(
                             "How long would you like the submission period to be? (1-7) days.");
@@ -69,10 +73,40 @@ namespace BobDono.Modules
                     }
                     election.SubmissionsStartDate = DateTime.Now;
                     election.SubmissionsEndDate = DateTime.Now.AddDays(submissionDays);
+                    election.SubmissionsStartDate = election.SubmissionsEndDate.AddHours(2); //TODO Maybe add commands?
+
+                    int submissionCount = 2;
+                    while (submissionCount == 0)
+                    {
+                        await channel.SendMessageAsync("How many contestants can be submitted by one person? (1-9)");
+                        var response = await channel.GetNextMessageAsync(timeout, cts.Token);
+                        if (int.TryParse(response, out int count))
+                        {
+                            if (count >= 1 || count <= 7)
+                            {
+                                submissionCount = count;
+                            }
+                        }
+                    }
+                    election.EntrantsPerUser = submissionCount;
+
+                    await channel.SendMessageAsync(
+                        "That'd be evrything I guess, let the wars begin. I'll now create a new battlefield!");
+
+                    var category = await guild.GetElectionsCategory();
+                    var electionChannel = await guild.CreateChannelAsync(election.Name, ChannelType.Text, category,
+                        null, null, null,
+                        election.Description);
+
+                    election.DiscordChannelId = electionChannel.Id;
                 }
                 catch (OperationCanceledException)
                 {
                     return;
+                }
+                catch (Exception e)
+                {
+                    
                 }
 
             }
@@ -81,11 +115,21 @@ namespace BobDono.Modules
                 BotContext.NewPrivateMessage -= HandleQuit;
             }
 
-            using (var context = new BobDatabaseContext())
+            try
             {
-                context.Elections.Add(election);
-                context.SaveChanges();
+                election.Author = await UserService.Instance.GetOrCreateUser(args.Author);
+                using (var context = new BobDatabaseContext())
+                {
+                    context.Users.Attach(election.Author);
+                    election.Author.Elections.Add(election);
+                    context.SaveChanges();
+                }
             }
+            catch (Exception e)
+            {
+
+            }
+
 
             void HandleQuit(MessageCreateEventArgs a)
             {

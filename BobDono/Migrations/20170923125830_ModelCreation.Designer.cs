@@ -11,7 +11,7 @@ using System;
 namespace BobDono.Migrations
 {
     [DbContext(typeof(BobDatabaseContext))]
-    [Migration("20170923081059_ModelCreation")]
+    [Migration("20170923125830_ModelCreation")]
     partial class ModelCreation
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace BobDono.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long>("BracketStageId");
+                    b.Property<long?>("BracketStageId");
 
                     b.Property<DateTime>("EndDate");
 
@@ -62,13 +62,16 @@ namespace BobDono.Migrations
 
             modelBuilder.Entity("BobDono.Entities.Election", b =>
                 {
-                    b.Property<long>("Id");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<long?>("AuthorId1");
+                    b.Property<long?>("AuthorId");
 
                     b.Property<string>("Description");
 
                     b.Property<ulong>("DiscordChannelId");
+
+                    b.Property<int>("EntrantsPerUser");
 
                     b.Property<string>("Name");
 
@@ -82,7 +85,7 @@ namespace BobDono.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId1");
+                    b.HasIndex("AuthorId");
 
                     b.ToTable("Elections");
                 });
@@ -180,8 +183,7 @@ namespace BobDono.Migrations
                 {
                     b.HasOne("BobDono.Entities.BracketStage", "BracketStage")
                         .WithMany("Brackets")
-                        .HasForeignKey("BracketStageId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("BracketStageId");
 
                     b.HasOne("BobDono.Entities.WaifuContender", "FirstWaifu")
                         .WithMany()
@@ -202,13 +204,8 @@ namespace BobDono.Migrations
             modelBuilder.Entity("BobDono.Entities.Election", b =>
                 {
                     b.HasOne("BobDono.Entities.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId1");
-
-                    b.HasOne("BobDono.Entities.User")
                         .WithMany("Elections")
-                        .HasForeignKey("Id")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("AuthorId");
                 });
 
             modelBuilder.Entity("BobDono.Entities.UserWaifu", b =>

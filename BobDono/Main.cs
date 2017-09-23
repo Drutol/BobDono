@@ -42,7 +42,7 @@ namespace BobDono
             _client.MessageCreated += ClientOnMessageCreated;
 
             BotContext.DiscordClient = _client;
-
+            await Task.Delay(1000);
             BotBackbone.Instance.Initialize();
 
             await Task.Delay(-1);

@@ -20,7 +20,9 @@ namespace BobDono.Entities
 
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<WaifuContender>().HasMany(wc => wc.Votes).WithOne(v => v.Contender);
+            modelBuilder.Entity<WaifuContender>()
+                .HasMany(wc => wc.Votes)
+                .WithOne(v => v.Contender);
         }
     }
 }
