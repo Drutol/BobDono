@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using BobDono.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Entities
 {
-    public class WaifuContender
+    public class WaifuContender : IModelWithRelation
     {
         public long Id { get; set; }
         public int SeedNumber { get; set; }
@@ -12,6 +14,13 @@ namespace BobDono.Entities
         public User Proposer { get; set; }
         public Waifu Waifu { get; set; }
 
-        public ICollection<Vote> Votes { get; set; }
+        public string CustomImageUrl { get; set; }
+
+        public virtual ICollection<Vote> Votes { get; set; }
+
+        public static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<WaifuContender>().HasMany(wc => wc.Votes).WithOne(v => v.Contender);
+        }
     }
 }

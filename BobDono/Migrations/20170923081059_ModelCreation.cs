@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace BobDono.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class ModelCreation : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -12,36 +12,14 @@ namespace BobDono.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<ulong>(type: "INTEGER", nullable: false)
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    DiscordId = table.Column<ulong>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Elections",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AuthorId = table.Column<ulong>(type: "INTEGER", nullable: true),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: true),
-                    StartDate = table.Column<DateTime>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Elections", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Elections_Users_AuthorId",
-                        column: x => x.AuthorId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -53,18 +31,66 @@ namespace BobDono.Migrations
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     ImageUrl = table.Column<string>(type: "TEXT", nullable: true),
                     MalId = table.Column<string>(type: "TEXT", nullable: true),
-                    Name = table.Column<string>(type: "TEXT", nullable: true),
-                    UserId = table.Column<ulong>(type: "INTEGER", nullable: true)
+                    Name = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Waifus", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Elections",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    AuthorId1 = table.Column<long>(type: "INTEGER", nullable: true),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    DiscordChannelId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
+                    SubmissionsEndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    SubmissionsStartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    VotingEndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    VotingStartDate = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Elections", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Waifus_Users_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Elections_Users_AuthorId1",
+                        column: x => x.AuthorId1,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Elections_Users_Id",
+                        column: x => x.Id,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserWaifu",
+                columns: table => new
+                {
+                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
+                    WaifuId = table.Column<long>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserWaifu", x => new { x.UserId, x.WaifuId });
+                    table.ForeignKey(
+                        name: "FK_UserWaifu_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserWaifu_Waifus_WaifuId",
+                        column: x => x.WaifuId,
+                        principalTable: "Waifus",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -73,19 +99,14 @@ namespace BobDono.Migrations
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    ElectionId = table.Column<long>(type: "INTEGER", nullable: true),
-                    ProposerId = table.Column<ulong>(type: "INTEGER", nullable: true),
+                    CustomImageUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    ProposerId = table.Column<long>(type: "INTEGER", nullable: true),
+                    SeedNumber = table.Column<int>(type: "INTEGER", nullable: false),
                     WaifuId = table.Column<long>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WaifuContenders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_WaifuContenders_Elections_ElectionId",
-                        column: x => x.ElectionId,
-                        principalTable: "Elections",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_WaifuContenders_Users_ProposerId",
                         column: x => x.ProposerId,
@@ -101,12 +122,31 @@ namespace BobDono.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "BracketStage",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ElectionId = table.Column<long>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BracketStage", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BracketStage_Elections_ElectionId",
+                        column: x => x.ElectionId,
+                        principalTable: "Elections",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Brackets",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    ElectionId = table.Column<long>(type: "INTEGER", nullable: true),
+                    BracketStageId = table.Column<long>(type: "INTEGER", nullable: false),
                     EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     FirstWaifuId = table.Column<long>(type: "INTEGER", nullable: true),
                     SecondWaifuId = table.Column<long>(type: "INTEGER", nullable: true),
@@ -116,11 +156,11 @@ namespace BobDono.Migrations
                 {
                     table.PrimaryKey("PK_Brackets", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Brackets_Elections_ElectionId",
-                        column: x => x.ElectionId,
-                        principalTable: "Elections",
+                        name: "FK_Brackets_BracketStage_BracketStageId",
+                        column: x => x.BracketStageId,
+                        principalTable: "BracketStage",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Brackets_WaifuContenders_FirstWaifuId",
                         column: x => x.FirstWaifuId,
@@ -142,9 +182,8 @@ namespace BobDono.Migrations
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     BracketId = table.Column<long>(type: "INTEGER", nullable: true),
-                    UserId = table.Column<ulong>(type: "INTEGER", nullable: true),
-                    VotedWaifuId = table.Column<long>(type: "INTEGER", nullable: true),
-                    WaifuContenderId = table.Column<long>(type: "INTEGER", nullable: true)
+                    ContenderId = table.Column<long>(type: "INTEGER", nullable: true),
+                    UserId = table.Column<long>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -156,29 +195,23 @@ namespace BobDono.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+                        name: "FK_Votes_WaifuContenders_ContenderId",
+                        column: x => x.ContenderId,
+                        principalTable: "WaifuContenders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Votes_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Votes_Waifus_VotedWaifuId",
-                        column: x => x.VotedWaifuId,
-                        principalTable: "Waifus",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Votes_WaifuContenders_WaifuContenderId",
-                        column: x => x.WaifuContenderId,
-                        principalTable: "WaifuContenders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Brackets_ElectionId",
+                name: "IX_Brackets_BracketStageId",
                 table: "Brackets",
-                column: "ElectionId");
+                column: "BracketStageId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Brackets_FirstWaifuId",
@@ -191,9 +224,19 @@ namespace BobDono.Migrations
                 column: "SecondWaifuId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Elections_AuthorId",
+                name: "IX_BracketStage_ElectionId",
+                table: "BracketStage",
+                column: "ElectionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Elections_AuthorId1",
                 table: "Elections",
-                column: "AuthorId");
+                column: "AuthorId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserWaifu_WaifuId",
+                table: "UserWaifu",
+                column: "WaifuId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Votes_BracketId",
@@ -201,24 +244,14 @@ namespace BobDono.Migrations
                 column: "BracketId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Votes_ContenderId",
+                table: "Votes",
+                column: "ContenderId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Votes_UserId",
                 table: "Votes",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Votes_VotedWaifuId",
-                table: "Votes",
-                column: "VotedWaifuId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Votes_WaifuContenderId",
-                table: "Votes",
-                column: "WaifuContenderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WaifuContenders_ElectionId",
-                table: "WaifuContenders",
-                column: "ElectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WaifuContenders_ProposerId",
@@ -229,20 +262,21 @@ namespace BobDono.Migrations
                 name: "IX_WaifuContenders_WaifuId",
                 table: "WaifuContenders",
                 column: "WaifuId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Waifus_UserId",
-                table: "Waifus",
-                column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "UserWaifu");
+
+            migrationBuilder.DropTable(
                 name: "Votes");
 
             migrationBuilder.DropTable(
                 name: "Brackets");
+
+            migrationBuilder.DropTable(
+                name: "BracketStage");
 
             migrationBuilder.DropTable(
                 name: "WaifuContenders");

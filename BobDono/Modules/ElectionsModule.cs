@@ -53,6 +53,22 @@ namespace BobDono.Modules
                     election.Name = await channel.GetNextMessageAsync(timeout, cts.Token);
                     await channel.SendMessageAsync("Longer description if you could:");
                     election.Description = await channel.GetNextMessageAsync(timeout, cts.Token);
+                    int submissionDays = 0;
+                    while (submissionDays <= 0)
+                    {
+                        await channel.SendMessageAsync(
+                            "How long would you like the submission period to be? (1-7) days.");
+                        var response = await channel.GetNextMessageAsync(timeout, cts.Token);
+                        if (int.TryParse(response, out int days))
+                        {
+                            if (days >= 1 || days <= 7)
+                            {
+                                submissionDays = days;
+                            }
+                        }
+                    }
+                    election.SubmissionsStartDate = DateTime.Now;
+                    election.SubmissionsEndDate = DateTime.Now.AddDays(submissionDays);
                 }
                 catch (OperationCanceledException)
                 {

@@ -9,6 +9,9 @@ namespace BobDono.Entities
     {
         public long Id { get; set; }
 
+        public long BracketStageId { get; set; }
+        public BracketStage BracketStage { get; set; }
+
         public WaifuContender FirstWaifu { get; set; }
         public WaifuContender SecondWaifu { get; set; }
 

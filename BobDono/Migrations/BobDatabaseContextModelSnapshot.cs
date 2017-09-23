@@ -24,7 +24,7 @@ namespace BobDono.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long?>("ElectionId");
+                    b.Property<long>("BracketStageId");
 
                     b.Property<DateTime>("EndDate");
 
@@ -36,7 +36,7 @@ namespace BobDono.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ElectionId");
+                    b.HasIndex("BracketStageId");
 
                     b.HasIndex("FirstWaifuId");
 
@@ -45,38 +45,72 @@ namespace BobDono.Migrations
                     b.ToTable("Brackets");
                 });
 
-            modelBuilder.Entity("BobDono.Entities.Election", b =>
+            modelBuilder.Entity("BobDono.Entities.BracketStage", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<ulong?>("AuthorId");
-
-                    b.Property<string>("Description");
-
-                    b.Property<DateTime>("EndDate");
-
-                    b.Property<string>("Name");
-
-                    b.Property<DateTime>("StartDate");
+                    b.Property<long?>("ElectionId");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("ElectionId");
+
+                    b.ToTable("BracketStage");
+                });
+
+            modelBuilder.Entity("BobDono.Entities.Election", b =>
+                {
+                    b.Property<long>("Id");
+
+                    b.Property<long?>("AuthorId1");
+
+                    b.Property<string>("Description");
+
+                    b.Property<ulong>("DiscordChannelId");
+
+                    b.Property<string>("Name");
+
+                    b.Property<DateTime>("SubmissionsEndDate");
+
+                    b.Property<DateTime>("SubmissionsStartDate");
+
+                    b.Property<DateTime>("VotingEndDate");
+
+                    b.Property<DateTime>("VotingStartDate");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId1");
 
                     b.ToTable("Elections");
                 });
 
             modelBuilder.Entity("BobDono.Entities.User", b =>
                 {
-                    b.Property<ulong>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<ulong>("DiscordId");
 
                     b.Property<string>("Name");
 
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("BobDono.Entities.UserWaifu", b =>
+                {
+                    b.Property<long>("UserId");
+
+                    b.Property<long>("WaifuId");
+
+                    b.HasKey("UserId", "WaifuId");
+
+                    b.HasIndex("WaifuId");
+
+                    b.ToTable("UserWaifu");
                 });
 
             modelBuilder.Entity("BobDono.Entities.Vote", b =>
@@ -86,21 +120,17 @@ namespace BobDono.Migrations
 
                     b.Property<long?>("BracketId");
 
-                    b.Property<ulong?>("UserId");
+                    b.Property<long?>("ContenderId");
 
-                    b.Property<long?>("VotedWaifuId");
-
-                    b.Property<long?>("WaifuContenderId");
+                    b.Property<long?>("UserId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BracketId");
 
+                    b.HasIndex("ContenderId");
+
                     b.HasIndex("UserId");
-
-                    b.HasIndex("VotedWaifuId");
-
-                    b.HasIndex("WaifuContenderId");
 
                     b.ToTable("Votes");
                 });
@@ -118,11 +148,7 @@ namespace BobDono.Migrations
 
                     b.Property<string>("Name");
 
-                    b.Property<ulong?>("UserId");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Waifus");
                 });
@@ -132,15 +158,15 @@ namespace BobDono.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long?>("ElectionId");
+                    b.Property<string>("CustomImageUrl");
 
-                    b.Property<ulong?>("ProposerId");
+                    b.Property<long?>("ProposerId");
+
+                    b.Property<int>("SeedNumber");
 
                     b.Property<long?>("WaifuId");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ElectionId");
 
                     b.HasIndex("ProposerId");
 
@@ -151,9 +177,10 @@ namespace BobDono.Migrations
 
             modelBuilder.Entity("BobDono.Entities.Bracket", b =>
                 {
-                    b.HasOne("BobDono.Entities.Election")
+                    b.HasOne("BobDono.Entities.BracketStage", "BracketStage")
                         .WithMany("Brackets")
-                        .HasForeignKey("ElectionId");
+                        .HasForeignKey("BracketStageId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("BobDono.Entities.WaifuContender", "FirstWaifu")
                         .WithMany()
@@ -164,11 +191,36 @@ namespace BobDono.Migrations
                         .HasForeignKey("SecondWaifuId");
                 });
 
+            modelBuilder.Entity("BobDono.Entities.BracketStage", b =>
+                {
+                    b.HasOne("BobDono.Entities.Election", "Election")
+                        .WithMany("BracketStages")
+                        .HasForeignKey("ElectionId");
+                });
+
             modelBuilder.Entity("BobDono.Entities.Election", b =>
                 {
                     b.HasOne("BobDono.Entities.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId1");
+
+                    b.HasOne("BobDono.Entities.User")
                         .WithMany("Elections")
-                        .HasForeignKey("AuthorId");
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("BobDono.Entities.UserWaifu", b =>
+                {
+                    b.HasOne("BobDono.Entities.User", "User")
+                        .WithMany("Waifus")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("BobDono.Entities.Waifu", "Waifu")
+                        .WithMany("Users")
+                        .HasForeignKey("WaifuId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("BobDono.Entities.Vote", b =>
@@ -177,32 +229,17 @@ namespace BobDono.Migrations
                         .WithMany()
                         .HasForeignKey("BracketId");
 
-                    b.HasOne("BobDono.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.HasOne("BobDono.Entities.Waifu", "VotedWaifu")
-                        .WithMany()
-                        .HasForeignKey("VotedWaifuId");
-
-                    b.HasOne("BobDono.Entities.WaifuContender")
+                    b.HasOne("BobDono.Entities.WaifuContender", "Contender")
                         .WithMany("Votes")
-                        .HasForeignKey("WaifuContenderId");
-                });
+                        .HasForeignKey("ContenderId");
 
-            modelBuilder.Entity("BobDono.Entities.Waifu", b =>
-                {
-                    b.HasOne("BobDono.Entities.User")
-                        .WithMany("Waifus")
+                    b.HasOne("BobDono.Entities.User", "User")
+                        .WithMany("Votes")
                         .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("BobDono.Entities.WaifuContender", b =>
                 {
-                    b.HasOne("BobDono.Entities.Election")
-                        .WithMany("Contenders")
-                        .HasForeignKey("ElectionId");
-
                     b.HasOne("BobDono.Entities.User", "Proposer")
                         .WithMany()
                         .HasForeignKey("ProposerId");
