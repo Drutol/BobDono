@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using BobDono.Attributes;
-using BobDono.BL;
-using BobDono.BL.Services;
-using BobDono.Entities;
-using BobDono.Extensions;
+using BobDono.Core;
+using BobDono.Core.Attributes;
+using BobDono.Core.BL;
+using BobDono.Core.Extensions;
+using BobDono.Core.Utils;
+using BobDono.DataAccess.Services;
 using BobDono.Interfaces;
-using BobDono.Utils;
+using BobDono.Models.Entities;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
@@ -24,11 +24,22 @@ namespace BobDono.Contexts
 
         public override ulong? ChannelIdContext { get; }
 
+
+        private readonly IWaifuService _waifuService;
+        private readonly IElectionService _electionService;
+        private readonly IUserService _userService;
+        private readonly IContenderService _contenderService;
+
         public ElectionContext(Election election)
         {
             _election = election;
-            _channel = BotContext.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
+            _channel = ResourceLocator.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
             ChannelIdContext = election.DiscordChannelId;
+
+            _waifuService = ResourceLocator.WaifuService;
+            _electionService = ResourceLocator.ElectionService;
+            _userService = ResourceLocator.UserService;
+            _contenderService = ResourceLocator.ContenderService;
 
             TimerService.Instance.Register(
                 new TimerService.TimerRegistration
@@ -53,9 +64,9 @@ namespace BobDono.Contexts
                 "to capture the glory of your proposed character.")]
         public async Task AddContender(MessageCreateEventArgs args)
         {
-            var user = await UserService.Instance.GetOrCreateUser(args.Author);
+            var user = await _userService.GetOrCreateUser(args.Author);
 
-            _election = await ElectionService.Instance.GetElection(_election.Id);
+            _election = await _electionService.GetElection(_election.Id);
 
             var count = _election.Contenders?.Count(c => c.Proposer.Id == user.Id);
 
@@ -70,12 +81,12 @@ namespace BobDono.Contexts
 
             var arguments = args.Message.Content.Split(" ");
 
-            var waifu = await WaifuService.Instance.GetOrCreateWaifu(arguments[2]);
+            var waifu = await _waifuService.GetOrCreateWaifu(arguments[2]);
 
-            var contender = await ContenderService.Instance.CreateContender(user, waifu, _election,
+            var contender = await _contenderService.CreateContender(user, waifu, _election,
                 arguments.Length == 4 ? arguments[3] : null);
 
-            _election = await ElectionService.Instance.GetElection(_election.Id);
+            _election = await _electionService.GetElection(_election.Id);
 
             await args.Message.DeleteAsync();
 

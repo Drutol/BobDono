@@ -1,8 +1,11 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using BobDono.Attributes;
-using BobDono.BL;
-using BobDono.Utils;
+using BobDono.Core;
+using BobDono.Core.Attributes;
+using BobDono.Core.BL;
+using BobDono.Core.Utils;
+using BobDono.Interfaces;
+using BobDono.MalHell.Queries;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
@@ -11,6 +14,17 @@ namespace BobDono.Modules
     [Module(Name = "Waifu",Description = "Retrieve character data from MAL.")]
     public class WaifuModule
     {
+        private ICharactersSearchQuery _charactersSearchQuery;
+        private IProfileQuery _profileQuery;
+        private ICharacterDetailsQuery _characterDetailsQuery;
+
+        public WaifuModule()
+        {
+            _charactersSearchQuery = ResourceLocator.CharactersSearchQuery;
+            _profileQuery = ResourceLocator.ProfileQuery;
+            _characterDetailsQuery = ResourceLocator.CharacterDetailsQuery;
+        }
+
         [CommandHandler(Regex = @"waifus", HumanReadableCommand = "waifus",HelpText = "Shows favourite character of the caller.")]
         public async Task DisplayFavouriteCharacterForUser(MessageCreateEventArgs args)
         {
@@ -42,7 +56,7 @@ namespace BobDono.Modules
         public async Task GetCharacterInfo(MessageCreateEventArgs args)
         {
             var messageArgs = args.Message.Content.Split(' ');
-            var searchResults = await BotContext.CharactersSearchQuery.GetSearchResults(messageArgs[1]);
+            var searchResults = await _charactersSearchQuery.GetSearchResults(messageArgs[1]);
             if (!searchResults?.Any() ?? true)
             {
                 await args.Channel.SendMessageAsync("Nothing found... maybe your waifu doesn't exist yet?");
@@ -56,7 +70,7 @@ namespace BobDono.Modules
             if (id == null)
                 id = searchResults.First().Id;
 
-            var details = await BotContext.CharacterDetailsQuery.GetCharacterDetails(int.Parse(id));
+            var details = await _characterDetailsQuery.GetCharacterDetails(int.Parse(id));
 
             var builder = new DiscordEmbedBuilder
             {
@@ -73,7 +87,7 @@ namespace BobDono.Modules
 
         private async Task<string> GetCharactersReplyForUser(string malUsername)
         {
-            var data = await BotContext.ProfileQuery.GetProfileData(malUsername);
+            var data = await _profileQuery.GetProfileData(malUsername);
             return $"Waifus:\n{string.Join("\n", data.FavouriteCharacters.Select(character => character.Name))}";
         }
 

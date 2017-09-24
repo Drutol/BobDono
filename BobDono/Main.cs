@@ -5,10 +5,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BobDono.Attributes;
-using BobDono.BL;
-using BobDono.Interfaces;
-using BobDono.Utils;
+using BobDono.Core;
+using BobDono.Core.BL;
+using BobDono.Core.Interfaces;
+using BobDono.Core.Utils;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 
@@ -17,16 +17,17 @@ namespace BobDono
     public class BobDono
     {
         private DiscordClient _client;
-        
+        private IBotBackbone _botBackbone;
+
         public static async Task Main(string[] args)
         {
+
             var prog = new BobDono();
             await prog.RunBotAsync();
         }
 
         private async Task RunBotAsync()
         {
-
             _client = new DiscordClient(new DiscordConfiguration
             {
                 Token = Secrets.BotKey,
@@ -36,15 +37,14 @@ namespace BobDono
                 LogLevel = LogLevel.Debug,
                 UseInternalLogHandler = true
             });
-
+            ResourceLocator.RegisterDependencies(_client);
             await _client.ConnectAsync();
 
             _client.MessageCreated += ClientOnMessageCreated;
 
-            BotContext.DiscordClient = _client;
             await Task.Delay(1000);
-            BotBackbone.Instance.Initialize();
-
+            _botBackbone = ResourceLocator.BotBackbone;
+            _botBackbone.Initialize();
             await Task.Delay(-1);
         }
 #pragma warning disable 4014
@@ -53,7 +53,7 @@ namespace BobDono
             if (messageCreateEventArgs.Author.IsBot)
                 return;
 
-            foreach (var handlerEntry in BotBackbone.Instance.Handlers)
+            foreach (var handlerEntry in _botBackbone.Handlers)
             {
                 if (!handlerEntry.AreTypesEqual(typeof(MessageCreateEventArgs)))
                     continue;                
@@ -90,7 +90,7 @@ namespace BobDono
                 }
                 catch (Exception e)
                 {
-                    await messageCreateEventArgs.Channel.SendMessageAsync(BotContext.ExceptionHandler.Handle(e));
+                    await messageCreateEventArgs.Channel.SendMessageAsync(ResourceLocator.ExceptionHandler.Handle(e));
                 }
             }
         }

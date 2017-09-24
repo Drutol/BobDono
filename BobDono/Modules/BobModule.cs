@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BobDono.Attributes;
-using BobDono.Utils;
+using BobDono.Core;
+using BobDono.Core.Attributes;
+using BobDono.Core.Utils;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
@@ -22,7 +23,7 @@ namespace BobDono.Modules
             builder.ThumbnailUrl =
                 "https://yt3.ggpht.com/-uJh4oSQAwak/AAAAAAAAAAI/AAAAAAAAAAA/AMGKfKvDP3w/s900-c-k-no-mo-rj-c0xffffff/photo.jpg";
 
-            foreach (var module in BotContext.Commands)
+            foreach (var module in ResourceLocator.BotContext.Commands)
             {
                 if (module.Key.Hidden)
                     continue;
@@ -38,7 +39,7 @@ namespace BobDono.Modules
         public async Task HelpCommand(MessageCreateEventArgs args)
         {
             var cmd = args.Message.Content.Split(' ').Last();
-            var handler = BotContext.Commands.Values.SelectMany(list => list).FirstOrDefault(attribute => attribute.HumanReadableCommand != null &&
+            var handler = ResourceLocator.BotContext.Commands.Values.SelectMany(list => list).FirstOrDefault(attribute => attribute.HumanReadableCommand != null &&
                 attribute.HumanReadableCommand.Substring(1).Split(' ').First().Equals(cmd, StringComparison.CurrentCultureIgnoreCase));
             if (handler != null)
             {

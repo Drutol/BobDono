@@ -4,13 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BobDono.Attributes;
-using BobDono.BL;
-using BobDono.BL.Services;
 using BobDono.Contexts;
-using BobDono.Database;
-using BobDono.Entities;
-using BobDono.Utils;
+using BobDono.Core;
+using BobDono.Core.Attributes;
+using BobDono.Core.BL;
+using BobDono.Core.Extensions;
+using BobDono.Core.Interfaces;
+using BobDono.Core.Utils;
+using BobDono.DataAccess.Database;
+using BobDono.DataAccess.Services;
+using BobDono.Interfaces;
+using BobDono.Models.Entities;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -21,6 +25,10 @@ namespace BobDono.Modules
     public class ElectionsModule
     {
         private List<ElectionContext> _electionsContexts;
+        private IUserService _userService;
+        private IElectionService _electionService;
+        private IExceptionHandler _exceptionHandler;
+        private IBotContext _botContext;
 
         public ElectionsModule()
         {
@@ -33,6 +41,11 @@ namespace BobDono.Modules
                             .ToList();
                     }
                 });
+
+            _userService = ResourceLocator.UserService;
+            _electionService = ResourceLocator.ElectionService;
+            _exceptionHandler = ResourceLocator.ExceptionHandler;
+            _botContext = ResourceLocator.BotContext;
         }
 
         [CommandHandler(
@@ -45,16 +58,16 @@ namespace BobDono.Modules
         {
             var cts = new CancellationTokenSource();
             var timeout = TimeSpan.FromMinutes(1);
-            var guild = BotContext.DiscordClient.GetNullsGuild();
+            var guild = ResourceLocator.DiscordClient.GetNullsGuild();
             var member = await guild.GetMemberAsync(args.Author.Id);
             var channel = await member.CreateDmChannelAsync();
-            var user = await UserService.Instance.GetOrCreateUser(args.Author);
+            var user = await _userService.GetOrCreateUser(args.Author);
             await channel.SendMessageAsync("You are about to create new election, you can always cancel by typing `quit`.\nProvide short name for it:");
 
             var election = new Election();
             try
             {
-                BotContext.NewPrivateMessage += HandleQuit;
+                _botContext.NewPrivateMessage += HandleQuit;
 
                 try
                 {
@@ -111,16 +124,16 @@ namespace BobDono.Modules
                 }
                 catch (Exception e)
                 {
-                    BotContext.ExceptionHandler.Handle(e);
+                    _exceptionHandler.Handle(e);
                 }
 
             }
             finally
             {
-                BotContext.NewPrivateMessage -= HandleQuit;
+                _botContext.NewPrivateMessage -= HandleQuit;
             }
 
-            await ElectionService.Instance.CreateElection(election, user);
+            await _electionService.CreateElection(election, user);
 
             void HandleQuit(MessageCreateEventArgs a)
             {

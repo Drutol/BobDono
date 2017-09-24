@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BobDono.Attributes;
-using BobDono.Utils;
+using BobDono.Core;
+using BobDono.Core.Attributes;
+using BobDono.Core.Utils;
 using DSharpPlus.EventArgs;
 
 namespace BobDono.Modules
@@ -13,10 +14,10 @@ namespace BobDono.Modules
         [CommandHandler(Regex = @"bugs")]
         public async Task DisplayExceptions(MessageCreateEventArgs args)
         {
-            if (BotContext.ExceptionHandler.CaughtThings.Any())
+            if (ResourceLocator.ExceptionHandler.CaughtThings.Any())
             {
                 await args.Channel.SendMessageAsync(string.Join("\n\n",
-                    BotContext.ExceptionHandler.CaughtThings.Select(exception =>
+                    ResourceLocator.ExceptionHandler.CaughtThings.Select(exception =>
                         $"```{exception}```")).Substring(0,2000));
             }
             else
