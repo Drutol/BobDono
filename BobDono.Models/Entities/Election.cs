@@ -8,7 +8,7 @@ namespace BobDono.Models.Entities
     {
         private ICollection<WaifuContender> _contenders;
         private ICollection<BracketStage> _bracketStages;
-        public long Id { get; set; } = int.MinValue + 1000;
+        public long Id { get; set; }
 
         public ulong DiscordChannelId { get; set; }
 

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Autofac;
+using BobDono.Core.Attributes;
 using BobDono.Core.BL;
 using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
@@ -20,7 +22,7 @@ namespace BobDono.Core
         private static ILifetimeScope _container;
 
 
-        public static void RegisterDependencies(DiscordClient client)
+        public static void RegisterDependencies(DiscordClient client, params Type[] types)
         {
             var builder = new ContainerBuilder();
 
@@ -40,8 +42,17 @@ namespace BobDono.Core
 
             builder.RegisterInstance(client).As<DiscordClient>();
 
+
+
+            foreach (var type in types.Union(BL.BotBackbone.GetModules()))
+            {
+                builder.RegisterType(type);
+            }
+
             _container = builder.Build().BeginLifetimeScope();
         }
+
+        public static ILifetimeScope ObtainScope() => _container.BeginLifetimeScope();
 
         public static DiscordClient DiscordClient => _container.Resolve<DiscordClient>();
 

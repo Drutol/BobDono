@@ -20,9 +20,9 @@ namespace BobDono.Contexts
     public class ElectionContext : ContextModuleBase
     {
         private Election _election;
-        private readonly DiscordChannel _channel;
+        private DiscordChannel _channel;
 
-        public override ulong? ChannelIdContext { get; }
+        public override ulong? ChannelIdContext { get; protected set; }
 
 
         private readonly IWaifuService _waifuService;
@@ -30,24 +30,25 @@ namespace BobDono.Contexts
         private readonly IUserService _userService;
         private readonly IContenderService _contenderService;
 
-        public ElectionContext(Election election)
+        public ElectionContext(Election election, IWaifuService waifuService, IElectionService electionService, IUserService userService, IContenderService contenderService)
         {
+            _waifuService = waifuService;
+            _electionService = electionService;
+            _userService = userService;
+            _contenderService = contenderService;
+
             _election = election;
             _channel = ResourceLocator.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
             ChannelIdContext = election.DiscordChannelId;
 
-            _waifuService = ResourceLocator.WaifuService;
-            _electionService = ResourceLocator.ElectionService;
-            _userService = ResourceLocator.UserService;
-            _contenderService = ResourceLocator.ContenderService;
-
             TimerService.Instance.Register(
                 new TimerService.TimerRegistration
-                    {
-                        Interval = TimeSpan.FromHours(1),
-                        Task = OnHourPassed
-                    }.FireOnNextFullHour());
+                {
+                    Interval = TimeSpan.FromHours(1),
+                    Task = OnHourPassed
+                }.FireOnNextFullHour());
         }
+
 
 
         #region Commands

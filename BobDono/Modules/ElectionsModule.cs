@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac;
+using Autofac.Core;
 using BobDono.Contexts;
 using BobDono.Core;
 using BobDono.Core.Attributes;
@@ -24,28 +26,29 @@ namespace BobDono.Modules
     [Module]
     public class ElectionsModule
     {
-        private List<ElectionContext> _electionsContexts;
-        private IUserService _userService;
-        private IElectionService _electionService;
-        private IExceptionHandler _exceptionHandler;
-        private IBotContext _botContext;
+        private readonly IUserService _userService;
+        private readonly IBotContext _botContext;
+        private readonly IExceptionHandler _exceptionHandler;
+        private readonly IElectionService _electionService;
+        private readonly List<ElectionContext> _electionsContexts = new List<ElectionContext>();
 
-        public ElectionsModule()
+        public ElectionsModule(IUserService userService,IBotContext botContext, IExceptionHandler exceptionHandler, IElectionService  electionService)
         {
-            Task.Run(() =>
-                {
-                    using (var db = new BobDatabaseContext())
-                    {
-                        _electionsContexts = db.Elections
-                            .Select(election => new ElectionContext(election))
-                            .ToList();
-                    }
-                });
+            _userService = userService;
+            _botContext = botContext;
+            _exceptionHandler = exceptionHandler;
+            _electionService = electionService;
 
-            _userService = ResourceLocator.UserService;
-            _electionService = ResourceLocator.ElectionService;
-            _exceptionHandler = ResourceLocator.ExceptionHandler;
-            _botContext = ResourceLocator.BotContext;
+            using (var dependencyScope = ResourceLocator.ObtainScope())
+            {
+                using (var db = new BobDatabaseContext())
+                {
+                    _electionsContexts = db.Elections
+                        .Select(election =>
+                            dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election), election)))
+                        .ToList();
+                }
+            }
         }
 
         [CommandHandler(
@@ -110,13 +113,21 @@ namespace BobDono.Modules
 
                     await channel.SendMessageAsync(
                         "That'd be evrything I guess, let the wars begin. I'll now create a new battlefield!");
+                    try
+                    {
+                        var category = await guild.GetElectionsCategory();
+                        var electionChannel = await guild.CreateChannelAsync(election.Name, ChannelType.Text, category,
+                            null, null, null,
+                            election.Description);
+                        election.DiscordChannelId = electionChannel.Id;
+                    }
+                    catch (Exception e)
+                    {
 
-                    var category = await guild.GetElectionsCategory();
-                    var electionChannel = await guild.CreateChannelAsync(election.Name, ChannelType.Text, category,
-                        null, null, null,
-                        election.Description);
+                    }
 
-                    election.DiscordChannelId = electionChannel.Id;
+
+      
                 }
                 catch (OperationCanceledException)
                 {
@@ -133,7 +144,21 @@ namespace BobDono.Modules
                 _botContext.NewPrivateMessage -= HandleQuit;
             }
 
-            await _electionService.CreateElection(election, user);
+
+            try
+            {
+                using (var dependencyScope = ResourceLocator.ObtainScope())
+                {
+                    _electionsContexts.Add(dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
+                        await _electionService.CreateElection(election, user))));
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
+
+
 
             void HandleQuit(MessageCreateEventArgs a)
             {

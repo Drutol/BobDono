@@ -61,7 +61,7 @@ namespace BobDono.Core.BL
                 var msgCreatedArgs = args[0] as MessageCreateEventArgs;
                 var module = args[1] as IModule;
 
-                return msgCreatedArgs.Channel.Id == module.ChannelIdContext.Value;
+                return module.ChannelIdContext.HasValue && msgCreatedArgs.Channel.Id == module.ChannelIdContext.Value;
             }
         }
     }

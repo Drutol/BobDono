@@ -14,15 +14,15 @@ namespace BobDono.Modules
     [Module(Name = "Waifu",Description = "Retrieve character data from MAL.")]
     public class WaifuModule
     {
-        private ICharactersSearchQuery _charactersSearchQuery;
-        private IProfileQuery _profileQuery;
-        private ICharacterDetailsQuery _characterDetailsQuery;
+        private readonly ICharactersSearchQuery _charactersSearchQuery;
+        private readonly IProfileQuery _profileQuery;
+        private readonly ICharacterDetailsQuery _characterDetailsQuery;
 
-        public WaifuModule()
+        public WaifuModule(ICharactersSearchQuery charactersSearchQuery, IProfileQuery profileQuery, ICharacterDetailsQuery characterDetailsQuery)
         {
-            _charactersSearchQuery = ResourceLocator.CharactersSearchQuery;
-            _profileQuery = ResourceLocator.ProfileQuery;
-            _characterDetailsQuery = ResourceLocator.CharacterDetailsQuery;
+            _charactersSearchQuery = charactersSearchQuery;
+            _profileQuery = profileQuery;
+            _characterDetailsQuery = characterDetailsQuery;
         }
 
         [CommandHandler(Regex = @"waifus", HumanReadableCommand = "waifus",HelpText = "Shows favourite character of the caller.")]

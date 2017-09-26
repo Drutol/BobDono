@@ -11,10 +11,7 @@ namespace BobDono.Contexts
 {
     public abstract class ContextModuleBase : IModule
     {
-        public abstract ulong? ChannelIdContext { get; }
-
-        
-
+        public abstract ulong? ChannelIdContext { get; protected set; }
 
         protected ContextModuleBase()
         {
