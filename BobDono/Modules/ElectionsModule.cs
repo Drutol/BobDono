@@ -43,10 +43,21 @@ namespace BobDono.Modules
             {
                 using (var db = new BobDatabaseContext())
                 {
-                    _electionsContexts = db.Elections
-                        .Select(election =>
-                            dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election), election)))
-                        .ToList();
+                    foreach (var election in db.Elections)
+                    {
+                        try
+                        {
+                            _electionsContexts.Add(
+                                dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
+                                    election)));
+                        }
+                        catch (Exception)
+                        {
+                            db.Elections.Remove(election);
+                        }
+                    }
+
+                    db.SaveChanges();
                 }
             }
         }

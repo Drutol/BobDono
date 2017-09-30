@@ -19,12 +19,13 @@ namespace BobDono.Core.BL
 
         private readonly Type[] _arguments;
 
-        public HandlerEntry(Type[] arguments)
+        public HandlerEntry(CommandHandlerAttribute attribute, Type[] arguments)
         {
+            Attribute = attribute;
             _arguments = arguments;
         }
 
-        public CommandHandlerAttribute Attribute { get; set; }
+        public CommandHandlerAttribute Attribute { get; }
 
         public List<ICommandPredicate> Predicates { get; } =
             new List<ICommandPredicate>();

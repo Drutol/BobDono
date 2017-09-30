@@ -22,7 +22,7 @@ namespace BobDono.Contexts
         private Election _election;
         private DiscordChannel _channel;
 
-        public override ulong? ChannelIdContext { get; protected set; }
+        public sealed override ulong? ChannelIdContext { get; protected set; }
 
 
         private readonly IWaifuService _waifuService;
@@ -39,6 +39,10 @@ namespace BobDono.Contexts
 
             _election = election;
             _channel = ResourceLocator.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
+
+            if(_channel == null)
+                throw new InvalidOperationException("Discord channel is invalid");
+
             ChannelIdContext = election.DiscordChannelId;
 
             TimerService.Instance.Register(
@@ -47,16 +51,14 @@ namespace BobDono.Contexts
                     Interval = TimeSpan.FromHours(1),
                     Task = OnHourPassed
                 }.FireOnNextFullHour());
+
+            ClearChannel();
         }
 
 
 
         #region Commands
-
-        
-
-        #endregion
-
+         
         [CommandHandler(Regex = @"add contender \d+\s?(.*)?",
             HumanReadableCommand = "add contender <malId> [imageOverride]",
             HelpText =
@@ -94,11 +96,41 @@ namespace BobDono.Contexts
             await args.Channel.SendMessageAsync(null, false, contender.GetEmbed());
         }
 
+        [CommandHandler(FallbackCommand = true)]
+        public async Task FallbackCommand(MessageCreateEventArgs args)
+        {
+            await args.Message.DeleteAsync();
+        }
 
+        #endregion
 
         private void OnHourPassed()
         {
 
+        }
+
+        private async void ClearChannel()
+        {
+            var messages = await _channel.GetMessagesAsync();
+
+            foreach (var message in messages)
+            {
+                if (!message.Author.IsBot)
+                    await message.DeleteAsync();
+            }
+        }
+
+        public void OnCreated()
+        {
+            var embed = new DiscordEmbedBuilder();
+
+            embed.Color = DiscordColor.Gold;
+            embed.Description = _election.Description;
+            embed.Title = $"Election: {_election.Name}";
+            embed.Author = new DiscordEmbedBuilder.EmbedAuthor {Name = _election.Author.Name};
+            embed.AddField("Submission time:",
+                $"{_election.SubmissionsStartDate} - {_election.SubmissionsEndDate} - *({(_election.SubmissionsEndDate - _election.SubmissionsStartDate).Days} days)*");
+            embed.AddField("Entrants per person:", _election.EntrantsPerUser.ToString());
         }
 
     }

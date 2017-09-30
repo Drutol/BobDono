@@ -54,18 +54,14 @@ namespace BobDono.Core.BL
                             dict[module.attr].Add(methodAttribute);
                             methodAttribute.ParentModuleAttribute = module.attr;
                             var handler =
-                                new HandlerEntry(method.GetParameters().Select(info => info.ParameterType).ToArray())
-                                {
-                                    Predicates =
-                                    {
-                                        CommandPredicates.Regex
-                                    },
-                                    Attribute = methodAttribute,
-                                };
+                                new HandlerEntry(methodAttribute,
+                                    method.GetParameters().Select(info => info.ParameterType).ToArray());
+
+                            if(!string.IsNullOrEmpty(methodAttribute.Regex))
+                                handler.Predicates.Add(CommandPredicates.Regex);
+
                             if (module.attr.Authorize || methodAttribute.Authorize)
-                            {
                                 handler.Predicates.Add(CommandPredicates.Authorize);
-                            }
 
                             if (methodAttribute.LimitToChannel != null)
                                 handler.Predicates.Add(CommandPredicates.Channel);

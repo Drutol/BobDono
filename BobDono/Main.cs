@@ -6,9 +6,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BobDono.Core;
+using BobDono.Core.Attributes;
 using BobDono.Core.BL;
 using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
+using BobDono.Interfaces;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 
@@ -53,26 +55,33 @@ namespace BobDono
             if (messageCreateEventArgs.Author.IsBot)
                 return;
 
+            Dictionary<ModuleAttribute, HashSet<IModule>> invokedModules 
+                = new Dictionary<ModuleAttribute, HashSet<IModule>>();
+
             foreach (var handlerEntry in _botBackbone.Handlers)
             {
                 if (!handlerEntry.AreTypesEqual(typeof(MessageCreateEventArgs)))
-                    continue;                
+                    continue;
+
                 try
                 {
                     if (handlerEntry.Attribute.ParentModuleAttribute.IsChannelContextual)
                     {
+
+
                         foreach (var context in handlerEntry.Attribute.ParentModuleAttribute.Contexts)
                         {
                             if (handlerEntry.Predicates.All(predicate =>
                                 predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs, context)))
                             {
-                                if (handlerEntry.Attribute.Awaitable)
-                                    await handlerEntry.ContextualDelegateAsync.Invoke(messageCreateEventArgs,context);
-                                else
+                                await InvokeContextual(context, handlerEntry);
 
-                                    handlerEntry.ContextualDelegateAsync.Invoke(messageCreateEventArgs,context);
+                                if(!invokedModules.ContainsKey(handlerEntry.Attribute.ParentModuleAttribute))
+                                    invokedModules[handlerEntry.Attribute.ParentModuleAttribute] = new HashSet<IModule>();
+
+                                if (!invokedModules[handlerEntry.Attribute.ParentModuleAttribute].Contains(context))
+                                    invokedModules[handlerEntry.Attribute.ParentModuleAttribute].Add(context);
                             }
-                        
                         }
                     }
                     else
@@ -87,11 +96,49 @@ namespace BobDono
                         }
                     }
 
+
+
+
                 }
                 catch (Exception e)
                 {
                     await messageCreateEventArgs.Channel.SendMessageAsync(ResourceLocator.ExceptionHandler.Handle(e));
                 }
+            }
+
+            //handle fallback commands
+            try
+            {
+                //all handlers that are contextual fallback commands and their parent modules weren't invoked
+                foreach (var handlerEntry in _botBackbone.Handlers
+                    .Where(entry =>
+                        entry.Attribute.FallbackCommand && 
+                        entry.Attribute.ParentModuleAttribute.IsChannelContextual))
+                {
+                    foreach (var context in handlerEntry.Attribute.ParentModuleAttribute.Contexts.Where(module =>
+                        !invokedModules.ContainsKey(handlerEntry.Attribute.ParentModuleAttribute) ||
+                        !invokedModules[handlerEntry.Attribute.ParentModuleAttribute].Contains(module)))
+                    {
+                        if (handlerEntry.Predicates.OfType<CommandPredicates.ChannelContextFilter>().First()
+                            .MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs, context))
+                            await InvokeContextual(context, handlerEntry);
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                await messageCreateEventArgs.Channel.SendMessageAsync(ResourceLocator.ExceptionHandler.Handle(e));
+            }
+
+
+            async Task InvokeContextual(IModule context, HandlerEntry handlerEntry)
+            {
+                if (handlerEntry.Attribute.Awaitable)
+                    await handlerEntry.ContextualDelegateAsync.Invoke(messageCreateEventArgs, context);
+                else
+                    handlerEntry.ContextualDelegateAsync.Invoke(messageCreateEventArgs, context);
+
             }
         }
 #pragma warning restore 4014
