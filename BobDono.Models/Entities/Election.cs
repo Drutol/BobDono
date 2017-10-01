@@ -6,11 +6,22 @@ namespace BobDono.Models.Entities
 {
     public class Election : IModelWithRelation
     {
+        public enum State
+        {
+            Submission,
+            PedningVotingStart,
+            Voting,
+            Closed,
+        }
+
         private ICollection<WaifuContender> _contenders;
         private ICollection<BracketStage> _bracketStages;
         public long Id { get; set; }
 
         public ulong DiscordChannelId { get; set; }
+
+        public ulong OpeningMessageId { get; set; }
+        public ulong PendingVotingStartMessageId { get; set; }
 
         public string Name { get; set; }
         public string Description { get; set; }
@@ -22,13 +33,15 @@ namespace BobDono.Models.Entities
         public DateTime VotingStartDate { get; set; }
         public DateTime VotingEndDate { get; set; }
 
+        public User Author { get; set; }
+
+        public State CurrentState { get; set; } = State.Submission;
+
         public virtual ICollection<BracketStage> BracketStages =>
             _bracketStages ?? (_bracketStages = new HashSet<BracketStage>());
 
-
-        public virtual ICollection<WaifuContender> Contenders { get; set; }
-
-        public User Author { get; set; }
+        public virtual ICollection<WaifuContender> Contenders =>
+            _contenders ?? (_contenders = new HashSet<WaifuContender>());
 
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {

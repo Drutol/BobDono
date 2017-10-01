@@ -21,7 +21,6 @@ namespace BobDono.DataAccess.Services
                     Waifu = waifu,
                 };
                 db.Elections.Attach(election);
-                db.Users.Attach(user);
                 db.Waifus.Attach(waifu);
                 election.Contenders.Add(contender);
                 try

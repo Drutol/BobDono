@@ -16,6 +16,7 @@ namespace BobDono.DataAccess.Database
             
         }
 
+        public DbSet<BracketStage> BracketStages { get; set; }
         public DbSet<Bracket> Brackets { get; set; }
         public DbSet<Election> Elections { get; set; }
         public DbSet<User> Users { get; set; }
@@ -25,8 +26,7 @@ namespace BobDono.DataAccess.Database
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=bob.db",builder => builder.MigrationsAssembly("BobDono"));
-            
+            optionsBuilder.UseSqlite("Data Source=bob.db",builder => builder.MigrationsAssembly("BobDono"));           
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

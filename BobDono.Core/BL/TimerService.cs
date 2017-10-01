@@ -16,7 +16,7 @@ namespace BobDono.Core.BL
 
             public TimerRegistration FireOnNextFullHour()
             {
-                DueTime = TimeSpan.FromMinutes(60 - DateTime.Now.Minute);
+                DueTime = TimeSpan.FromMinutes(60 - DateTime.UtcNow.Minute);
                 return this;
             }
         }

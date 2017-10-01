@@ -69,6 +69,9 @@ namespace BobDono.Core.BL
                             if (module.attr.IsChannelContextual)
                                 handler.Predicates.Add(CommandPredicates.ChannelContext);
 
+                            if(methodAttribute.FallbackCommand)
+                                handler.Predicates.Insert(0,CommandPredicates.AlwaysFail);
+
                             if (!module.attr.IsChannelContextual)
                             {
                                 handler.DelegateAsync =

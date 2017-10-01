@@ -11,7 +11,7 @@ using System;
 namespace BobDono.Migrations
 {
     [DbContext(typeof(BobDatabaseContext))]
-    [Migration("20170924085611_ModelCreation")]
+    [Migration("20171001103743_ModelCreation")]
     partial class ModelCreation
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -57,7 +57,7 @@ namespace BobDono.Migrations
 
                     b.HasIndex("ElectionId");
 
-                    b.ToTable("BracketStage");
+                    b.ToTable("BracketStages");
                 });
 
             modelBuilder.Entity("BobDono.Models.Entities.Election", b =>
@@ -74,6 +74,8 @@ namespace BobDono.Migrations
                     b.Property<int>("EntrantsPerUser");
 
                     b.Property<string>("Name");
+
+                    b.Property<ulong>("OpeningMessageId");
 
                     b.Property<DateTime>("SubmissionsEndDate");
 

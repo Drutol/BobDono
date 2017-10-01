@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Models.Entities
@@ -8,6 +9,9 @@ namespace BobDono.Models.Entities
         public long Id { get; set; }
         public Election Election { get; set; }
         public ICollection<Bracket> Brackets { get; set; }
+
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {

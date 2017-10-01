@@ -67,8 +67,6 @@ namespace BobDono
                 {
                     if (handlerEntry.Attribute.ParentModuleAttribute.IsChannelContextual)
                     {
-
-
                         foreach (var context in handlerEntry.Attribute.ParentModuleAttribute.Contexts)
                         {
                             if (handlerEntry.Predicates.All(predicate =>

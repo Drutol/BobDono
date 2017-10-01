@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using BobDono.Models.Entities;
 
 namespace BobDono.Interfaces
@@ -7,5 +8,9 @@ namespace BobDono.Interfaces
     {
         Task<Election> GetElection(long id);
         Task<Election> CreateElection(Election election, User user);
+        void Remove(Election election);
+        IEnumerable<Election> GetAll();
+        Task<IDelegatedEntityUpdate<Election>> ObtainElectionUpdate(long id);
+        IDelegatedEntityUpdate<Election> ObtainElectionUpdate(Election election);
     }
 }

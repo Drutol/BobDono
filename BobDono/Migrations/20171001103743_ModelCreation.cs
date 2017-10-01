@@ -49,6 +49,7 @@ namespace BobDono.Migrations
                     DiscordChannelId = table.Column<ulong>(type: "INTEGER", nullable: false),
                     EntrantsPerUser = table.Column<int>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: true),
+                    OpeningMessageId = table.Column<ulong>(type: "INTEGER", nullable: false),
                     SubmissionsEndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     SubmissionsStartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     VotingEndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -90,7 +91,7 @@ namespace BobDono.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BracketStage",
+                name: "BracketStages",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
@@ -99,9 +100,9 @@ namespace BobDono.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BracketStage", x => x.Id);
+                    table.PrimaryKey("PK_BracketStages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BracketStage_Elections_ElectionId",
+                        name: "FK_BracketStages_Elections_ElectionId",
                         column: x => x.ElectionId,
                         principalTable: "Elections",
                         principalColumn: "Id",
@@ -159,9 +160,9 @@ namespace BobDono.Migrations
                 {
                     table.PrimaryKey("PK_Brackets", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Brackets_BracketStage_BracketStageId",
+                        name: "FK_Brackets_BracketStages_BracketStageId",
                         column: x => x.BracketStageId,
-                        principalTable: "BracketStage",
+                        principalTable: "BracketStages",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -227,8 +228,8 @@ namespace BobDono.Migrations
                 column: "SecondWaifuId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BracketStage_ElectionId",
-                table: "BracketStage",
+                name: "IX_BracketStages_ElectionId",
+                table: "BracketStages",
                 column: "ElectionId");
 
             migrationBuilder.CreateIndex(
@@ -284,7 +285,7 @@ namespace BobDono.Migrations
                 name: "Brackets");
 
             migrationBuilder.DropTable(
-                name: "BracketStage");
+                name: "BracketStages");
 
             migrationBuilder.DropTable(
                 name: "WaifuContenders");

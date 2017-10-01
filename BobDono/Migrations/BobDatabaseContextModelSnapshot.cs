@@ -56,7 +56,7 @@ namespace BobDono.Migrations
 
                     b.HasIndex("ElectionId");
 
-                    b.ToTable("BracketStage");
+                    b.ToTable("BracketStages");
                 });
 
             modelBuilder.Entity("BobDono.Models.Entities.Election", b =>
@@ -73,6 +73,8 @@ namespace BobDono.Migrations
                     b.Property<int>("EntrantsPerUser");
 
                     b.Property<string>("Name");
+
+                    b.Property<ulong>("OpeningMessageId");
 
                     b.Property<DateTime>("SubmissionsEndDate");
 

@@ -20,6 +20,7 @@ using BobDono.Models.Entities;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Modules
 {
@@ -39,25 +40,28 @@ namespace BobDono.Modules
             _exceptionHandler = exceptionHandler;
             _electionService = electionService;
 
+
+
+            InitializeExistingElections();
+
+        }
+
+        private void InitializeExistingElections()
+        {
             using (var dependencyScope = ResourceLocator.ObtainScope())
             {
-                using (var db = new BobDatabaseContext())
+                foreach (var election in _electionService.GetAll())
                 {
-                    foreach (var election in db.Elections)
+                    try
                     {
-                        try
-                        {
-                            _electionsContexts.Add(
-                                dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
-                                    election)));
-                        }
-                        catch (Exception)
-                        {
-                            db.Elections.Remove(election);
-                        }
+                        _electionsContexts.Add(
+                            dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
+                                election)));
                     }
-
-                    db.SaveChanges();
+                    catch (Exception)
+                    {
+                        _electionService.Remove(election);
+                    }
                 }
             }
         }
@@ -103,9 +107,9 @@ namespace BobDono.Modules
                             }
                         }
                     }
-                    election.SubmissionsStartDate = DateTime.Now;
-                    election.SubmissionsEndDate = DateTime.Now.AddDays(submissionDays);
-                    election.SubmissionsStartDate = election.SubmissionsEndDate.AddHours(2); //TODO Maybe add commands?
+                    election.SubmissionsStartDate = DateTime.UtcNow;
+                    election.SubmissionsEndDate = DateTime.UtcNow.AddDays(submissionDays);
+                    election.VotingStartDate = election.SubmissionsEndDate.AddHours(2); //TODO Maybe add commands?
 
                     int submissionCount = 2;
                     while (submissionCount == 0)
@@ -160,8 +164,10 @@ namespace BobDono.Modules
             {
                 using (var dependencyScope = ResourceLocator.ObtainScope())
                 {
-                    _electionsContexts.Add(dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
-                        await _electionService.CreateElection(election, user))));
+                    var context = dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
+                        await _electionService.CreateElection(election, user)));
+                    context.OnCreated();
+                    _electionsContexts.Add(context);
                 }
             }
             catch (Exception e)

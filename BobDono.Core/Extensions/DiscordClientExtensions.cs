@@ -32,5 +32,10 @@ namespace BobDono.Core.Extensions
             _electionCategoryChannel = await guild.CreateChannelAsync(ElectionsCategoryName, ChannelType.Category);
             return _electionCategoryChannel;
         }
+
+        public static bool IsMe(this DiscordUser user)
+        {
+            return user.IsBot;
+        }
     }
 }

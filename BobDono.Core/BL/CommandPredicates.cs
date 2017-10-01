@@ -18,6 +18,7 @@ namespace BobDono.Core.BL
         public static ChannelFilter Channel { get; } = new ChannelFilter();
         public static RegexFilter Regex { get; } = new RegexFilter();
         public static ChannelContextFilter ChannelContext { get; } = new ChannelContextFilter();
+        public static AlwaysFailFilter AlwaysFail { get; } = new AlwaysFailFilter();
 
 
         public abstract class ArgumentPredicate<TArg> : ICommandPredicate where TArg : class
@@ -27,6 +28,14 @@ namespace BobDono.Core.BL
             public bool MeetsCriteria(CommandHandlerAttribute attr,params object[] args)
             {
                 return MeetsCriteria(attr,args.First() as TArg);
+            }
+        }
+
+        public class AlwaysFailFilter : ICommandPredicate
+        {
+            public bool MeetsCriteria(CommandHandlerAttribute attr, params object[] args)
+            {
+                return false;
             }
         }
 

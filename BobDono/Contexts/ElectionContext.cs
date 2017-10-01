@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 using BobDono.Core;
 using BobDono.Core.Attributes;
 using BobDono.Core.BL;
+using BobDono.Core.Controllers;
 using BobDono.Core.Extensions;
 using BobDono.Core.Utils;
+using BobDono.DataAccess.Database;
 using BobDono.DataAccess.Services;
 using BobDono.Interfaces;
 using BobDono.Models.Entities;
@@ -19,11 +21,14 @@ namespace BobDono.Contexts
     [Module(IsChannelContextual = true)]
     public class ElectionContext : ContextModuleBase
     {
+
+
         private Election _election;
         private DiscordChannel _channel;
 
         public sealed override ulong? ChannelIdContext { get; protected set; }
 
+        private ElectionController _controller;
 
         private readonly IWaifuService _waifuService;
         private readonly IElectionService _electionService;
@@ -44,6 +49,8 @@ namespace BobDono.Contexts
                 throw new InvalidOperationException("Discord channel is invalid");
 
             ChannelIdContext = election.DiscordChannelId;
+
+            _controller = new ElectionController(_election,_channel,_electionService);
 
             TimerService.Instance.Register(
                 new TimerService.TimerRegistration
@@ -74,7 +81,7 @@ namespace BobDono.Contexts
             var count = _election.Contenders?.Count(c => c.Proposer.Id == user.Id);
 
             //check if user didn't create more then he should be able to
-            if (count > _election.EntrantsPerUser)
+            if (count >= _election.EntrantsPerUser)
             {
                 await args.Channel.SendMessageAsync($"You have already added {count} contestants.");
                 return;
@@ -94,19 +101,25 @@ namespace BobDono.Contexts
             await args.Message.DeleteAsync();
 
             await args.Channel.SendMessageAsync(null, false, contender.GetEmbed());
+
+            _controller.UpdateOpeningMessage();
         }
 
         [CommandHandler(FallbackCommand = true)]
         public async Task FallbackCommand(MessageCreateEventArgs args)
         {
-            await args.Message.DeleteAsync();
+            if(!args.Author.IsMe())
+                await args.Message.DeleteAsync();
         }
 
         #endregion
 
-        private void OnHourPassed()
+        private async void OnHourPassed()
         {
+            _election = await _electionService.GetElection(_election.Id);
+            _controller.Election = _election;
 
+            _controller.ProcessTimePass();
         }
 
         private async void ClearChannel()
@@ -115,22 +128,14 @@ namespace BobDono.Contexts
 
             foreach (var message in messages)
             {
-                if (!message.Author.IsBot)
+                if (!message.Author.IsMe())
                     await message.DeleteAsync();
             }
         }
 
         public void OnCreated()
         {
-            var embed = new DiscordEmbedBuilder();
-
-            embed.Color = DiscordColor.Gold;
-            embed.Description = _election.Description;
-            embed.Title = $"Election: {_election.Name}";
-            embed.Author = new DiscordEmbedBuilder.EmbedAuthor {Name = _election.Author.Name};
-            embed.AddField("Submission time:",
-                $"{_election.SubmissionsStartDate} - {_election.SubmissionsEndDate} - *({(_election.SubmissionsEndDate - _election.SubmissionsStartDate).Days} days)*");
-            embed.AddField("Entrants per person:", _election.EntrantsPerUser.ToString());
+            _controller.Initialize();
         }
 
     }
