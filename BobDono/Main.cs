@@ -10,6 +10,7 @@ using BobDono.Core.Attributes;
 using BobDono.Core.BL;
 using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
+using BobDono.DataAccess.Database;
 using BobDono.Interfaces;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
@@ -40,6 +41,7 @@ namespace BobDono
                 UseInternalLogHandler = true
             });
             ResourceLocator.RegisterDependencies(_client);
+            BobDatabaseContext.Initialize();
             await _client.ConnectAsync();
 
             _client.MessageCreated += ClientOnMessageCreated;

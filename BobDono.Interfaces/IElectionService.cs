@@ -12,5 +12,6 @@ namespace BobDono.Interfaces
         IEnumerable<Election> GetAll();
         Task<IDelegatedEntityUpdate<Election>> ObtainElectionUpdate(long id);
         IDelegatedEntityUpdate<Election> ObtainElectionUpdate(Election election);
+        void Update(Election election);
     }
 }

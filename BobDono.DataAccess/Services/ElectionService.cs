@@ -80,5 +80,14 @@ namespace BobDono.DataAccess.Services
         {
             return new ElectionUpdateDelegate(election);
         }
+
+        public void Update(Election election)
+        {
+            using (var db = new BobDatabaseContext())
+            {
+                db.Elections.Update(election);
+                db.SaveChanges();
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ namespace BobDono.Models.Entities
     public class BracketStage : IModelWithRelation
     {
         public long Id { get; set; }
+
         public Election Election { get; set; }
         public ICollection<Bracket> Brackets { get; set; }
 

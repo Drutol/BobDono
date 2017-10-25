@@ -45,11 +45,13 @@ namespace BobDono.Migrations
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     AuthorId = table.Column<long>(type: "INTEGER", nullable: true),
+                    CurrentState = table.Column<int>(type: "INTEGER", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     DiscordChannelId = table.Column<ulong>(type: "INTEGER", nullable: false),
                     EntrantsPerUser = table.Column<int>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: true),
                     OpeningMessageId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    PendingVotingStartMessageId = table.Column<ulong>(type: "INTEGER", nullable: false),
                     SubmissionsEndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     SubmissionsStartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     VotingEndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -96,7 +98,9 @@ namespace BobDono.Migrations
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    ElectionId = table.Column<long>(type: "INTEGER", nullable: true)
+                    ElectionId = table.Column<long>(type: "INTEGER", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -151,10 +155,9 @@ namespace BobDono.Migrations
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     BracketStageId = table.Column<long>(type: "INTEGER", nullable: true),
-                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    FirstWaifuId = table.Column<long>(type: "INTEGER", nullable: true),
-                    SecondWaifuId = table.Column<long>(type: "INTEGER", nullable: true),
-                    StartDate = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    FirstContenderId = table.Column<long>(type: "INTEGER", nullable: true),
+                    SecondContenderId = table.Column<long>(type: "INTEGER", nullable: true),
+                    WinnerId = table.Column<long>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -166,14 +169,20 @@ namespace BobDono.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Brackets_WaifuContenders_FirstWaifuId",
-                        column: x => x.FirstWaifuId,
+                        name: "FK_Brackets_WaifuContenders_FirstContenderId",
+                        column: x => x.FirstContenderId,
                         principalTable: "WaifuContenders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Brackets_WaifuContenders_SecondWaifuId",
-                        column: x => x.SecondWaifuId,
+                        name: "FK_Brackets_WaifuContenders_SecondContenderId",
+                        column: x => x.SecondContenderId,
+                        principalTable: "WaifuContenders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Brackets_WaifuContenders_WinnerId",
+                        column: x => x.WinnerId,
                         principalTable: "WaifuContenders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -218,14 +227,19 @@ namespace BobDono.Migrations
                 column: "BracketStageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Brackets_FirstWaifuId",
+                name: "IX_Brackets_FirstContenderId",
                 table: "Brackets",
-                column: "FirstWaifuId");
+                column: "FirstContenderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Brackets_SecondWaifuId",
+                name: "IX_Brackets_SecondContenderId",
                 table: "Brackets",
-                column: "SecondWaifuId");
+                column: "SecondContenderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Brackets_WinnerId",
+                table: "Brackets",
+                column: "WinnerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BracketStages_ElectionId",

@@ -35,7 +35,8 @@ namespace BobDono.Contexts
         private readonly IUserService _userService;
         private readonly IContenderService _contenderService;
 
-        public ElectionContext(Election election, IWaifuService waifuService, IElectionService electionService, IUserService userService, IContenderService contenderService)
+        public ElectionContext(Election election, IWaifuService waifuService, IElectionService electionService,
+            IUserService userService, IContenderService contenderService)
         {
             _waifuService = waifuService;
             _electionService = electionService;
@@ -45,12 +46,12 @@ namespace BobDono.Contexts
             _election = election;
             _channel = ResourceLocator.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
 
-            if(_channel == null)
+            if (_channel == null)
                 throw new InvalidOperationException("Discord channel is invalid");
 
             ChannelIdContext = election.DiscordChannelId;
 
-            _controller = new ElectionController(_election,_channel,_electionService);
+            _controller = new ElectionController(_election, _channel, _electionService);
 
             TimerService.Instance.Register(
                 new TimerService.TimerRegistration
@@ -62,10 +63,8 @@ namespace BobDono.Contexts
             ClearChannel();
         }
 
-
-
         #region Commands
-         
+
         [CommandHandler(Regex = @"add contender \d+\s?(.*)?",
             HumanReadableCommand = "add contender <malId> [imageOverride]",
             HelpText =
@@ -105,10 +104,45 @@ namespace BobDono.Contexts
             _controller.UpdateOpeningMessage();
         }
 
+        [CommandHandler(Regex = @"start")]
+        public async Task Start(MessageCreateEventArgs args)
+        {
+            await _controller.TransitionToVoting();
+        }
+
+        [CommandHandler(Regex = @"random")]
+        public async Task AddRandomContenders(MessageCreateEventArgs args)
+        {
+            var user = await _userService.GetOrCreateUser(args.Author);
+
+            foreach (var id in new[] {"48391","13701","20626","64167","118763"})
+            {
+                var waifu = await _waifuService.GetOrCreateWaifu(id);
+
+                var contender = await _contenderService.CreateContender(user, waifu, _election);
+
+                _election = await _electionService.GetElection(_election.Id);
+
+                try
+                {
+                    await args.Message.DeleteAsync();
+                }
+                catch (Exception e)
+                {
+
+                }
+
+
+                await args.Channel.SendMessageAsync(null, false, contender.GetEmbed());
+
+                await Task.Delay(100);
+            }
+        }
+
         [CommandHandler(FallbackCommand = true)]
         public async Task FallbackCommand(MessageCreateEventArgs args)
         {
-            if(!args.Author.IsMe())
+            if (!args.Author.IsMe())
                 await args.Message.DeleteAsync();
         }
 

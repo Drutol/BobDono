@@ -65,7 +65,7 @@ namespace BobDono.Core.Controllers
                 }
             }
 
-            _electionService.ObtainElectionUpdate(Election).Dispose();
+            _electionService.Update(Election);
         }
 
         public async void Initialize()
@@ -114,7 +114,7 @@ namespace BobDono.Core.Controllers
             Election.PendingVotingStartMessageId = msg.Id;
         }
 
-        private async Task TransitionToVoting()
+        public async Task TransitionToVoting()
         {
             Election.CurrentState = Election.State.Voting;
 
@@ -133,25 +133,26 @@ namespace BobDono.Core.Controllers
             for (int i = 0; i < Election.Contenders.Count; i++)
                 Election.Contenders.ElementAt(i).SeedNumber = seeds[i];
 
-            //shuffle contenders for good measure
             var contenders = Election.Contenders.ToList();
-            contenders.Shuffle();
+            contenders = contenders.OrderBy(contender => contender.SeedNumber).ToList();
 
             var brackets = new List<Bracket>();
-            foreach (var contender in contenders)
+            for (int i = 0; i < contenders.Count-1 ; i+=2)
             {
-                //if contender is in a bracket skip
-                if(IsInBracket(contender))
-                    continue;
-
-                //take a contender with seed one bigger and make sure that pair is not in bracket
-                var secondContender = contenders.FirstOrDefault(waifuContender =>
-                    waifuContender.SeedNumber == contender.SeedNumber + 1 && !IsInBracket(waifuContender));
-
                 brackets.Add(new Bracket
                 {
-                    FirstContender = contender,
-                    SecondContender = secondContender,   
+                    FirstContender = contenders[i],
+                    SecondContender = contenders[i+1],   
+                    BracketStage = stage
+                });
+            }
+
+            //we have one lucky one that passes to next stage
+            if (contenders.Count % 2 == 1)
+            {
+                brackets.Add(new Bracket
+                {
+                    FirstContender = contenders.Last(),
                     BracketStage = stage
                 });
             }
@@ -160,14 +161,16 @@ namespace BobDono.Core.Controllers
 
             Election.BracketStages.Add(stage);
 
+            foreach (var bracket in brackets)
+            {
+                foreach (var discordEmbed in bracket.GetEmbed())
+                {
+                    await _channel.SendMessageAsync(null, false, discordEmbed);
+                }
+            }
+
             var msg = await _channel.GetMessageAsync(Election.PendingVotingStartMessageId);
             await msg.DeleteAsync();
-
-            bool IsInBracket(WaifuContender contender)
-            {
-                return brackets.Any(bracket =>
-                    bracket.FirstContender == contender || bracket.SecondContender == contender);
-            }
         }
 
         private async Task TransitionToClosed()

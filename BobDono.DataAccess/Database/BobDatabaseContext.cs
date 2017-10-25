@@ -11,9 +11,26 @@ namespace BobDono.DataAccess.Database
 {
     public class BobDatabaseContext : DbContext
     {
+        public static void Initialize()
+        {
+            try
+            {
+                using (var db = new BobDatabaseContext())
+                {
+                    db.Database.Migrate();
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception)
+            {
+                //db exists
+            }
+
+        }
+
         public BobDatabaseContext()
         {
-            
+
         }
 
         public DbSet<BracketStage> BracketStages { get; set; }

@@ -159,6 +159,7 @@ namespace BobDono.Modules
                 _botContext.NewPrivateMessage -= HandleQuit;
             }
 
+            await Task.Delay(1000);
 
             try
             {
