@@ -13,6 +13,7 @@ namespace BobDono.Models.Entities
         public Election Election { get; set; }
 
         public string CustomImageUrl { get; set; }
+        public bool Lost { get; set; }
 
         public virtual ICollection<Vote> Votes { get; set; }
 

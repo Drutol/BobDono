@@ -12,6 +12,7 @@ namespace BobDono.Models.Entities
         public int Number { get; set; }
         public WaifuContender FirstContender { get; set; }
         public WaifuContender SecondContender { get; set; }
+        public WaifuContender ThirdContender { get; set; }
 
         public WaifuContender Winner { get; set; }
 

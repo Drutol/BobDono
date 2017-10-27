@@ -39,10 +39,12 @@ namespace BobDono.Core.Extensions
                 {
                     var builder = new DiscordEmbedBuilder
                     {
+
                         Color = DiscordColor.Brown,
                         Title = $"Bracket #{stage.Number}, Contender #{contenderNumber}",
                         ImageUrl = contender.CustomImageUrl ?? contender.Waifu.ImageUrl
                     };
+
                     return builder.Build();
                 }
 

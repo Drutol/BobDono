@@ -21,8 +21,6 @@ namespace BobDono.Contexts
     [Module(IsChannelContextual = true)]
     public class ElectionContext : ContextModuleBase
     {
-
-
         private Election _election;
         private DiscordChannel _channel;
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Models.Entities
@@ -22,6 +24,15 @@ namespace BobDono.Models.Entities
 
         public ulong OpeningMessageId { get; set; }
         public ulong PendingVotingStartMessageId { get; set; }
+        public ulong ResultsMessageId { get; set; }
+        public string BracketMessagesIdsBlob { get; set; }
+
+        [NotMapped]
+        public List<ulong> BracketMessagesIds
+        {
+            get { return BracketMessagesIdsBlob?.Split(';').Select(ulong.Parse).ToList() ?? new List<ulong>(); }
+            set { BracketMessagesIdsBlob = string.Join(";", value.Select(u => u.ToString())); }
+        }
 
         public string Name { get; set; }
         public string Description { get; set; }
@@ -32,7 +43,8 @@ namespace BobDono.Models.Entities
 
         public DateTime VotingStartDate { get; set; }
         public DateTime VotingEndDate { get; set; }
-
+        public int StageCount { get; set; }
+        
         public User Author { get; set; }
 
         public State CurrentState { get; set; } = State.Submission;

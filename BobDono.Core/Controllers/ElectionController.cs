@@ -13,12 +13,16 @@ namespace BobDono.Core.Controllers
 {
     public class ElectionController
     {
+        
+
         private const string CurrentEntriesCount = "Current Entries:";
         private const string ParticipantsCount = "Participants:";
 
         public Election Election { get; set; }
         private readonly DiscordChannel _channel;
         private readonly IElectionService _electionService;
+
+        private Random _random = new Random();
 
         public ElectionController(Election election, DiscordChannel channel, IElectionService electionService)
         {
@@ -118,12 +122,6 @@ namespace BobDono.Core.Controllers
         {
             Election.CurrentState = Election.State.Voting;
 
-            var stage = new BracketStage
-            {
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddDays(1)
-            };
-
             //prepare seeds
             var seeds = new List<int>();
             for (int i = 0; i < Election.Contenders.Count; i++)
@@ -133,41 +131,35 @@ namespace BobDono.Core.Controllers
             for (int i = 0; i < Election.Contenders.Count; i++)
                 Election.Contenders.ElementAt(i).SeedNumber = seeds[i];
 
-            var contenders = Election.Contenders.ToList();
-            contenders = contenders.OrderBy(contender => contender.SeedNumber).ToList();
-
-            var brackets = new List<Bracket>();
-            for (int i = 0; i < contenders.Count-1 ; i+=2)
+            BracketStage stage;
+            //create brackets
+            if (Election.Contenders.Count % 2 == 1) //if it's odd we are gonna take one contestant out and isert it at random
             {
-                brackets.Add(new Bracket
-                {
-                    FirstContender = contenders[i],
-                    SecondContender = contenders[i+1],   
-                    BracketStage = stage
-                });
-            }
+                var contenders = Election.Contenders.ToList();
+                var randomIndex = _random.Next(0, contenders.Count);
+                var oddContender = contenders[randomIndex];
+                //we pull one out so we have even number
+                contenders.Remove(oddContender);
+                stage = CreateBracketStage(contenders);
 
-            //we have one lucky one that passes to next stage
-            if (contenders.Count % 2 == 1)
+                randomIndex = _random.Next(0, stage.Brackets.Count);
+                //and then we insert him to random triple bracket
+                stage.Brackets.ElementAt(randomIndex).ThirdContender = oddContender;
+            }
+            else
             {
-                brackets.Add(new Bracket
-                {
-                    FirstContender = contenders.Last(),
-                    BracketStage = stage
-                });
+                stage = CreateBracketStage(Election.Contenders.ToList());
             }
-
-            stage.Brackets = brackets;
 
             Election.BracketStages.Add(stage);
 
-            foreach (var bracket in brackets)
-            {
-                foreach (var discordEmbed in bracket.GetEmbed())
-                {
-                    await _channel.SendMessageAsync(null, false, discordEmbed);
-                }
-            }
+            //proces dates
+            Election.StageCount = GetStageCount();
+            Election.VotingEndDate = Election.VotingStartDate.AddDays(Election.StageCount);
+
+            //update channel
+            var ids = await SendBracketInfo(stage.Brackets);
+            Election.BracketMessagesIds = ids;
 
             var msg = await _channel.GetMessageAsync(Election.PendingVotingStartMessageId);
             await msg.DeleteAsync();
@@ -182,5 +174,61 @@ namespace BobDono.Core.Controllers
         {
             
         }
+
+        private BracketStage CreateBracketStage(List<WaifuContender> contestants)
+        {
+            var stage = new BracketStage
+            {
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow.AddDays(1)
+            };
+
+            contestants = contestants.OrderBy(contender => contender.SeedNumber).ToList();
+
+            var brackets = new List<Bracket>();
+            for (int i = 0; i < contestants.Count - 1; i += 2)
+            {
+                brackets.Add(new Bracket
+                {
+                    FirstContender = contestants[i],
+                    SecondContender = contestants[i + 1],
+                    BracketStage = stage
+                });
+            }
+
+
+            stage.Brackets = brackets;
+
+            return stage;
+        }
+
+        private int GetStageCount()
+        {
+            var countOfBRackets = 0;
+            var count = Election.Contenders.Count;
+            //we will make three bracket 
+            if (count % 2 == 1)
+                count--;
+
+            while ((count = count / 2) != 0)
+                countOfBRackets++;
+
+            return countOfBRackets;
+        }
+
+        private async Task<List<ulong>> SendBracketInfo(ICollection<Bracket> brackets)
+        {
+            var output = new List<ulong>();
+            foreach (var bracket in brackets)
+            {
+                foreach (var discordEmbed in bracket.GetEmbed())
+                {
+                    var msg = await _channel.SendMessageAsync(null, false, discordEmbed);
+                    output.Add(msg.Id);
+                }
+            }
+            return output;
+        }
+
     }
 }
