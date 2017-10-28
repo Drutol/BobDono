@@ -1,4 +1,6 @@
-﻿namespace BobDono.Models.Entities
+﻿using System;
+
+namespace BobDono.Models.Entities
 {
     public class Vote
     {
@@ -7,5 +9,7 @@
         public Bracket Bracket { get; set; }
         public WaifuContender Contender { get; set; }
         public User User { get; set; }
+
+        public DateTime CreateDate { get; set; } 
     }
 }

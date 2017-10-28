@@ -12,9 +12,7 @@ using DSharpPlus.Entities;
 namespace BobDono.Core.Controllers
 {
     public class ElectionController
-    {
-        
-
+    {     
         private const string CurrentEntriesCount = "Current Entries:";
         private const string ParticipantsCount = "Participants:";
 
@@ -65,7 +63,7 @@ namespace BobDono.Core.Controllers
                 var currentStage = Election.BracketStages.Last();
                 if (DateTime.UtcNow > currentStage.EndDate)
                 {
-                    CloseCurrentBracket();
+                    CloseCurrentStage();
                 }
             }
 
@@ -170,9 +168,10 @@ namespace BobDono.Core.Controllers
             Election.CurrentState = Election.State.Closed;
         }
 
-        private void CloseCurrentBracket()
+        private void CloseCurrentStage()
         {
-            
+            var lastBrackets = Election.BracketStages.Last().Brackets.ToList();
+            var winners = lastBrackets.Select(bracket => )
         }
 
         private BracketStage CreateBracketStage(List<WaifuContender> contestants)
@@ -216,12 +215,90 @@ namespace BobDono.Core.Controllers
             return countOfBRackets;
         }
 
+        public WaifuContender FindWinner(Bracket bracket)
+        {
+            WaifuContender winner = null;
+            var contestants = new List<WaifuContender> {bracket.FirstContender, bracket.SecondContender};
+            if(bracket.ThirdContender != null)
+                contestants.Add(bracket.ThirdContender);
+            //if we don't have remis
+            if (contestants.All(contender =>
+                contestants.All(waifuContender => waifuContender.Votes.Count != contender.Votes.Count)))
+            {
+                foreach (var waifuContender in contestants)
+                {
+                    if (winner == null)
+                    {
+                        winner = waifuContender;
+                    }
+                    else if (winner.Votes.Count < waifuContender.Votes.Count)
+                    {
+                        winner = waifuContender;
+                    }
+                }
+            }
+            else //we have a problem, frequency of given votes will decide as in measuring voters dedication.
+            {
+                //not optimal but straightforward
+                bool isLowerResmis;
+                bool isUpperRemis;
+                bool isTripleRemis;
+
+                var minVotes = contestants.Min(contender => contender.Votes.Count);
+                var maxVotes = contestants.Max(contender => contender.Votes.Count);
+
+                //let's check what are we dealing with
+                isLowerResmis = contestants.Count(contender => contender.Votes.Count == minVotes) == 2;
+                if (!isLowerResmis)
+                {
+                    isUpperRemis = contestants.Count(contender => contender.Votes.Count == maxVotes) == 2;
+                    if (!isUpperRemis)
+                    {
+                        isTripleRemis = true;
+                    }
+                }
+
+                if (isLowerResmis)
+                {
+                    var lowerRemis = contestants.Where(contender => contender.Votes.Count == minVotes);
+                    var remisWinner = GetContenderWithMoreFrequentVotes(lowerRemis.First(), lowerRemis.Last());
+
+                }
+
+                WaifuContender GetContenderWithMoreFrequentVotes(WaifuContender c1, WaifuContender c2)
+                {
+                    if (GetFrequencyForContender(c1) > GetFrequencyForContender(c2))
+                        return c1;
+                    return c2;
+                }
+
+                float GetFrequencyForContender(WaifuContender contender)
+                {
+                    var voteCount = contender.Votes.Count;
+                    if (voteCount == 1) //okay... now let's just use old plain random. I don't care.
+                    {
+                        return (float)_random.NextDouble();
+                    }
+                    else
+                    {
+                        var consecutiveVotePairsCount = (voteCount % 2 == 0 ? voteCount : voteCount - 1)/2; //let's leave last one
+                        var pairs = Enumerable.Range(0, consecutiveVotePairsCount)
+                            .Select(i => contender.Votes.Skip(i * 2).Take(2)).ToList();
+                        return (float)pairs.Sum(votes => (votes.Last().CreateDate - votes.First().CreateDate).TotalHours) /
+                                  pairs.Count;
+
+                    }
+                }
+            }
+
+        }
+
         private async Task<List<ulong>> SendBracketInfo(ICollection<Bracket> brackets)
         {
             var output = new List<ulong>();
             foreach (var bracket in brackets)
             {
-                foreach (var discordEmbed in bracket.GetEmbed())
+                foreach (var discordEmbed in bracket.GetEmbeds())
                 {
                     var msg = await _channel.SendMessageAsync(null, false, discordEmbed);
                     output.Add(msg.Id);
