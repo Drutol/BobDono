@@ -12,7 +12,7 @@ using System;
 namespace BobDono.Migrations
 {
     [DbContext(typeof(BobDatabaseContext))]
-    [Migration("20171025165707_ModelCreation")]
+    [Migration("20171029165732_ModelCreation")]
     partial class ModelCreation
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,7 +30,11 @@ namespace BobDono.Migrations
 
                     b.Property<long?>("FirstContenderId");
 
+                    b.Property<int>("Number");
+
                     b.Property<long?>("SecondContenderId");
+
+                    b.Property<long?>("ThirdContenderId");
 
                     b.Property<long?>("WinnerId");
 
@@ -41,6 +45,8 @@ namespace BobDono.Migrations
                     b.HasIndex("FirstContenderId");
 
                     b.HasIndex("SecondContenderId");
+
+                    b.HasIndex("ThirdContenderId");
 
                     b.HasIndex("WinnerId");
 
@@ -72,6 +78,8 @@ namespace BobDono.Migrations
 
                     b.Property<long?>("AuthorId");
 
+                    b.Property<string>("BracketMessagesIdsBlob");
+
                     b.Property<int>("CurrentState");
 
                     b.Property<string>("Description");
@@ -85,6 +93,10 @@ namespace BobDono.Migrations
                     b.Property<ulong>("OpeningMessageId");
 
                     b.Property<ulong>("PendingVotingStartMessageId");
+
+                    b.Property<ulong>("ResultsMessageId");
+
+                    b.Property<int>("StageCount");
 
                     b.Property<DateTime>("SubmissionsEndDate");
 
@@ -137,6 +149,8 @@ namespace BobDono.Migrations
 
                     b.Property<long?>("ContenderId");
 
+                    b.Property<DateTime>("CreateDate");
+
                     b.Property<long?>("UserId");
 
                     b.HasKey("Id");
@@ -177,6 +191,8 @@ namespace BobDono.Migrations
 
                     b.Property<long?>("ElectionId");
 
+                    b.Property<bool>("Lost");
+
                     b.Property<long?>("ProposerId");
 
                     b.Property<int>("SeedNumber");
@@ -207,6 +223,10 @@ namespace BobDono.Migrations
                     b.HasOne("BobDono.Models.Entities.WaifuContender", "SecondContender")
                         .WithMany()
                         .HasForeignKey("SecondContenderId");
+
+                    b.HasOne("BobDono.Models.Entities.WaifuContender", "ThirdContender")
+                        .WithMany()
+                        .HasForeignKey("ThirdContenderId");
 
                     b.HasOne("BobDono.Models.Entities.WaifuContender", "Winner")
                         .WithMany()

@@ -105,7 +105,15 @@ namespace BobDono.Contexts
         [CommandHandler(Regex = @"start")]
         public async Task Start(MessageCreateEventArgs args)
         {
-            await _controller.TransitionToVoting();
+            _controller.Election = await _electionService.GetElection(_election.Id);
+            await _controller.();
+        }
+
+        [CommandHandler(Regex = @"close")]
+        public async Task Close(MessageCreateEventArgs args)
+        {
+            _controller.Election = await _electionService.GetElection(_election.Id);
+            await _controller.CloseCurrentStage();
         }
 
         [CommandHandler(Regex = @"random")]

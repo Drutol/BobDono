@@ -30,7 +30,7 @@ namespace BobDono.Core.Controllers
         }
 
 
-        public void ProcessTimePass()
+        public async Task ProcessTimePass()
         {
             bool transitioned = false;
             switch (Election.CurrentState)
@@ -38,21 +38,21 @@ namespace BobDono.Core.Controllers
                 case Election.State.Submission:
                     if (DateTime.UtcNow > Election.SubmissionsEndDate)
                     {
-                        TransitionToPendingVoting();
+                        await TransitionToPendingVoting();
                         transitioned = true;
                     }
                     break;
                 case Election.State.PedningVotingStart:
                     if (DateTime.UtcNow > Election.VotingStartDate)
                     {
-                        TransitionToVoting();
+                        await TransitionToVoting();
                         transitioned = true;
                     }
                     break;
                 case Election.State.Voting:
                     if (DateTime.UtcNow > Election.VotingEndDate)
                     {
-                        TransitionToClosed();
+                        await TransitionToClosed();
                         transitioned = true;
                     }
                     break;
@@ -63,7 +63,7 @@ namespace BobDono.Core.Controllers
                 var currentStage = Election.BracketStages.Last();
                 if (DateTime.UtcNow > currentStage.EndDate)
                 {
-                    CloseCurrentStage();
+                    await CloseCurrentStage();
                 }
             }
 
@@ -168,10 +168,29 @@ namespace BobDono.Core.Controllers
             Election.CurrentState = Election.State.Closed;
         }
 
-        private void CloseCurrentStage()
+        public async Task CloseCurrentStage()
         {
+            //remove old messages
+            foreach (var bracketMessageId in Election.BracketMessagesIds)
+            {
+                await _channel.DeleteMessageAsync(await _channel.GetMessageAsync(bracketMessageId));
+            }
+
+
+            //select winners
             var lastBrackets = Election.BracketStages.Last().Brackets.ToList();
-            var winners = lastBrackets.Select(bracket => )
+            foreach (var bracket in lastBrackets)
+            {
+                bracket.Winner = FindWinner(bracket);
+            }
+
+            //create new bracket
+            var stage = CreateBracketStage(lastBrackets.Select(bracket => bracket.Winner).ToList());
+
+            var ids = await SendBracketInfo(stage.Brackets);
+            Election.BracketMessagesIds = ids;
+
+            Election.BracketStages.Add(stage);
         }
 
         private BracketStage CreateBracketStage(List<WaifuContender> contestants)
@@ -179,7 +198,7 @@ namespace BobDono.Core.Controllers
             var stage = new BracketStage
             {
                 StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddDays(1)
+                EndDate = DateTime.UtcNow.AddDays(1),
             };
 
             contestants = contestants.OrderBy(contender => contender.SeedNumber).ToList();
@@ -191,13 +210,12 @@ namespace BobDono.Core.Controllers
                 {
                     FirstContender = contestants[i],
                     SecondContender = contestants[i + 1],
-                    BracketStage = stage
+                    BracketStage = stage,
+                    Number = Election.BracketStages.Count+1
                 });
             }
 
-
             stage.Brackets = brackets;
-
             return stage;
         }
 
@@ -219,7 +237,7 @@ namespace BobDono.Core.Controllers
         {
             WaifuContender winner = null;
             var contestants = new List<WaifuContender> {bracket.FirstContender, bracket.SecondContender};
-            if(bracket.ThirdContender != null)
+            if (bracket.ThirdContender != null)
                 contestants.Add(bracket.ThirdContender);
             //if we don't have remis
             if (contestants.All(contender =>
@@ -241,8 +259,7 @@ namespace BobDono.Core.Controllers
             {
                 //not optimal but straightforward
                 bool isLowerResmis;
-                bool isUpperRemis;
-                bool isTripleRemis;
+                bool isUpperRemis = false;
 
                 var minVotes = contestants.Min(contender => contender.Votes.Count);
                 var maxVotes = contestants.Max(contender => contender.Votes.Count);
@@ -252,17 +269,22 @@ namespace BobDono.Core.Controllers
                 if (!isLowerResmis)
                 {
                     isUpperRemis = contestants.Count(contender => contender.Votes.Count == maxVotes) == 2;
-                    if (!isUpperRemis)
-                    {
-                        isTripleRemis = true;
-                    }
+                    //else we have triple remis
                 }
 
                 if (isLowerResmis)
                 {
-                    var lowerRemis = contestants.Where(contender => contender.Votes.Count == minVotes);
-                    var remisWinner = GetContenderWithMoreFrequentVotes(lowerRemis.First(), lowerRemis.Last());
-
+                    winner = contestants.First(contender => contender.Votes.Count != minVotes);
+                }
+                else if(isUpperRemis)
+                {
+                    var upperRemis = contestants.Where(contender => contender.Votes.Count == maxVotes);
+                    winner = GetContenderWithMoreFrequentVotes(upperRemis.First(), upperRemis.Last());
+                }
+                else
+                {
+                    var freq = contestants.Select(contender => new {Freq = GetFrequencyForContender(contender), Contender = contender});
+                    winner = freq.First(arg => arg.Freq == freq.Max(arg1 => arg1.Freq)).Contender;
                 }
 
                 WaifuContender GetContenderWithMoreFrequentVotes(WaifuContender c1, WaifuContender c2)
@@ -275,7 +297,7 @@ namespace BobDono.Core.Controllers
                 float GetFrequencyForContender(WaifuContender contender)
                 {
                     var voteCount = contender.Votes.Count;
-                    if (voteCount == 1) //okay... now let's just use old plain random. I don't care.
+                    if (voteCount == 1) //okay... now let's just use old plain random. I don't care. /shrug
                     {
                         return (float)_random.NextDouble();
                     }
@@ -291,6 +313,7 @@ namespace BobDono.Core.Controllers
                 }
             }
 
+            return winner;
         }
 
         private async Task<List<ulong>> SendBracketInfo(ICollection<Bracket> brackets)
