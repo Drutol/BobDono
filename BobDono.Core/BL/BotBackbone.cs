@@ -80,11 +80,11 @@ namespace BobDono.Core.BL
                             }
                             else
                             {
-                                handler.ContextualDelegateAsync = (args, context) =>
+                                handler.ContextualDelegateAsync = (args, context, executionContext) =>
                                 {
                                     var del = (Delegates.CommandHandlerDelegateAsync) method.CreateDelegate(
                                         typeof(Delegates.CommandHandlerDelegateAsync), context);
-                                    return del(args);
+                                    return del(args,executionContext);
                                 };
                             }
                             Handlers.Add(handler);

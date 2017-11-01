@@ -8,6 +8,7 @@ using BobDono.Core.Attributes;
 using BobDono.Core.BL;
 using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
+using BobDono.DataAccess;
 using BobDono.DataAccess.Services;
 using BobDono.Interfaces;
 using BobDono.MalHell.Comm;
@@ -40,6 +41,9 @@ namespace BobDono.Core
             builder.RegisterType<CharactersSearchQuery>().As<ICharactersSearchQuery>().InstancePerLifetimeScope();
             builder.RegisterType<StaffDetailsQuery>().As<IStaffDetailsQuery>().InstancePerLifetimeScope();
 
+
+            builder.RegisterType<CommandExecutionContext>().As<ICommandExecutionContext>();
+
             builder.RegisterInstance(client).As<DiscordClient>();
 
 
@@ -70,5 +74,6 @@ namespace BobDono.Core
         public static IUserService UserService => _container.Resolve<IUserService>();
         public static IContenderService ContenderService => _container.Resolve<IContenderService>();
 
+        public static ICommandExecutionContext ExecutionContext => _container.Resolve<ICommandExecutionContext>();
     }
 }

@@ -8,27 +8,39 @@ using Microsoft.EntityFrameworkCore;
 namespace BobDono.DataAccess.Services
 {
 
-    public class UserService : IUserService
+    public class UserService : ServiceBase<User> , IUserService
     {
+        public UserService()
+        {
+            
+        }
+
+        private UserService(BobDatabaseContext dbContext, bool saveOnDispose) : base(dbContext,saveOnDispose)
+        {
+
+        }
+
         public async Task<User> GetOrCreateUser(DiscordUser discordUser)
         {
-            using (var db = new BobDatabaseContext())
-            {
-                var user = await db.Users.FirstOrDefaultAsync(u => u.DiscordId == discordUser.Id);
-                if (user != null)
-                    return user;
+            var user = await Context.Users.FirstOrDefaultAsync(u => u.DiscordId == discordUser.Id);
 
-                user = new User
-                {
-                    DiscordId = discordUser.Id,
-                    Name = discordUser.Username
-                };
-
-                db.Users.Add(user);
-                await db.SaveChangesAsync();
-
+            if (user != null)
                 return user;
-            }
+
+            user = new User
+            {
+                DiscordId = discordUser.Id,
+                Name = discordUser.Username
+            };
+
+            Context.Users.Add(user);
+
+            return user;
+        }
+
+        public override IServiceBase<User> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose)
+        {
+            return new UserService(executionContext.Context as BobDatabaseContext, saveOnDispose);
         }
     }
 }

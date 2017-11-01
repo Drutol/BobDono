@@ -6,13 +6,22 @@ using BobDono.Models.Entities;
 
 namespace BobDono.DataAccess.Services
 {
-    public class ContenderService : IContenderService
+    public class ContenderService : ServiceBase<WaifuContender> , IContenderService
     {
-        public async Task<WaifuContender> CreateContender(User user, Waifu waifu, Election election,
+
+        public ContenderService()
+        {
+            
+        }
+
+        private ContenderService(BobDatabaseContext bobDatabaseContext, bool saveOnDispose) : base(bobDatabaseContext,saveOnDispose)
+        {
+
+        }
+
+        public WaifuContender CreateContender(User user, Waifu waifu, Election election,
             string customImage = null)
         {
-            using (var db = new BobDatabaseContext())
-            {
                 var contender = new WaifuContender
                 {
                     CustomImageUrl = customImage,
@@ -20,22 +29,14 @@ namespace BobDono.DataAccess.Services
                     Election = election,
                     Waifu = waifu,
                 };
-                db.Elections.Attach(election);
-                db.Waifus.Attach(waifu);
                 election.Contenders.Add(contender);
-                try
-                {
-                    await db.SaveChangesAsync();
-                }
-                catch (Exception e)
-                {
-
-                }
-
 
                 return contender;
-            }
+        }
 
+        public override IServiceBase<WaifuContender> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose = true)
+        {
+            return new ContenderService(executionContext.Context as BobDatabaseContext, saveOnDispose);
         }
     }
 }

@@ -3,9 +3,9 @@ using BobDono.Models.Entities;
 
 namespace BobDono.Interfaces
 {
-    public interface IContenderService
+    public interface IContenderService : IServiceBase<WaifuContender>
     {
-        Task<WaifuContender> CreateContender(User user, Waifu waifu, Election election,
+        WaifuContender CreateContender(User user, Waifu waifu, Election election,
             string customImage = null);
     }
 }

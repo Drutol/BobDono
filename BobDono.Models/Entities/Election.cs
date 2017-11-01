@@ -16,8 +16,6 @@ namespace BobDono.Models.Entities
             Closed,
         }
 
-        private ICollection<WaifuContender> _contenders;
-        private ICollection<BracketStage> _bracketStages;
         public long Id { get; set; }
 
         public ulong DiscordChannelId { get; set; }
@@ -49,11 +47,8 @@ namespace BobDono.Models.Entities
 
         public State CurrentState { get; set; } = State.Submission;
 
-        public virtual ICollection<BracketStage> BracketStages =>
-            _bracketStages ?? (_bracketStages = new HashSet<BracketStage>());
-
-        public virtual ICollection<WaifuContender> Contenders =>
-            _contenders ?? (_contenders = new HashSet<WaifuContender>());
+        public virtual ICollection<BracketStage> BracketStages { get; set; } = new HashSet<BracketStage>();
+        public virtual ICollection<WaifuContender> Contenders { get; set; } = new List<WaifuContender>();
 
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {

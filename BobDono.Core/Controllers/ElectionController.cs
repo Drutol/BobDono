@@ -77,7 +77,7 @@ namespace BobDono.Core.Controllers
             embed.Color = DiscordColor.Gold;
             embed.Description = Election.Description;
             embed.Title = $"Election: {Election.Name}";
-            embed.Author = new DiscordEmbedBuilder.EmbedAuthor { Name = Election.Author.Name };
+            embed.Author = new DiscordEmbedBuilder.EmbedAuthor {Name = Election.Author.Name};
             embed.AddField("Submission time:",
                 $"{Election.SubmissionsStartDate} - {Election.SubmissionsEndDate} - *({(Election.SubmissionsEndDate - Election.SubmissionsStartDate).Days} days)*");
             embed.AddField("Entrants per person:", Election.EntrantsPerUser.ToString());
@@ -86,11 +86,14 @@ namespace BobDono.Core.Controllers
 
             var message = await _channel.SendMessageAsync(null, false, embed.Build());
 
-            using (var update = await _electionService.ObtainElectionUpdate(Election.Id))
+            _electionService.Begin();
             {
-                update.Entity.OpeningMessageId = message.Id;
+                Election.OpeningMessageId = message.Id;
+                _electionService.Update(Election);
             }
-      
+            _electionService.Finish();
+
+
         }
 
         public async void UpdateOpeningMessage()
@@ -204,14 +207,14 @@ namespace BobDono.Core.Controllers
             contestants = contestants.OrderBy(contender => contender.SeedNumber).ToList();
 
             var brackets = new List<Bracket>();
-            for (int i = 0; i < contestants.Count - 1; i += 2)
+            for (int i = 0, k = 0; i < contestants.Count - 1; i += 2, k++)
             {
                 brackets.Add(new Bracket
                 {
                     FirstContender = contestants[i],
                     SecondContender = contestants[i + 1],
                     BracketStage = stage,
-                    Number = Election.BracketStages.Count+1
+                    Number = k
                 });
             }
 

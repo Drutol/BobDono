@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BobDono.Core;
 using BobDono.Core.Attributes;
 using BobDono.Core.Utils;
+using BobDono.Interfaces;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
@@ -13,7 +14,7 @@ namespace BobDono.Modules
     public class BobModule
     {
         [CommandHandler(Regex = @"bob")]
-        public Task GeneralCommand(MessageCreateEventArgs args)
+        public Task GeneralCommand(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             var builder = new DiscordEmbedBuilder();
             builder.Title = "Bob-dono the waifu connesieur.";
@@ -36,7 +37,7 @@ namespace BobDono.Modules
         }
 
         [CommandHandler(Regex = @"help \w+")]
-        public async Task HelpCommand(MessageCreateEventArgs args)
+        public async Task HelpCommand(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             var cmd = args.Message.Content.Split(' ').Last();
             var handler = ResourceLocator.BotContext.Commands.Values.SelectMany(list => list).FirstOrDefault(attribute => attribute.HumanReadableCommand != null &&

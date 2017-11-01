@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BobDono.Core;
 using BobDono.Core.Attributes;
 using BobDono.Core.Utils;
+using BobDono.Interfaces;
 using DSharpPlus.EventArgs;
 
 namespace BobDono.Modules
@@ -12,7 +13,7 @@ namespace BobDono.Modules
     public class DebugModule
     {
         [CommandHandler(Regex = @"bugs")]
-        public async Task DisplayExceptions(MessageCreateEventArgs args)
+        public async Task DisplayExceptions(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             if (ResourceLocator.ExceptionHandler.CaughtThings.Any())
             {
@@ -27,7 +28,7 @@ namespace BobDono.Modules
         }
 
         [CommandHandler(Regex = @"crash",HumanReadableCommand = "crash")]
-        public async Task Crash(MessageCreateEventArgs args)
+        public async Task Crash(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             await Task.Delay(500);
             throw new Exception("Let's see what happens when I spill paint myself... for art!");

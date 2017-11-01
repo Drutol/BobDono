@@ -26,6 +26,6 @@ namespace BobDono.Core.Utils
         }
 
         public Dictionary<ModuleAttribute, List<CommandHandlerAttribute>> Commands { get; set; }
-        public event Delegates.CommandHandlerDelegate NewPrivateMessage;   
+        public event Delegates.MessageDelegate NewPrivateMessage;   
     }
 }

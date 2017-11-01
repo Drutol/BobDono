@@ -62,7 +62,7 @@ namespace BobDono
 
             foreach (var handlerEntry in _botBackbone.Handlers)
             {
-                if (!handlerEntry.AreTypesEqual(typeof(MessageCreateEventArgs)))
+                if (!handlerEntry.AreTypesEqual(typeof(MessageCreateEventArgs),typeof(ICommandExecutionContext)))
                     continue;
 
                 try
@@ -74,7 +74,7 @@ namespace BobDono
                             if (handlerEntry.Predicates.All(predicate =>
                                 predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs, context)))
                             {
-                                await InvokeContextual(context, handlerEntry);
+                                await InvokeContextual(context, handlerEntry, ResourceLocator.ExecutionContext);
 
                                 if(!invokedModules.ContainsKey(handlerEntry.Attribute.ParentModuleAttribute))
                                     invokedModules[handlerEntry.Attribute.ParentModuleAttribute] = new HashSet<IModule>();
@@ -90,15 +90,11 @@ namespace BobDono
                             predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs)))
                         {
                             if (handlerEntry.Attribute.Awaitable)
-                                await handlerEntry.DelegateAsync.Invoke(messageCreateEventArgs);
+                                await handlerEntry.DelegateAsync.Invoke(messageCreateEventArgs, ResourceLocator.ExecutionContext);
                             else
-                                handlerEntry.DelegateAsync.Invoke(messageCreateEventArgs);
+                                handlerEntry.DelegateAsync.Invoke(messageCreateEventArgs, ResourceLocator.ExecutionContext);
                         }
                     }
-
-
-
-
                 }
                 catch (Exception e)
                 {
@@ -121,7 +117,7 @@ namespace BobDono
                     {
                         if (handlerEntry.Predicates.OfType<CommandPredicates.ChannelContextFilter>().First()
                             .MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs, context))
-                            await InvokeContextual(context, handlerEntry);
+                            await InvokeContextual(context, handlerEntry , ResourceLocator.ExecutionContext);
                     }
 
                 }
@@ -132,12 +128,12 @@ namespace BobDono
             }
 
 
-            async Task InvokeContextual(IModule context, HandlerEntry handlerEntry)
+            async Task InvokeContextual(IModule context, HandlerEntry handlerEntry, ICommandExecutionContext executionContext)
             {
                 if (handlerEntry.Attribute.Awaitable)
-                    await handlerEntry.ContextualDelegateAsync.Invoke(messageCreateEventArgs, context);
+                    await handlerEntry.ContextualDelegateAsync.Invoke(messageCreateEventArgs, context, executionContext);
                 else
-                    handlerEntry.ContextualDelegateAsync.Invoke(messageCreateEventArgs, context);
+                    handlerEntry.ContextualDelegateAsync.Invoke(messageCreateEventArgs, context, executionContext);
 
             }
         }

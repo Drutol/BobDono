@@ -9,6 +9,6 @@ namespace BobDono.Core.Interfaces
     public interface IBotContext
     {
         Dictionary<ModuleAttribute, List<CommandHandlerAttribute>> Commands { get; set; }
-        event Delegates.CommandHandlerDelegate NewPrivateMessage;
+        event Delegates.MessageDelegate NewPrivateMessage;
     }
 }

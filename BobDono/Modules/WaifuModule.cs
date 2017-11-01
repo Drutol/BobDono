@@ -26,7 +26,7 @@ namespace BobDono.Modules
         }
 
         [CommandHandler(Regex = @"waifus", HumanReadableCommand = "waifus",HelpText = "Shows favourite character of the caller.")]
-        public async Task DisplayFavouriteCharacterForUser(MessageCreateEventArgs args)
+        public async Task DisplayFavouriteCharacterForUser(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             if (DiscordMalMapper.TryGetMalUsername(args.Author.Id, out string userName))
             {
@@ -35,7 +35,7 @@ namespace BobDono.Modules
         }
 
         [CommandHandler(Regex = @"waifus (<@\d+>|\w+)", HumanReadableCommand = "waifus <username>",HelpText = "Shows favourite character of specified user.")]
-        public async Task DisplayInfoForUserCommand(MessageCreateEventArgs args)
+        public async Task DisplayInfoForUserCommand(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             string response = null;
             if (args.Message.MentionedUsers.Any())
@@ -53,7 +53,7 @@ namespace BobDono.Modules
         }
 
         [CommandHandler(Regex = @"waifu (\w+|\s)+", HumanReadableCommand = "waifu <name> [show]")]
-        public async Task GetCharacterInfo(MessageCreateEventArgs args)
+        public async Task GetCharacterInfo(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             var messageArgs = args.Message.Content.Split(' ');
             var searchResults = await _charactersSearchQuery.GetSearchResults(messageArgs[1]);

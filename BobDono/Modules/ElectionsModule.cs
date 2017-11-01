@@ -40,17 +40,14 @@ namespace BobDono.Modules
             _exceptionHandler = exceptionHandler;
             _electionService = electionService;
 
-
-
             InitializeExistingElections();
-
         }
 
         private void InitializeExistingElections()
         {
             using (var dependencyScope = ResourceLocator.ObtainScope())
             {
-                foreach (var election in _electionService.GetAll())
+                foreach (var election in _electionService.OneShot(() => _electionService.GetAll()))
                 {
                     try
                     {
@@ -60,7 +57,7 @@ namespace BobDono.Modules
                     }
                     catch (Exception)
                     {
-                        _electionService.Remove(election);
+                        _electionService.OneShot(() => _electionService.Remove(election));
                     }
                 }
             }
@@ -72,118 +69,127 @@ namespace BobDono.Modules
             HumanReadableCommand = "election create",
             HelpText = "Starts new election.", 
             Awaitable = false)]
-        public async Task CreateElection(MessageCreateEventArgs args)
+        public async Task CreateElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            var cts = new CancellationTokenSource();
-            var timeout = TimeSpan.FromMinutes(1);
-            var guild = ResourceLocator.DiscordClient.GetNullsGuild();
-            var member = await guild.GetMemberAsync(args.Author.Id);
-            var channel = await member.CreateDmChannelAsync();
-            var user = await _userService.GetOrCreateUser(args.Author);
-            await channel.SendMessageAsync("You are about to create new election, you can always cancel by typing `quit`.\nProvide short name for it:");
-
-            var election = new Election();
-            try
+            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
+            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(executionContext))
             {
-                _botContext.NewPrivateMessage += HandleQuit;
+                var user = await userService.GetOrCreateUser(args.Author);
 
+
+                var cts = new CancellationTokenSource();
+                var timeout = TimeSpan.FromMinutes(1);
+                var guild = ResourceLocator.DiscordClient.GetNullsGuild();
+                var member = await guild.GetMemberAsync(args.Author.Id);
+                var channel = await member.CreateDmChannelAsync();
+                await channel.SendMessageAsync(
+                    "You are about to create new election, you can always cancel by typing `quit`.\nProvide short name for it:");
+
+                var election = new Election();
                 try
                 {
+                    _botContext.NewPrivateMessage += HandleQuit;
 
-                    election.Name = await channel.GetNextMessageAsync(timeout, cts.Token);
-                    await channel.SendMessageAsync("Longer description if you could:");
-                    election.Description = await channel.GetNextMessageAsync(timeout, cts.Token);
-                    int submissionDays = 2;
-                    while (submissionDays == 0)
-                    {
-                        await channel.SendMessageAsync(
-                            "How long would you like the submission period to be? (1-7) days.");
-                        var response = await channel.GetNextMessageAsync(timeout, cts.Token);
-                        if (int.TryParse(response, out int days))
-                        {
-                            if (days >= 1 || days <= 7)
-                            {
-                                submissionDays = days;
-                            }
-                        }
-                    }
-                    election.SubmissionsStartDate = DateTime.UtcNow;
-                    election.SubmissionsEndDate = DateTime.UtcNow.AddDays(submissionDays);
-                    election.VotingStartDate = election.SubmissionsEndDate.AddHours(2); //TODO Maybe add commands?
-
-                    int submissionCount = 2;
-                    while (submissionCount == 0)
-                    {
-                        await channel.SendMessageAsync("How many contestants can be submitted by one person? (1-9)");
-                        var response = await channel.GetNextMessageAsync(timeout, cts.Token);
-                        if (int.TryParse(response, out int count))
-                        {
-                            if (count >= 1 || count <= 7)
-                            {
-                                submissionCount = count;
-                            }
-                        }
-                    }
-                    election.EntrantsPerUser = submissionCount;
-
-                    await channel.SendMessageAsync(
-                        "That'd be evrything I guess, let the wars begin. I'll now create a new battlefield!");
                     try
                     {
-                        var category = await guild.GetElectionsCategory();
-                        var electionChannel = await guild.CreateChannelAsync(election.Name, ChannelType.Text, category,
-                            null, null, null,
-                            election.Description);
-                        election.DiscordChannelId = electionChannel.Id;
+
+                        election.Name = await channel.GetNextMessageAsync(timeout, cts.Token);
+                        await channel.SendMessageAsync("Longer description if you could:");
+                        election.Description = await channel.GetNextMessageAsync(timeout, cts.Token);
+                        int submissionDays = 2;
+                        while (submissionDays == 0)
+                        {
+                            await channel.SendMessageAsync(
+                                "How long would you like the submission period to be? (1-7) days.");
+                            var response = await channel.GetNextMessageAsync(timeout, cts.Token);
+                            if (int.TryParse(response, out int days))
+                            {
+                                if (days >= 1 || days <= 7)
+                                {
+                                    submissionDays = days;
+                                }
+                            }
+                        }
+                        election.SubmissionsStartDate = DateTime.UtcNow;
+                        election.SubmissionsEndDate = DateTime.UtcNow.AddDays(submissionDays);
+                        election.VotingStartDate = election.SubmissionsEndDate.AddHours(2); //TODO Maybe add commands?
+
+                        int submissionCount = 2;
+                        while (submissionCount == 0)
+                        {
+                            await channel.SendMessageAsync(
+                                "How many contestants can be submitted by one person? (1-9)");
+                            var response = await channel.GetNextMessageAsync(timeout, cts.Token);
+                            if (int.TryParse(response, out int count))
+                            {
+                                if (count >= 1 || count <= 7)
+                                {
+                                    submissionCount = count;
+                                }
+                            }
+                        }
+                        election.EntrantsPerUser = submissionCount;
+
+                        await channel.SendMessageAsync(
+                            "That'd be evrything I guess, let the wars begin. I'll now create a new battlefield!");
+                        try
+                        {
+                            var category = await guild.GetElectionsCategory();
+                            var electionChannel = await guild.CreateChannelAsync(election.Name, ChannelType.Text,
+                                category,
+                                null, null, null,
+                                election.Description);
+                            election.DiscordChannelId = electionChannel.Id;
+                        }
+                        catch (Exception e)
+                        {
+
+                        }
+
+
+
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
                     }
                     catch (Exception e)
                     {
-
+                        _exceptionHandler.Handle(e);
                     }
 
-
-      
                 }
-                catch (OperationCanceledException)
+                finally
                 {
-                    return;
+                    _botContext.NewPrivateMessage -= HandleQuit;
+                }
+
+                await Task.Delay(1000);
+
+                try
+                {
+                    using (var dependencyScope = ResourceLocator.ObtainScope())
+                    {
+                        var electionContext = dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
+                            await electionService.CreateElection(election, user)));
+                        electionContext.OnCreated();
+                        _electionsContexts.Add(electionContext);
+                    }
                 }
                 catch (Exception e)
                 {
-                    _exceptionHandler.Handle(e);
+
                 }
 
-            }
-            finally
-            {
-                _botContext.NewPrivateMessage -= HandleQuit;
-            }
 
-            await Task.Delay(1000);
 
-            try
-            {
-                using (var dependencyScope = ResourceLocator.ObtainScope())
+                void HandleQuit(MessageCreateEventArgs a)
                 {
-                    var context = dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
-                        await _electionService.CreateElection(election, user)));
-                    context.OnCreated();
-                    _electionsContexts.Add(context);
-                }
-            }
-            catch (Exception e)
-            {
-
-            }
-
-
-
-            void HandleQuit(MessageCreateEventArgs a)
-            {
-                if (a.Channel.Id == channel.Id &&
-                    a.Message.Content.Equals("quit", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    cts.Cancel();
+                    if (a.Channel.Id == channel.Id &&
+                        a.Message.Content.Equals("quit", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        cts.Cancel();
+                    }
                 }
             }
         }
