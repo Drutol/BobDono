@@ -76,31 +76,39 @@ namespace BobDono.Contexts
             using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(executionContext))
             using (var waifuService = _waifuService.ObtainLifetimeHandle<WaifuService>(executionContext))
             {
-                var user = await userService.GetOrCreateUser(args.Author);
-
                 _election = await electionService.GetElection(_election.Id);
-
-                var count = _election.Contenders?.Count(c => c.Proposer.Id == user.Id);
-
-                //check if user didn't create more then he should be able to
-                if (count >= _election.EntrantsPerUser)
+                if (_election.CurrentState == Election.State.Submission)
                 {
-                    await args.Channel.SendMessageAsync($"You have already added {count} contestants.");
-                    return;
+
+
+
+                    var user = await userService.GetOrCreateUser(args.Author);
+
+
+
+                    var count = _election.Contenders?.Count(c => c.Proposer.Id == user.Id);
+
+                    //check if user didn't create more then he should be able to
+                    if (count >= _election.EntrantsPerUser)
+                    {
+                        await args.Channel.SendTimedMessage($"You have already added {count} contestants.");
+                        return;
+                    }
+
+                    await args.Channel.TriggerTypingAsync();
+                    var arguments = args.Message.Content.Split(" ");
+
+                    var waifu = await waifuService.GetOrCreateWaifu(arguments[2]);
+                    var contender = contenderService.CreateContender(user, waifu, _election,
+                        arguments.Length == 4 ? arguments[3] : null);
+                    _election = await electionService.GetElection(_election.Id);
+
+
+                    await args.Channel.SendMessageAsync(null, false, contender.GetEmbed());
+
+                    _controller.UpdateOpeningMessage();
                 }
-
-                await args.Channel.TriggerTypingAsync();
-                var arguments = args.Message.Content.Split(" ");
-
-                var waifu = await waifuService.GetOrCreateWaifu(arguments[2]);
-                var contender = contenderService.CreateContender(user, waifu, _election,
-                    arguments.Length == 4 ? arguments[3] : null);
-                _election = await electionService.GetElection(_election.Id);
-
                 await args.Message.DeleteAsync();
-                await args.Channel.SendMessageAsync(null, false, contender.GetEmbed());
-
-                _controller.UpdateOpeningMessage();
             }
         }
 
@@ -116,37 +124,43 @@ namespace BobDono.Contexts
                 var contenderId = int.Parse(parameters[2]);
 
                 //obtain entities
-                var user = await userService.GetOrCreateUser(args.Author);
                 _election = await electionService.GetElection(_election.Id);
-                var bracket = _election.BracketStages.Last().Brackets.First(b => b.Number == bracketId);
 
-                //if user has already voted let's return
-                if (bracket.Votes.Any(vote => vote.User.Id == user.Id))
+                if (_election.CurrentState == Election.State.Voting)
                 {
-                    await args.Channel.SendMessageAsync($"You have already voted in this bracket.");
-                    return;
+
+                    var user = await userService.GetOrCreateUser(args.Author);
+                    var bracket = _election.BracketStages.Last().Brackets.First(b => b.Number == bracketId);
+
+                    //if user has already voted let's return
+                    if (bracket.Votes.Any(vote => vote.User.Id == user.Id))
+                    {
+                        await args.Channel.SendTimedMessage("You have already voted in this bracket.");
+                    }
+                    else
+                    {
+                        WaifuContender contender;
+                        if (contenderId == 1)
+                            contender = bracket.FirstContender;
+                        else if (contenderId == 2)
+                            contender = bracket.SecondContender;
+                        else
+                            contender = bracket.ThirdContender;
+
+                        bracket.Votes.Add(new Vote
+                        {
+                            Bracket = bracket,
+                            Contender = contender,
+                            CreateDate = DateTime.UtcNow,
+                            User = user
+                        });
+
+                        await _channel.SendTimedMessage($"Thanks for submitting your vote for {contender.Waifu.Name}");
+                    }                  
                 }
-
-                WaifuContender contender;
-                if (contenderId == 1)
-                    contender = bracket.FirstContender;
-                else if (contenderId == 2)
-                    contender = bracket.SecondContender;
-                else
-                    contender = bracket.ThirdContender;
-
-                bracket.Votes.Add(new Vote
-                {
-                    Bracket = bracket,
-                    Contender = contender,
-                    CreateDate = DateTime.UtcNow,
-                    User = user
-                });
-
-                await args.Message.DeleteAsync();
             }
 
-
+            await args.Message.DeleteAsync();
         }
 
         #region Debug

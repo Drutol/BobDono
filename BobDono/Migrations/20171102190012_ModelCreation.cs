@@ -160,6 +160,7 @@ namespace BobDono.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     BracketStageId = table.Column<long>(type: "INTEGER", nullable: true),
                     FirstContenderId = table.Column<long>(type: "INTEGER", nullable: true),
+                    LoserId = table.Column<long>(type: "INTEGER", nullable: true),
                     Number = table.Column<int>(type: "INTEGER", nullable: false),
                     SecondContenderId = table.Column<long>(type: "INTEGER", nullable: true),
                     ThirdContenderId = table.Column<long>(type: "INTEGER", nullable: true),
@@ -177,6 +178,12 @@ namespace BobDono.Migrations
                     table.ForeignKey(
                         name: "FK_Brackets_WaifuContenders_FirstContenderId",
                         column: x => x.FirstContenderId,
+                        principalTable: "WaifuContenders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Brackets_WaifuContenders_LoserId",
+                        column: x => x.LoserId,
                         principalTable: "WaifuContenders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -243,6 +250,11 @@ namespace BobDono.Migrations
                 name: "IX_Brackets_FirstContenderId",
                 table: "Brackets",
                 column: "FirstContenderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Brackets_LoserId",
+                table: "Brackets",
+                column: "LoserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Brackets_SecondContenderId",

@@ -49,13 +49,6 @@ namespace BobDono.Core.Controllers
                         transitioned = true;
                     }
                     break;
-                case Election.State.Voting:
-                    if (DateTime.UtcNow > Election.VotingEndDate)
-                    {
-                        await TransitionToClosed();
-                        transitioned = true;
-                    }
-                    break;
             }
 
             if (!transitioned && Election.CurrentState == Election.State.Voting)
@@ -162,22 +155,91 @@ namespace BobDono.Core.Controllers
             var ids = await SendBracketInfo(stage.Brackets);
             Election.BracketMessagesIds = ids;
 
-            var msg = await _channel.GetMessageAsync(Election.PendingVotingStartMessageId);
-            await msg.DeleteAsync();
+            try
+            {
+                var msg = await _channel.GetMessageAsync(Election.PendingVotingStartMessageId);
+                await msg.DeleteAsync();
+            }
+            catch (Exception)
+            {
+                //debug
+            }
+
         }
 
         private async Task TransitionToClosed()
         {
             Election.CurrentState = Election.State.Closed;
+
+
+            //some stats perhaps?
+            var embed = new DiscordEmbedBuilder()
+            {
+                Color = DiscordColor.CornflowerBlue,
+                Title = "Election has concluded!",
+                Description = "Have some stats about it:",
+            };
+
+            embed.AddField("Votes:",
+                Election.BracketStages.SelectMany(stage => stage.Brackets).Sum(bracket => bracket.Votes.Count)
+                    .ToString());
+            embed.AddField("Contenders:", Election.Contenders.Count.ToString());
+            await _channel.SendMessageAsync(null, false, embed);
+
+
+            //let's announce the winner
+            var winner = Election.BracketStages.Last().Brackets.First().Winner;
+            var winnerEmbed = winner.GetEmbedBuilder();
+            winnerEmbed.Author = null;
+            winnerEmbed.Color = DiscordColor.Gold;
+            winnerEmbed.Title = $":trophy: 1st place: {winnerEmbed.Title} :trophy:";
+
+            await _channel.SendMessageAsync(null, false, winnerEmbed);
+
+            //2nd place - second contender from last bracket
+
+            var finalBracket = Election.BracketStages.Last().Brackets.First();
+            var secondPlace = finalBracket.FirstContender == winner
+                ? finalBracket.SecondContender
+                : finalBracket.FirstContender;
+
+            var secondEmbed = secondPlace.GetEmbedBuilder();
+            secondEmbed.Author = null;
+            secondEmbed.Color = new DiscordColor(192,192,192);
+            secondEmbed.Title = $"2nd place: {secondEmbed.Title}";
+
+            await _channel.SendMessageAsync(null, false, secondEmbed);
+
+            //3rd place - contender from brackets that made final bracket
+
+            var halfFinalStage = Election.BracketStages.ElementAt(Election.BracketStages.Count - 2);
+            var semiLosers = halfFinalStage.Brackets.Select(bracket => bracket.Loser);
+            var winnerOfLosers = FindWinner(semiLosers.ToList());
+
+            var thirdEmbed = winnerOfLosers.GetEmbedBuilder();
+            thirdEmbed.Author = null;
+            thirdEmbed.Color = DiscordColor.Brown;
+            thirdEmbed.Title = $"3rd place: {thirdEmbed.Title}";
+
+            await _channel.SendMessageAsync(null, false, thirdEmbed);
+
         }
 
         public async Task CloseCurrentStage()
         {
             //remove old messages
-            foreach (var bracketMessageId in Election.BracketMessagesIds)
+            try
             {
-                await _channel.DeleteMessageAsync(await _channel.GetMessageAsync(bracketMessageId));
+                foreach (var bracketMessageId in Election.BracketMessagesIds)
+                {
+                    await _channel.DeleteMessageAsync(await _channel.GetMessageAsync(bracketMessageId));
+                }
             }
+            catch (Exception)
+            {
+                //we have already deleted them - debug?
+            }
+
 
 
             //select winners
@@ -185,15 +247,35 @@ namespace BobDono.Core.Controllers
             foreach (var bracket in lastBrackets)
             {
                 bracket.Winner = FindWinner(bracket);
+
+                //we are losing one loser out of triple bracket but I don't care
+                if (bracket.Winner == bracket.FirstContender)
+                    bracket.Loser = bracket.SecondContender;
+                else if (bracket.Winner == bracket.SecondContender)
+                    bracket.Loser = bracket.FirstContender;
+                else if (bracket.Winner == bracket.ThirdContender)
+                    bracket.Loser = bracket.FirstContender;
             }
 
-            //create new bracket
-            var stage = CreateBracketStage(lastBrackets.Select(bracket => bracket.Winner).ToList());
 
-            var ids = await SendBracketInfo(stage.Brackets);
-            Election.BracketMessagesIds = ids;
+            if (lastBrackets.Count == 1) //this was last bracket so we cannot create new one
+            {
+                await TransitionToClosed();
+            }
+            else
+            {
+                //create new bracket
+                var stage = CreateBracketStage(lastBrackets.Select(bracket => bracket.Winner).ToList());
 
-            Election.BracketStages.Add(stage);
+                var ids = await SendBracketInfo(stage.Brackets);
+                Election.BracketMessagesIds = ids;
+
+                Election.BracketStages.Add(stage);
+            }
+
+
+
+
         }
 
         private BracketStage CreateBracketStage(List<WaifuContender> contestants)
@@ -238,13 +320,17 @@ namespace BobDono.Core.Controllers
 
         public WaifuContender FindWinner(Bracket bracket)
         {
-            WaifuContender winner = null;
-            var contestants = new List<WaifuContender> {bracket.FirstContender, bracket.SecondContender};
+            var contestants = new List<WaifuContender> { bracket.FirstContender, bracket.SecondContender };
             if (bracket.ThirdContender != null)
                 contestants.Add(bracket.ThirdContender);
+            return FindWinner(contestants);
+        }
+
+        public WaifuContender FindWinner(List<WaifuContender> contestants)
+        {
+            WaifuContender winner = null;
             //if we don't have remis
-            if (contestants.All(contender =>
-                contestants.All(waifuContender => waifuContender.Votes.Count != contender.Votes.Count)))
+            if(contestants.Skip(1).All(contender => contender.Votes.Count != contestants[0].Votes.Count))
             {
                 foreach (var waifuContender in contestants)
                 {
@@ -286,8 +372,8 @@ namespace BobDono.Core.Controllers
                 }
                 else
                 {
-                    var freq = contestants.Select(contender => new {Freq = GetFrequencyForContender(contender), Contender = contender});
-                    winner = freq.First(arg => arg.Freq == freq.Max(arg1 => arg1.Freq)).Contender;
+                    var freq = contestants.Select(contender => new {Freq = GetFrequencyForContender(contender), Contender = contender}).ToList();
+                    winner = freq.First(arg => arg.Freq.Equals(freq.Max(arg1 => arg1.Freq))).Contender;
                 }
 
                 WaifuContender GetContenderWithMoreFrequentVotes(WaifuContender c1, WaifuContender c2)
@@ -300,7 +386,7 @@ namespace BobDono.Core.Controllers
                 float GetFrequencyForContender(WaifuContender contender)
                 {
                     var voteCount = contender.Votes.Count;
-                    if (voteCount == 1) //okay... now let's just use old plain random. I don't care. /shrug
+                    if (voteCount <= 1) //okay... now let's just use old plain random. I don't care. /shrug
                     {
                         return (float)_random.NextDouble();
                     }

@@ -8,16 +8,23 @@ namespace BobDono.Core.Extensions
     {
         public static DiscordEmbed GetEmbed(this WaifuContender contender)
         {
+            return GetEmbedBuilder(contender).Build();
+        }
+
+        public static DiscordEmbedBuilder GetEmbedBuilder(this WaifuContender contender)
+        {
             var builder = new DiscordEmbedBuilder
             {
                 Author = new DiscordEmbedBuilder.EmbedAuthor {Name = contender.Proposer.Name},
                 Color = DiscordColor.Gray,
                 Description = contender.Waifu.Description,
                 ThumbnailUrl = contender.CustomImageUrl ?? contender.Waifu.ImageUrl,
-                Title = $"Contender: {contender.Waifu.Name}",
+                Title = $"Contender: {contender.Waifu.Name}"
             };
 
-            return builder.Build();
+            builder.WithUrl($"https://myanimelist.net/character/{contender.Waifu.MalId}");
+
+            return builder;
         }    
         
         

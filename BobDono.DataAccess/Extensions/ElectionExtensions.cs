@@ -11,10 +11,12 @@ namespace BobDono.DataAccess.Extensions
     {
         public static IQueryable<Election> IncludeAll(this DbSet<Election> set)
         {
-            return set.Include(election => election.Contenders)
-                .ThenInclude(contenders => contenders.Waifu)
+            return set
+                .Include(election => election.Contenders)
+                    .ThenInclude(contenders => contenders.Waifu)
                 .Include(election => election.BracketStages)
-                .ThenInclude(s => s.Brackets).ThenInclude(bracket => bracket.Votes)
+                    .ThenInclude(s => s.Brackets)
+                    .ThenInclude(bracket => bracket.Votes)
                 .Include(election => election.Author);
         }
     }

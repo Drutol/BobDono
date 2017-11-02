@@ -34,5 +34,13 @@ namespace BobDono.Core.Extensions
 
         }
 
+        public static async Task SendTimedMessage(this DiscordChannel channel,string text,TimeSpan? delay = null)
+        {
+            delay = delay ?? TimeSpan.FromSeconds(3);
+            var msg = await channel.SendMessageAsync(text);
+            await Task.Delay(delay.Value);
+            await msg.DeleteAsync();
+        }
+
     }
 }

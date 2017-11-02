@@ -15,6 +15,7 @@ namespace BobDono.Models.Entities
         public WaifuContender ThirdContender { get; set; }
 
         public WaifuContender Winner { get; set; }
+        public WaifuContender Loser { get; set; }
 
         public virtual ICollection<Vote> Votes { get; set; }
 

@@ -29,6 +29,8 @@ namespace BobDono.Migrations
 
                     b.Property<long?>("FirstContenderId");
 
+                    b.Property<long?>("LoserId");
+
                     b.Property<int>("Number");
 
                     b.Property<long?>("SecondContenderId");
@@ -42,6 +44,8 @@ namespace BobDono.Migrations
                     b.HasIndex("BracketStageId");
 
                     b.HasIndex("FirstContenderId");
+
+                    b.HasIndex("LoserId");
 
                     b.HasIndex("SecondContenderId");
 
@@ -218,6 +222,10 @@ namespace BobDono.Migrations
                     b.HasOne("BobDono.Models.Entities.WaifuContender", "FirstContender")
                         .WithMany()
                         .HasForeignKey("FirstContenderId");
+
+                    b.HasOne("BobDono.Models.Entities.WaifuContender", "Loser")
+                        .WithMany()
+                        .HasForeignKey("LoserId");
 
                     b.HasOne("BobDono.Models.Entities.WaifuContender", "SecondContender")
                         .WithMany()
