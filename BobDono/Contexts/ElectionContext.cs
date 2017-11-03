@@ -18,7 +18,7 @@ using DSharpPlus.EventArgs;
 
 namespace BobDono.Contexts
 {
-    [Module(IsChannelContextual = true)]
+    [Module(IsChannelContextual = true,Name = "Election(Channel)",Description = "Offers commands to participate in election in current channel. These commands only work in context of appropriate channel.")]
     public class ElectionContext : ContextModuleBase
     {
         private Election _election;
@@ -106,7 +106,7 @@ namespace BobDono.Contexts
             }
         }
 
-        [CommandHandler(Regex = @"vote \d+ \d+", HumanReadableCommand = "vote <bracketNumber> <contestantNumber>")]
+        [CommandHandler(Regex = @"vote \d+ \d+",HelpText = "Submit your vote in given bracket. Can be used one per bracket. Cannot be undone.",HumanReadableCommand = "vote <bracketNumber> <contestantNumber>")]
         public async Task Vote(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
@@ -159,7 +159,7 @@ namespace BobDono.Contexts
 
         #region Debug
 
-        [CommandHandler(Regex = @"start")]
+        [CommandHandler(Regex = @"start",Debug = true)]
         public async Task Start(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(executionContext))
@@ -169,7 +169,7 @@ namespace BobDono.Contexts
             }
         }
 
-        [CommandHandler(Regex = @"close")]
+        [CommandHandler(Regex = @"close",Debug = true)]
         public async Task Close(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(executionContext))
@@ -180,7 +180,7 @@ namespace BobDono.Contexts
 
         }
 
-        [CommandHandler(Regex = @"random")]
+        [CommandHandler(Regex = @"random",Debug = true)]
         public async Task AddRandomContenders(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
@@ -227,10 +227,13 @@ namespace BobDono.Contexts
 
         private async void OnHourPassed()
         {
-            _election = await _electionService.OneShotAsync(() => _electionService.GetElection(_election.Id));
-            _controller.Election = _election;
+            using(var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(ResourceLocator.ExecutionContext))
+            {
+                _election = await electionService.GetElection(_election.Id);
+                _controller.Election = _election;
 
-            _controller.ProcessTimePass();
+                await _controller.ProcessTimePass();
+            }
         }
 
         private async void ClearChannel()

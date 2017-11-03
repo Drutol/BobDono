@@ -15,10 +15,11 @@ using BobDono.MalHell.Queries;
 using BobDono.Models.Entities;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Modules
 {
-    [Module(Name = "Waifu")]
+    [Module(Name = "Waifu",Description = "Allows to manage your waifu and browse other low-tier waifus of fellow sever members.")]
     public class WaifuModule
     {
         private readonly IUserService _userService;
@@ -134,19 +135,12 @@ namespace BobDono.Modules
         {
             using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
             {
-                var parameters = args.Message.Content.Split(' ');
-
-                string username;
-
-                if (args.Message.MentionedUsers.Any())
+                var username = args.Message.GetSubject();
+                userService.ConfigureIncludes().WithChain(query =>
                 {
-                    username = args.Message.MentionedUsers.First().Username;
-                }
-                else
-                {
-                    username = parameters.Last();
-                }
-
+                    return query.Include(u => u.TrueWaifu)
+                                .ThenInclude(w => w.Waifu);
+                }).Commit();
                 var user = await userService.FirstAsync(u => u.Name.ToLower().Contains(username.ToLower()));
 
                 if (user == null)

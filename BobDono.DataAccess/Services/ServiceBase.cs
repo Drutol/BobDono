@@ -11,12 +11,43 @@ namespace BobDono.DataAccess.Services
 {
     public abstract class ServiceBase<T> : IServiceBase<T> where T : class
     {
-        protected bool SaveOnDispose;
+        public class IncludeConfigurator<T> where T :class
+        {
+            public delegate IQueryable<T> EntityIncludeDelegate(DbSet<T> query);
+            private readonly ServiceBase<T> _parent;
+            private ServiceBase<T>.IncludeConfigurator<T>.EntityIncludeDelegate _includeChain;
+
+            internal IncludeConfigurator(ServiceBase<T> parent)
+            {
+                _parent = parent;
+            }
+
+            public IncludeConfigurator<T> WithChain(ServiceBase<T>.IncludeConfigurator<T>.EntityIncludeDelegate chain)
+            {
+                _includeChain = chain;
+                return this;
+            }
+
+            public void Commit()
+            {
+                _parent._includeOverride = _includeChain;
+            }
+        }
+
+        private readonly bool _saveOnDispose;
         protected BobDatabaseContext Context;
+        private IncludeConfigurator<T>.EntityIncludeDelegate _includeOverride;
 
         internal ServiceBase()
         {
             
+        }
+
+        private IQueryable<T> InternalInclude(DbSet<T> query)
+        {
+            var q = _includeOverride == null ? Include(query) : _includeOverride(query);
+            _includeOverride = null;
+            return q;
         }
 
         protected virtual IQueryable<T> Include(DbSet<T> query)
@@ -27,7 +58,7 @@ namespace BobDono.DataAccess.Services
         internal ServiceBase(BobDatabaseContext dbContext, bool saveOnDispose)
         {
             Context = dbContext;
-            SaveOnDispose = saveOnDispose;
+            _saveOnDispose = saveOnDispose;
         }
 
         public void Begin()
@@ -42,24 +73,24 @@ namespace BobDono.DataAccess.Services
 
         public List<T> GetAll()
         {
-            return Include(Context.Set<T>()).ToList();
+            return InternalInclude(Context.Set<T>()).ToList();
         }
 
         public Task<List<T>> GetAllAsync()
         {
-            return Include(Context.Set<T>()).ToListAsync();
+            return InternalInclude(Context.Set<T>()).ToListAsync();
         }
 
         public Task<List<T>> GetAllWhereAsync(Predicate<T> predicate)
         {
-            return Include(Context.Set<T>()).Where(client => predicate(client)).ToListAsync();
+            return InternalInclude(Context.Set<T>()).Where(client => predicate(client)).ToListAsync();
         }
 
         public async Task<T> FirstAsync(Predicate<T> predicate)
         {
             try
             {
-                return await Include(Context.Set<T>()).FirstAsync(client => predicate(client));
+                return await InternalInclude(Context.Set<T>()).FirstAsync(client => predicate(client));
             }
             catch (Exception)
             {
@@ -141,7 +172,7 @@ namespace BobDono.DataAccess.Services
             {
                 if (Context == null)
                     return;
-                if (SaveOnDispose)
+                if (_saveOnDispose)
                     Context.SaveChanges();
                 Context.Dispose();
             }
@@ -153,7 +184,11 @@ namespace BobDono.DataAccess.Services
             {
                 Context = null;
             }
+        }
 
+        public IncludeConfigurator<T> ConfigureIncludes()
+        {
+            return new IncludeConfigurator<T>(this);
         }
     }
 }

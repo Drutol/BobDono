@@ -14,6 +14,7 @@ namespace BobDono.Models.Entities
             PedningVotingStart,
             Voting,
             Closed,
+            ClosedForcibly
         }
 
         public long Id { get; set; }
@@ -68,5 +69,25 @@ namespace BobDono.Models.Entities
                 .WithOne(wc => wc.Election);
 
         }
+
+        private sealed class IdEqualityComparer : IEqualityComparer<Election>
+        {
+            public bool Equals(Election x, Election y)
+            {
+                if (ReferenceEquals(x, y)) return true;
+                if (ReferenceEquals(x, null)) return false;
+                if (ReferenceEquals(y, null)) return false;
+                if (x.GetType() != y.GetType()) return false;
+                return x.Id == y.Id;
+            }
+
+            public int GetHashCode(Election obj)
+            {
+                return obj.Id.GetHashCode();
+            }
+        }
+
+        [NotMapped]
+        public static IEqualityComparer<Election> IdComparer { get; } = new IdEqualityComparer();
     }
 }

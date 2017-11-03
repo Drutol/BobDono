@@ -60,7 +60,7 @@ namespace BobDono.Core.BL
                             if(!string.IsNullOrEmpty(methodAttribute.Regex))
                                 handler.Predicates.Add(CommandPredicates.Regex);
 
-                            if (module.attr.Authorize || methodAttribute.Authorize)
+                            if (module.attr.Authorize || methodAttribute.Authorize || methodAttribute.Debug)
                                 handler.Predicates.Add(CommandPredicates.Authorize);
 
                             if (methodAttribute.LimitToChannel != null)

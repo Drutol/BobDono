@@ -21,11 +21,6 @@ namespace BobDono.DataAccess.Services
 
         }
 
-        protected override IQueryable<User> Include(DbSet<User> query)
-        {
-            return query.Include(user => user.TrueWaifu).ThenInclude(waifu => waifu.Waifu);
-        }
-
         public async Task<User> GetOrCreateUser(DiscordUser discordUser)
         {
             var user = await Include(Context.Users).FirstOrDefaultAsync(u => u.DiscordId == discordUser.Id);

@@ -24,7 +24,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Modules
 {
-    [Module]
+    [Module(Name = "Elections",Description = "Allows to create new election, and view their overviews and such.")]
     public class ElectionsModule
     {
         private readonly IUserService _userService;
@@ -46,8 +46,11 @@ namespace BobDono.Modules
         private void InitializeExistingElections()
         {
             using (var dependencyScope = ResourceLocator.ObtainScope())
+            using (var electionService =
+                _electionService.ObtainLifetimeHandle<ElectionService>(ResourceLocator.ExecutionContext))
             {
-                foreach (var election in _electionService.OneShot(() => _electionService.GetAll()))
+                foreach (var election in electionService.GetAll()
+                    .Where(election => election.CurrentState != Election.State.Closed))
                 {
                     try
                     {
@@ -55,9 +58,10 @@ namespace BobDono.Modules
                             dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
                                 election)));
                     }
-                    catch (Exception)
+                    catch (Exception) //couldn't create election -> channel removed
                     {
-                        _electionService.OneShot(() => _electionService.Remove(election));
+                        //we will mark is as closed
+                        election.CurrentState = Election.State.ClosedForcibly;
                     }
                 }
             }
@@ -191,6 +195,57 @@ namespace BobDono.Modules
                         cts.Cancel();
                     }
                 }
+            }
+        }
+
+        [CommandHandler(Regex = @"election list (<@\d+>|\w+)",HumanReadableCommand = "election list <username>")]
+        public async Task ListElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
+            {
+                var username = args.Message.GetSubject();
+                userService.ConfigureIncludes().WithChain(query =>
+                {
+                    return query.Include(u => u.Elections)
+                        .Include(u => u.Votes)
+                            .ThenInclude(v => v.Bracket)
+                            .ThenInclude(b => b.BracketStage)
+                                .ThenInclude(bs => bs.Election);
+                }).Commit();
+                var user = await userService.FirstAsync(u => u.Name.ToLower().Contains(username.ToLower()));
+
+                if (user == null)
+                {
+                    await args.Channel.SendMessageAsync("Couldn't find specified user.");
+                    return;
+                }
+
+                var createdElections = user.Elections.Distinct(Election.IdComparer).ToList();
+                var votedElections = user.Votes.Select(vote => vote.Bracket.BracketStage.Election).Distinct(Election.IdComparer).ToList();
+
+                string output = null;
+                if (createdElections.Any())
+                {
+                    output = "_Created elections_\n";
+                    foreach (var createdElection in createdElections)
+                        output += $"Created {createdElection.Name} - Id: {createdElection.Id}\n";
+                }
+
+                if (votedElections.Any())
+                {
+                    if (output == null)
+                        output = "_Created elections_\n";
+                    else
+                        output += "_Created elections_\n";
+
+                    foreach (var votedElection in votedElections)
+                        output += $"Voted in {votedElection.Name} - Id: {votedElection.Id}\n";
+                }
+
+                if (output == null)
+                    output = "User didn't participate in any elections yet.";
+
+                await args.Channel.SendMessageAsync(output);
             }
         }
     }

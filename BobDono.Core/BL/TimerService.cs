@@ -22,7 +22,7 @@ namespace BobDono.Core.BL
         }
 
         private readonly List<TimerRegistration> _registeredTasks = new List<TimerRegistration>();
-        private Timer _rootTimer;
+        private readonly Dictionary<TimerRegistration,Timer> _timers = new Dictionary<TimerRegistration, Timer>();
 
 
         #region Singleton
@@ -41,26 +41,21 @@ namespace BobDono.Core.BL
         {
             _registeredTasks.Add(registration);
 
-            if (_rootTimer == null)
-            {
-                _rootTimer = new Timer(TimerTrigger,null,registration.DueTime,registration.Interval);
-            }
+            _timers.Add(registration,
+                new Timer(TimerTrigger,registration.Task, registration.DueTime, registration.Interval));
         }
 
         public void Deregister(TimerRegistration registration)
         {
             _registeredTasks.Remove(registration);
 
-            if (!_registeredTasks.Any())
-            {
-                _rootTimer.Dispose();
-                _rootTimer = null;
-            }
+            _timers.Remove(registration, out var timer);
+            timer.Dispose();
         }
 
-        private void TimerTrigger(object state)
+        private async void TimerTrigger(object state)
         {
-            Parallel.Invoke(_registeredTasks.Select(registration => registration.Task).ToArray());
+            await (state as Task);
         }
     }
 }

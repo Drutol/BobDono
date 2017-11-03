@@ -30,7 +30,7 @@ namespace BobDono.Modules
                     continue;
 
                 builder.Description +=
-                    $"**{module.Key.Name}**\n\t*{module.Key.Description}*\n\t{string.Join(",", module.Value.Select(attribute => $"`{attribute.HumanReadableCommand}`"))}";
+                    $"**{module.Key.Name}**\n*{module.Key.Description ?? " "}*\n{string.Join("\n", module.Value.Where(attribute => !attribute.Debug && !attribute.FallbackCommand).Select(attribute => $"`{attribute.HumanReadableCommand}`"))}\n\n";
             }
 
             return args.Channel.SendMessageAsync(null, false, builder.Build());
