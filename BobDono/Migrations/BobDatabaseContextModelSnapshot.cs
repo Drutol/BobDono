@@ -116,6 +116,24 @@ namespace BobDono.Migrations
                     b.ToTable("Elections");
                 });
 
+            modelBuilder.Entity("BobDono.Models.Entities.TrueWaifu", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("FeatureImage");
+
+                    b.Property<long?>("WaifuId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WaifuId");
+
+                    b.ToTable("TrueWaifus");
+                });
+
             modelBuilder.Entity("BobDono.Models.Entities.User", b =>
                 {
                     b.Property<long>("Id")
@@ -125,7 +143,12 @@ namespace BobDono.Migrations
 
                     b.Property<string>("Name");
 
+                    b.Property<long?>("TrueWaifuId");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TrueWaifuId")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -252,6 +275,20 @@ namespace BobDono.Migrations
                     b.HasOne("BobDono.Models.Entities.User", "Author")
                         .WithMany("Elections")
                         .HasForeignKey("AuthorId");
+                });
+
+            modelBuilder.Entity("BobDono.Models.Entities.TrueWaifu", b =>
+                {
+                    b.HasOne("BobDono.Models.Entities.Waifu", "Waifu")
+                        .WithMany()
+                        .HasForeignKey("WaifuId");
+                });
+
+            modelBuilder.Entity("BobDono.Models.Entities.User", b =>
+                {
+                    b.HasOne("BobDono.Models.Entities.TrueWaifu", "TrueWaifu")
+                        .WithOne("User")
+                        .HasForeignKey("BobDono.Models.Entities.User", "TrueWaifuId");
                 });
 
             modelBuilder.Entity("BobDono.Models.Entities.UserWaifu", b =>

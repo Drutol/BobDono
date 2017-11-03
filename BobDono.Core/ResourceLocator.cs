@@ -28,13 +28,13 @@ namespace BobDono.Core
             var builder = new ContainerBuilder();
 
             builder.RegisterType<BotContext>().As<IBotContext>().InstancePerLifetimeScope();
-            builder.RegisterType<BotContext>().As<IBotContext>().InstancePerLifetimeScope();
             builder.RegisterType<BotBackbone>().As<IBotBackbone>().InstancePerLifetimeScope();
             builder.RegisterType<ExceptionHandler>().As<IExceptionHandler>().InstancePerLifetimeScope();
             builder.RegisterType<HttpClientProvider>().As<IHttpClientProvider>().InstancePerLifetimeScope();
             builder.RegisterType<ElectionService>().As<IElectionService>().InstancePerLifetimeScope();
             builder.RegisterType<WaifuService>().As<IWaifuService>().InstancePerLifetimeScope();
             builder.RegisterType<UserService>().As<IUserService>().InstancePerLifetimeScope();
+            builder.RegisterType<TrueWaifuService>().As<ITrueWaifuService>().InstancePerLifetimeScope();
             builder.RegisterType<ContenderService>().As<IContenderService>().InstancePerLifetimeScope();
             builder.RegisterType<CharacterDetailsQuery>().As<ICharacterDetailsQuery>().InstancePerLifetimeScope();
             builder.RegisterType<ProfileQuery>().As<IProfileQuery>().InstancePerLifetimeScope();

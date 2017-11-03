@@ -40,6 +40,7 @@ namespace BobDono.DataAccess.Database
         public DbSet<Vote> Votes { get; set; }
         public DbSet<Waifu> Waifus { get; set; }
         public DbSet<WaifuContender> WaifuContenders { get; set; }
+        public DbSet<TrueWaifu> TrueWaifus { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

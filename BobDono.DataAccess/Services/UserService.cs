@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using BobDono.DataAccess.Database;
 using BobDono.Interfaces;
 using BobDono.Models.Entities;
@@ -20,9 +21,14 @@ namespace BobDono.DataAccess.Services
 
         }
 
+        protected override IQueryable<User> Include(DbSet<User> query)
+        {
+            return query.Include(user => user.TrueWaifu).ThenInclude(waifu => waifu.Waifu);
+        }
+
         public async Task<User> GetOrCreateUser(DiscordUser discordUser)
         {
-            var user = await Context.Users.FirstOrDefaultAsync(u => u.DiscordId == discordUser.Id);
+            var user = await Include(Context.Users).FirstOrDefaultAsync(u => u.DiscordId == discordUser.Id);
 
             if (user != null)
                 return user;

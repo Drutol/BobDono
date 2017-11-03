@@ -272,10 +272,6 @@ namespace BobDono.Core.Controllers
 
                 Election.BracketStages.Add(stage);
             }
-
-
-
-
         }
 
         private BracketStage CreateBracketStage(List<WaifuContender> contestants)

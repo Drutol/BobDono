@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using BobDono.DataAccess.Database;
 using BobDono.Interfaces;
 using BobDono.Models.Entities;
@@ -19,6 +20,7 @@ namespace BobDono.DataAccess.Services
         {
             _characterDetailsQuery = characterDetailsQuery;
         }
+
 
         public async Task<Waifu> GetOrCreateWaifu(string malId)
         {

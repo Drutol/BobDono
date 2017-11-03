@@ -25,6 +25,27 @@ namespace BobDono.Core.Extensions
             builder.WithUrl($"https://myanimelist.net/character/{contender.Waifu.MalId}");
 
             return builder;
+        }
+
+        public static DiscordEmbed GetEmbedBuilder(this TrueWaifu waifu)
+        {
+            var builder = new DiscordEmbedBuilder
+            {
+                Color = DiscordColor.HotPink,
+                Description = waifu.Waifu.Description,
+                ThumbnailUrl = waifu.Waifu.ImageUrl,
+                Author = new DiscordEmbedBuilder.EmbedAuthor { Name = waifu.User.Name},
+                Title = waifu.Waifu.Name
+            };
+
+            if (waifu.FeatureImage != null)
+                builder.WithImageUrl(waifu.FeatureImage);
+
+            if (waifu.Description != null)
+                builder.Description = $"{builder.Description}\n\nNote from {waifu.User.Name}:\n{waifu.Description}";
+
+            builder.WithUrl($"https://myanimelist.net/character/{waifu.Waifu.MalId}");
+            return builder;
         }    
         
         

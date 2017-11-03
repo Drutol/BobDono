@@ -79,13 +79,7 @@ namespace BobDono.Contexts
                 _election = await electionService.GetElection(_election.Id);
                 if (_election.CurrentState == Election.State.Submission)
                 {
-
-
-
                     var user = await userService.GetOrCreateUser(args.Author);
-
-
-
                     var count = _election.Contenders?.Count(c => c.Proposer.Id == user.Id);
 
                     //check if user didn't create more then he should be able to

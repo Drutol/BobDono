@@ -55,13 +55,13 @@ namespace BobDono.DataAccess.Services
             return Include(Context.Set<T>()).Where(client => predicate(client)).ToListAsync();
         }
 
-        public Task<T> FirstAsync(Predicate<T> predicate)
+        public async Task<T> FirstAsync(Predicate<T> predicate)
         {
             try
             {
-                return Include(Context.Set<T>()).FirstAsync(client => predicate(client));
+                return await Include(Context.Set<T>()).FirstAsync(client => predicate(client));
             }
-            catch (InvalidOperationException)
+            catch (Exception)
             {
                 return null;
             }

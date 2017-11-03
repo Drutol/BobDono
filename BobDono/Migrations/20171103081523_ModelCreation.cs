@@ -9,20 +9,6 @@ namespace BobDono.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Users",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DiscordId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Users", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Waifus",
                 columns: table => new
                 {
@@ -36,6 +22,48 @@ namespace BobDono.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Waifus", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TrueWaifus",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    FeatureImage = table.Column<string>(type: "TEXT", nullable: true),
+                    WaifuId = table.Column<long>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TrueWaifus", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TrueWaifus_Waifus_WaifuId",
+                        column: x => x.WaifuId,
+                        principalTable: "Waifus",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    DiscordId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
+                    TrueWaifuId = table.Column<long>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_TrueWaifus_TrueWaifuId",
+                        column: x => x.TrueWaifuId,
+                        principalTable: "TrueWaifus",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -282,6 +310,17 @@ namespace BobDono.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TrueWaifus_WaifuId",
+                table: "TrueWaifus",
+                column: "WaifuId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_TrueWaifuId",
+                table: "Users",
+                column: "TrueWaifuId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserWaifu_WaifuId",
                 table: "UserWaifu",
                 column: "WaifuId");
@@ -338,10 +377,13 @@ namespace BobDono.Migrations
                 name: "Elections");
 
             migrationBuilder.DropTable(
-                name: "Waifus");
+                name: "Users");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "TrueWaifus");
+
+            migrationBuilder.DropTable(
+                name: "Waifus");
         }
     }
 }

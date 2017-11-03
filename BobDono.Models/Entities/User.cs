@@ -18,6 +18,8 @@ namespace BobDono.Models.Entities
         public virtual ICollection<UserWaifu> Waifus { get; set; }
         public virtual ICollection<Vote> Votes { get; set; }
 
+        public TrueWaifu TrueWaifu { get; set; }
+
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()

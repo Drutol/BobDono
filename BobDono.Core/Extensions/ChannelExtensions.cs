@@ -42,5 +42,22 @@ namespace BobDono.Core.Extensions
             await msg.DeleteAsync();
         }
 
+        public static async Task<T> GetNextValidResponse<T>(this DiscordChannel channel,string question, Func<string,Task<T>> converter, TimeSpan timeout, CancellationToken? token = null)
+        {     
+            while (true)
+            {
+                await channel.SendMessageAsync(question);
+                var response = await channel.GetNextMessageAsync(timeout, token);
+                try
+                {
+                    return await converter(response);
+                }
+                catch
+                {
+                    //failed
+                }
+            }
+        }
+
     }
 }
