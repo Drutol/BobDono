@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
-using BobDono.Models.Entities;
+﻿using BobDono.Models.Entities;
 
-namespace BobDono.Interfaces
+namespace BobDono.Interfaces.Services
 {
     public interface IContenderService : IServiceBase<WaifuContender>
     {

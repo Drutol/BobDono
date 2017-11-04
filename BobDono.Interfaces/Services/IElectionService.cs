@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using BobDono.Models.Entities;
 
-namespace BobDono.Interfaces
+namespace BobDono.Interfaces.Services
 {
     public interface IElectionService : IServiceBase<Election>
     {

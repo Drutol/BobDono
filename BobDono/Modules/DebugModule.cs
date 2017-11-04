@@ -12,14 +12,24 @@ namespace BobDono.Modules
     [Module(Hidden = true,Name = "Debug",Authorize = true)]
     public class DebugModule
     {
+        private readonly IExceptionHandler _exceptionHandler;
+
+        public DebugModule(IExceptionHandler exceptionHandler)
+        {
+            _exceptionHandler = exceptionHandler;
+        }
+
         [CommandHandler(Regex = @"bugs")]
         public async Task DisplayExceptions(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             if (ResourceLocator.ExceptionHandler.CaughtThings.Any())
             {
-                await args.Channel.SendMessageAsync(string.Join("\n\n",
-                    ResourceLocator.ExceptionHandler.CaughtThings.Select(exception =>
-                        $"```{exception}```")).Substring(0,2000));
+                var s = string.Join("\n\n",
+                    _exceptionHandler.CaughtThings.Select(exception =>
+                        $"```{exception}```"));
+                if (s.Length > 2000)
+                    s = s.Substring(0, 2000);
+                await args.Channel.SendMessageAsync(s);
             }
             else
             {

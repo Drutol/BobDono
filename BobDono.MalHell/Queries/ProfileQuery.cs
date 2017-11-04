@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using BobDono.Interfaces;
+using BobDono.Interfaces.Queries;
 using BobDono.MalHell.Comm;
 using BobDono.Models.MalHell;
 using HtmlAgilityPack;

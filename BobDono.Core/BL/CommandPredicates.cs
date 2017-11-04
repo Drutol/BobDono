@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using BobDono.Core.Attributes;
 using BobDono.Interfaces;
 using DSharpPlus.EventArgs;
@@ -59,7 +60,8 @@ namespace BobDono.Core.BL
         {
             protected override bool MeetsCriteria(CommandHandlerAttribute attr, MessageCreateEventArgs arg)
             {
-                return System.Text.RegularExpressions.Regex.IsMatch(arg.Message.Content, attr.Regex);
+                return System.Text.RegularExpressions.Regex.IsMatch(arg.Message.Content, attr.Regex,
+                    RegexOptions.IgnoreCase);
             }
         }
 

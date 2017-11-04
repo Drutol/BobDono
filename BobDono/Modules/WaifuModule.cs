@@ -11,6 +11,7 @@ using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
 using BobDono.DataAccess.Services;
 using BobDono.Interfaces;
+using BobDono.Interfaces.Services;
 using BobDono.MalHell.Queries;
 using BobDono.Models.Entities;
 using DSharpPlus.Entities;
@@ -39,7 +40,7 @@ namespace BobDono.Modules
         }
 
 
-        [CommandHandler(Regex = "waifuset", Awaitable = false, HumanReadableCommand = "waifu set",
+        [CommandHandler(Regex = "waifuset", Awaitable = false, HumanReadableCommand = "waifuset",
             HelpText = "Set your waifu.")]
         public async Task SetWaifu(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
@@ -161,24 +162,32 @@ namespace BobDono.Modules
         }
 
 
-        [CommandHandler(Regex = "waifuremove", Awaitable = false, HumanReadableCommand = "waifu remove",
+        [CommandHandler(Regex = "waifuremove", Awaitable = false, HumanReadableCommand = "waifuremove",
             HelpText = "Remove your waifu. :(")]
         public async Task RemoveWaifu(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
             using (var trueWaifuService = _trueWaifuService.ObtainLifetimeHandle<TrueWaifuService>(executionContext))
-            { 
+            {
+                userService.ConfigureIncludes().WithChain(query => query.Include(u => u.TrueWaifu)).Commit();
                 var user = await userService.GetOrCreateUser(args.Author);
 
                 trueWaifuService.Remove(user.TrueWaifu);
             }
         }
 
-        public async Task DisplayInfoForUserCommand(MessageCreateEventArgs args, ICommandExecutionContext context)
+        [CommandHandler(Regex = "waifulist",HumanReadableCommand = "waifulist",HelpText = "List all waifus set by users.")]
+        public async Task WaifuList(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            string response = null;
+            using (var trueWaifuService = _trueWaifuService.ObtainLifetimeHandle<TrueWaifuService>(executionContext))
+            {
+                trueWaifuService.ConfigureIncludes().WithChain(q => q.Include(w => w.Waifu).Include(w => w.User)).Commit();
 
-            await args.Channel.SendMessageAsync(response);
+                var s = string.Join("\n",trueWaifuService.GetAll().Select(waifu =>
+                    $"**{waifu.User.Name}** -- {waifu.Waifu.Name} *({waifu.Waifu.MalId})*"));
+
+                await args.Channel.SendMessageAsync(s);
+            }
         }
     }
 }

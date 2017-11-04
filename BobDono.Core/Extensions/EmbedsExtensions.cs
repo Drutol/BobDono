@@ -35,7 +35,8 @@ namespace BobDono.Core.Extensions
                 Description = waifu.Waifu.Description,
                 ThumbnailUrl = waifu.Waifu.ImageUrl,
                 Author = new DiscordEmbedBuilder.EmbedAuthor { Name = waifu.User.Name},
-                Title = waifu.Waifu.Name
+                Title = waifu.Waifu.Name,
+                Footer = new DiscordEmbedBuilder.EmbedFooter { Text = $"Id: {waifu.Waifu.MalId}"}
             };
 
             if (waifu.FeatureImage != null)

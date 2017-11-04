@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using BobDono.Core.Extensions;
-using BobDono.DataAccess.Database;
 using BobDono.Interfaces;
+using BobDono.Interfaces.Services;
 using BobDono.Models.Entities;
 using DSharpPlus.Entities;
 
-namespace BobDono.Core.Controllers
+namespace BobDono.Controllers
 {
     public class ElectionController
     {     

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace BobDono.Interfaces
+namespace BobDono.Interfaces.Services
 {
     public interface IServiceBase<T> : IDisposable where T : class
     {
@@ -25,7 +24,7 @@ namespace BobDono.Interfaces
         void Update(T client);
 
         Task SaveChangesAsync();
-
+        
         IServiceBase<T> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose = true);
 
         TService ObtainLifetimeHandle<TService>(ICommandExecutionContext executionContext, bool saveOnDispose = true)

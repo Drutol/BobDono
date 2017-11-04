@@ -5,6 +5,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BobDono.Interfaces;
+using BobDono.Interfaces.Queries;
 using BobDono.Models.MalHell;
 using HtmlAgilityPack;
 

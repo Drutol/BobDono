@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Models.MalHell
 {
@@ -11,7 +12,7 @@ namespace BobDono.Models.MalHell
         public string SpoilerContent { get; set; }
         public string TotalFavs { get; set; }
         public List<AnimeLightEntry> Animeography { get; } = new List<AnimeLightEntry>();
-        public List<AnimeLightEntry> Mangaography { get; }  = new List<AnimeLightEntry>();
+        public List<AnimeLightEntry> Mangaography { get; } = new List<AnimeLightEntry>();
         public List<AnimeStaffPerson> VoiceActors { get; } = new List<AnimeStaffPerson>();
     }
 }

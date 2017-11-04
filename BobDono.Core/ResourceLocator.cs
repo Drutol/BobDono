@@ -11,6 +11,8 @@ using BobDono.Core.Utils;
 using BobDono.DataAccess;
 using BobDono.DataAccess.Services;
 using BobDono.Interfaces;
+using BobDono.Interfaces.Queries;
+using BobDono.Interfaces.Services;
 using BobDono.MalHell.Comm;
 using BobDono.MalHell.Queries;
 using DSharpPlus;

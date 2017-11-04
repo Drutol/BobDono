@@ -23,6 +23,10 @@ namespace BobDono.Models.Entities
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
+                .HasOne(u => u.TrueWaifu)
+                .WithOne(w => w.User);
+
+            modelBuilder.Entity<User>()
                 .HasMany(u => u.Elections)
                 .WithOne(e => e.Author);
 

@@ -2,7 +2,7 @@
 using BobDono.Models.Entities;
 using DSharpPlus.Entities;
 
-namespace BobDono.Interfaces
+namespace BobDono.Interfaces.Services
 {
     public interface IUserService : IServiceBase<User>
     {

@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BobDono.Controllers;
 using BobDono.Core;
 using BobDono.Core.Attributes;
 using BobDono.Core.BL;
-using BobDono.Core.Controllers;
 using BobDono.Core.Extensions;
 using BobDono.Core.Utils;
 using BobDono.DataAccess.Database;
 using BobDono.DataAccess.Services;
 using BobDono.Interfaces;
+using BobDono.Interfaces.Services;
 using BobDono.Models.Entities;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -86,21 +87,22 @@ namespace BobDono.Contexts
                     if (count >= _election.EntrantsPerUser)
                     {
                         await args.Channel.SendTimedMessage($"You have already added {count} contestants.");
-                        return;
                     }
+                    else
+                    {
+                        await args.Channel.TriggerTypingAsync();
+                        var arguments = args.Message.Content.Split(" ");
 
-                    await args.Channel.TriggerTypingAsync();
-                    var arguments = args.Message.Content.Split(" ");
+                        var waifu = await waifuService.GetOrCreateWaifu(arguments[2]);
+                        var contender = contenderService.CreateContender(user, waifu, _election,
+                            arguments.Length == 4 ? arguments[3] : null);
+                        _election = await electionService.GetElection(_election.Id);
 
-                    var waifu = await waifuService.GetOrCreateWaifu(arguments[2]);
-                    var contender = contenderService.CreateContender(user, waifu, _election,
-                        arguments.Length == 4 ? arguments[3] : null);
-                    _election = await electionService.GetElection(_election.Id);
+                        await args.Channel.SendMessageAsync(null, false, contender.GetEmbed());
 
-
-                    await args.Channel.SendMessageAsync(null, false, contender.GetEmbed());
-
-                    _controller.UpdateOpeningMessage();
+                        _controller.Election = _election;
+                        _controller.UpdateOpeningMessage();
+                    }
                 }
                 await args.Message.DeleteAsync();
             }
@@ -196,8 +198,6 @@ namespace BobDono.Contexts
 
                     var waifu = await waifuService.GetOrCreateWaifu(id);
                     var contender = contenderService.CreateContender(user, waifu, _election);
-
-
 
                     try
                     {

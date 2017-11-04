@@ -13,13 +13,13 @@ namespace BobDono.Core.Attributes
         public string Regex
         {
             get => _regex;
-            set => _regex = $"^{CommandStarter}{value}$";
+            set => _regex = IgnoreRegexWrap? value : $"^{CommandStarter}{value}$";
         }
 
         public string HumanReadableCommand
         {
             get => _humanReadableCommand;
-            set => _humanReadableCommand = CommandStarter + value;
+            set => _humanReadableCommand = IgnoreRegexWrap ? value : CommandStarter + value;
         }
 
         public bool Authorize { get; set; }
@@ -28,6 +28,7 @@ namespace BobDono.Core.Attributes
         public string HelpText { get; set; } = "This command doesn't need explanation just like a good painting.";
         public bool FallbackCommand { get; set; }
         public bool Debug { get; set; }
+        public bool IgnoreRegexWrap { get; set; }
 
         public ModuleAttribute ParentModuleAttribute { get; set; }
     }

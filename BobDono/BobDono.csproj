@@ -38,6 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Assets\annak.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="bob.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
