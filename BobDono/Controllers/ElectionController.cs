@@ -18,6 +18,7 @@ namespace BobDono.Controllers
     {     
         private const string CurrentEntriesCount = "Current Entries:";
         private const string ParticipantsCount = "Participants:";
+        private const string TotalVotes = "Total Votes:";
 
         public Election Election { get; set; }
         private readonly DiscordChannel _channel;
@@ -81,9 +82,9 @@ namespace BobDono.Controllers
                 $"**voting** stage where all contenders are arranged into brackets, you can vote once in every bracket using command \n`{CommandHandlerAttribute.CommandStarter}vote <bracketNumber> <contenderNumber>`" +
                 "In case of there being odd number of contestants triple bracket will be created in first stage. In case of remis there are some *algorithms* in place to resolve them... go to github if you are curious." +
                 " Each stage lasts one day. When the final stage ends, first 3 places will be announced and whole election will transition into closed state (I won't be listening for any more messages)" +
-                " Please be aware that this channel is entirely up to my disposition, that means *I'll remove your messages* so things stay organised here. Have fun!";
+                " Please be aware that this channel is entirely up to my disposition, that means *I'll remove your messages* so things stay organised here. Due to that muting this channel is advised. Have fun!";
 
-            embed.Color = DiscordColor.Azure;
+            embed.Color = DiscordColor.Magenta;
             await _channel.SendMessageAsync(null, false, embed.Build());
 
             embed = new DiscordEmbedBuilder();
@@ -97,6 +98,7 @@ namespace BobDono.Controllers
             embed.AddField("Entrants per person:", Election.EntrantsPerUser.ToString());
             embed.AddField(ParticipantsCount, "0");
             embed.AddField(CurrentEntriesCount, "0");
+            embed.AddField(TotalVotes, "0");
 
             var message = await _channel.SendMessageAsync(null, false, embed.Build());
 
@@ -116,6 +118,8 @@ namespace BobDono.Controllers
             embed.Fields.First(field => field.Name.Equals(ParticipantsCount)).Value = Election.Contenders
                 .Select(contender => contender.Proposer.Id).Distinct().Count().ToString();
             embed.Fields.First(field => field.Name.Equals(CurrentEntriesCount)).Value = Election.Contenders.Count.ToString();
+            embed.Fields.First(field => field.Name.Equals(TotalVotes)).Value = Election.BracketStages
+                .SelectMany(stage => stage.Brackets).Select(bracket => bracket.Votes.Count).Sum().ToString();
 
             await message.ModifyAsync(default, new Optional<DiscordEmbed>(embed.Build()));
         }
@@ -282,6 +286,19 @@ namespace BobDono.Controllers
             }
             else
             {
+                //announce winners
+                var embed = new DiscordEmbedBuilder();
+                var lastStage = Election.BracketStages.Last();
+                embed.Title = $"Results of stage #{lastStage.Number}";
+                foreach (var bracket in lastStage.Brackets)
+                {
+                    embed.AddField($"Bracket #{bracket.Number}",
+                        $"Winner: {bracket.Winner.Waifu.Name} ({bracket.Winner.Votes.Count} votes)\nLoser: {bracket.Loser.Waifu.Name} ({bracket.Loser.Votes.Count} votes)");
+                }
+
+                await _channel.SendMessageAsync(null, false, embed);
+
+
                 //create new bracket
                 var stage = CreateBracketStage(lastBrackets.Select(bracket => bracket.Winner).ToList());
 
@@ -298,6 +315,7 @@ namespace BobDono.Controllers
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddDays(1),
+                Number = Election.BracketStages.Count + 1,
             };
 
             contestants = contestants.OrderBy(contender => contender.SeedNumber).ToList();
@@ -375,11 +393,11 @@ namespace BobDono.Controllers
                     //else we have triple remis
                 }
 
-                if (isLowerResmis)
+                if (isLowerResmis && minVotes > 0)
                 {
                     winner = contestants.First(contender => contender.Votes.Count != minVotes);
                 }
-                else if(isUpperRemis)
+                else if(isUpperRemis && minVotes > 0)
                 {
                     var upperRemis = contestants.Where(contender => contender.Votes.Count == maxVotes);
                     winner = GetContenderWithMoreFrequentVotes(upperRemis.First(), upperRemis.Last());

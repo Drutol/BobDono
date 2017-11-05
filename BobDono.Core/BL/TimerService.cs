@@ -53,9 +53,9 @@ namespace BobDono.Core.BL
             timer.Dispose();
         }
 
-        private async void TimerTrigger(object state)
+        private void TimerTrigger(object state)
         {
-            await (state as Task);
+            (state as Action)();
         }
     }
 }

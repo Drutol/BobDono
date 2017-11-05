@@ -101,7 +101,7 @@ namespace BobDono.Modules
                         election.Name = await channel.GetNextMessageAsync(timeout, cts.Token);
                         await channel.SendMessageAsync("Longer description if you could:");
                         election.Description = await channel.GetNextMessageAsync(timeout, cts.Token);
-                        int submissionDays = 2;
+                        int submissionDays = 1;
                         while (submissionDays == 0)
                         {
                             await channel.SendMessageAsync(
@@ -116,7 +116,7 @@ namespace BobDono.Modules
                             }
                         }
                         election.SubmissionsStartDate = DateTime.UtcNow;
-                        election.SubmissionsEndDate = DateTime.UtcNow.AddDays(submissionDays);
+                        election.SubmissionsEndDate = DateTime.Today.AddHours(election.SubmissionsStartDate.Hour+1).AddDays(submissionDays);
                         election.VotingStartDate = election.SubmissionsEndDate.AddHours(2); //TODO Maybe add commands?
 
                         int submissionCount = 2;

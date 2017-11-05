@@ -12,7 +12,7 @@ using System;
 namespace BobDono.Migrations
 {
     [DbContext(typeof(BobDatabaseContext))]
-    [Migration("20171105084741_ModelCreation")]
+    [Migration("20171105104420_ModelCreation")]
     partial class ModelCreation
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -65,6 +65,8 @@ namespace BobDono.Migrations
                     b.Property<long?>("ElectionId");
 
                     b.Property<DateTime>("EndDate");
+
+                    b.Property<int>("Number");
 
                     b.Property<DateTime>("StartDate");
 

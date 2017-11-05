@@ -132,7 +132,7 @@ namespace BobDono.Contexts
             }
         }
 
-        [CommandHandler(Regex = @"vote \d+ \d+",HelpText = "Submit your vote in given bracket. Can be used one per bracket. Cannot be undone.",HumanReadableCommand = "vote <bracketNumber> <contestantNumber>")]
+        [CommandHandler(Regex = @"vote \d+ [1,2,3]", HelpText = "Submit your vote in given bracket. Can be used one per bracket. Cannot be undone.",HumanReadableCommand = "vote <bracketNumber> <contestantNumber>")]
         public async Task Vote(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
@@ -150,10 +150,13 @@ namespace BobDono.Contexts
                 {
 
                     var user = await userService.GetOrCreateUser(args.Author);
-                    var bracket = _election.BracketStages.Last().Brackets.First(b => b.Number == bracketId);
+                    var bracket = _election.BracketStages.Last().Brackets.FirstOrDefault(b => b.Number == bracketId);
 
-                    //if user has already voted let's return
-                    if (bracket.Votes.Any(vote => vote.User.Id == user.Id))
+                    if (bracket == null)
+                    {
+                        await args.Channel.SendTimedMessage("Invalid bracket number.");
+                    }                  
+                    else if (bracket.Votes.Any(vote => vote.User.Id == user.Id)) //if user has already voted let's return
                     {
                         await args.Channel.SendTimedMessage("You have already voted in this bracket.");
                     }

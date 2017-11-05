@@ -131,6 +131,7 @@ namespace BobDono.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     ElectionId = table.Column<long>(type: "INTEGER", nullable: true),
                     EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Number = table.Column<int>(type: "INTEGER", nullable: false),
                     StartDate = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>

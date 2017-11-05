@@ -65,6 +65,8 @@ namespace BobDono.Migrations
 
                     b.Property<DateTime>("EndDate");
 
+                    b.Property<int>("Number");
+
                     b.Property<DateTime>("StartDate");
 
                     b.HasKey("Id");

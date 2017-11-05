@@ -57,7 +57,7 @@ namespace BobDono.Core.Extensions
             if (stage.SecondContender != null)
                 yield return GetEmbed(stage.SecondContender, 2);
             if (stage.ThirdContender != null)
-                yield return GetEmbed(stage.FirstContender, 3);
+                yield return GetEmbed(stage.ThirdContender, 3);
             
             DiscordEmbed GetEmbed(WaifuContender contender, int contenderNumber)
             {

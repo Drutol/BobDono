@@ -14,6 +14,8 @@ namespace BobDono.Models.Entities
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
+        public int Number { get; set; }
+
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<BracketStage>()
