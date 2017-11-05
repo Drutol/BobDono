@@ -23,16 +23,16 @@ namespace BobDono.DataAccess.Services
         public WaifuContender CreateContender(User user, Waifu waifu, Election election,
             string customImage = null)
         {
-                var contender = new WaifuContender
-                {
-                    CustomImageUrl = customImage,
-                    Proposer = user,
-                    Election = election,
-                    Waifu = waifu,
-                };
-                election.Contenders.Add(contender);
+            var contender = new WaifuContender
+            {
+                CustomImageUrl = customImage,
+                Proposer = user,
+                Election = election,
+                Waifu = waifu,
+            };
+            election.Contenders.Add(contender);
 
-                return contender;
+            return contender;
         }
 
         public override IServiceBase<WaifuContender> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose = true)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BobDono.Core.Extensions
 {
@@ -19,6 +20,12 @@ namespace BobDono.Core.Extensions
                 list[k] = list[n];
                 list[n] = value;
             }
+        }
+
+        public static bool IsLink(this string s)
+        {
+            return Regex.IsMatch(s,
+                @"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)");
         }
     }
 }

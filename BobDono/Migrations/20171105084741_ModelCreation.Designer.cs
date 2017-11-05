@@ -12,7 +12,7 @@ using System;
 namespace BobDono.Migrations
 {
     [DbContext(typeof(BobDatabaseContext))]
-    [Migration("20171104153423_ModelCreation")]
+    [Migration("20171105084741_ModelCreation")]
     partial class ModelCreation
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -217,6 +217,8 @@ namespace BobDono.Migrations
                     b.Property<string>("CustomImageUrl");
 
                     b.Property<long?>("ElectionId");
+
+                    b.Property<string>("FeatureImage");
 
                     b.Property<bool>("Lost");
 

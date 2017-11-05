@@ -62,14 +62,9 @@ namespace BobDono.DataAccess.Services
             _saveOnDispose = saveOnDispose;
         }
 
-        public void Begin()
+        private void Begin()
         {
             Context = new BobDatabaseContext();
-        }
-
-        public void Finish()
-        {
-            Context.Dispose();
         }
 
         public List<T> GetAll()
@@ -165,6 +160,11 @@ namespace BobDono.DataAccess.Services
         public TService ObtainLifetimeHandle<TService>(ICommandExecutionContext executionContext, bool saveOnDispose = true) where TService  : class, IServiceBase<T>
         {
             return ObtainLifetimeHandle(executionContext,saveOnDispose) as TService;
+        }
+
+        public TService ObtainLifetimeHandle<TService>(bool saveOnDispose = true) where TService : class, IServiceBase<T>
+        {
+            return ObtainLifetimeHandle<TService>(new CommandExecutionContext());
         }
 
         public void Dispose()

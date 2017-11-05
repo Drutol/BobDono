@@ -152,6 +152,7 @@ namespace BobDono.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     CustomImageUrl = table.Column<string>(type: "TEXT", nullable: true),
                     ElectionId = table.Column<long>(type: "INTEGER", nullable: true),
+                    FeatureImage = table.Column<string>(type: "TEXT", nullable: true),
                     Lost = table.Column<bool>(type: "INTEGER", nullable: false),
                     ProposerId = table.Column<long>(type: "INTEGER", nullable: true),
                     SeedNumber = table.Column<int>(type: "INTEGER", nullable: false),

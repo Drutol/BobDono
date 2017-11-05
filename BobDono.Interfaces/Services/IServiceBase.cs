@@ -6,9 +6,6 @@ namespace BobDono.Interfaces.Services
 {
     public interface IServiceBase<T> : IDisposable where T : class
     {
-        void Begin();
-        void Finish();
-
         List<T> GetAll();
 
         Task<List<T>> GetAllAsync();
@@ -28,6 +25,9 @@ namespace BobDono.Interfaces.Services
         IServiceBase<T> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose = true);
 
         TService ObtainLifetimeHandle<TService>(ICommandExecutionContext executionContext, bool saveOnDispose = true)
+            where TService : class, IServiceBase<T>;
+
+        TService ObtainLifetimeHandle<TService>(bool saveOnDispose = true)
             where TService : class, IServiceBase<T>;
     }
 }

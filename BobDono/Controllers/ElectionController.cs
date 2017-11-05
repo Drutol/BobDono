@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BobDono.Core;
+using BobDono.Core.Attributes;
 using BobDono.Core.Extensions;
+using BobDono.Core.Utils;
+using BobDono.DataAccess.Services;
 using BobDono.Interfaces;
 using BobDono.Interfaces.Services;
 using BobDono.Models.Entities;
@@ -31,40 +35,58 @@ namespace BobDono.Controllers
 
         public async Task ProcessTimePass()
         {
-            bool transitioned = false;
-            switch (Election.CurrentState)
+            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>())
             {
-                case Election.State.Submission:
-                    if (DateTime.UtcNow > Election.SubmissionsEndDate)
-                    {
-                        await TransitionToPendingVoting();
-                        transitioned = true;
-                    }
-                    break;
-                case Election.State.PedningVotingStart:
-                    if (DateTime.UtcNow > Election.VotingStartDate)
-                    {
-                        await TransitionToVoting();
-                        transitioned = true;
-                    }
-                    break;
-            }
 
-            if (!transitioned && Election.CurrentState == Election.State.Voting)
-            {
-                var currentStage = Election.BracketStages.Last();
-                if (DateTime.UtcNow > currentStage.EndDate)
+                Election = await electionService.GetElection(Election.Id);
+
+                bool transitioned = false;
+                switch (Election.CurrentState)
                 {
-                    await CloseCurrentStage();
+                    case Election.State.Submission:
+                        if (DateTime.UtcNow > Election.SubmissionsEndDate)
+                        {
+                            await TransitionToPendingVoting();
+                            transitioned = true;
+                        }
+                        break;
+                    case Election.State.PedningVotingStart:
+                        if (DateTime.UtcNow > Election.VotingStartDate)
+                        {
+                            await TransitionToVoting();
+                            transitioned = true;
+                        }
+                        break;
+                }
+
+                if (!transitioned && Election.CurrentState == Election.State.Voting)
+                {
+                    var currentStage = Election.BracketStages.Last();
+                    if (DateTime.UtcNow > currentStage.EndDate)
+                    {
+                        await CloseCurrentStage();
+                    }
                 }
             }
-
-            _electionService.Update(Election);
         }
 
         public async void Initialize()
         {
             var embed = new DiscordEmbedBuilder();
+
+            embed.Title = "What's going on?";
+            embed.Description =
+                "Welcome to so called election! (aka. Waifu War) I'll try to briefly describe how it works :)\n\n" +
+                $"Elections have 2 stages:\n\n**submission** stage is where everyone is allowed to add certain amount of contenders, we are using MAL ids to make it work. In order to add conteder use\n`{CommandHandlerAttribute.CommandStarter}add contender <id> [thumbnailOverride=none] [featureImage]`\n\n" +
+                $"**voting** stage where all contenders are arranged into brackets, you can vote once in every bracket using command \n`{CommandHandlerAttribute.CommandStarter}vote <bracketNumber> <contenderNumber>`" +
+                "In case of there being odd number of contestants triple bracket will be created in first stage. In case of remis there are some *algorithms* in place to resolve them... go to github if you are curious." +
+                " Each stage lasts one day. When the final stage ends, first 3 places will be announced and whole election will transition into closed state (I won't be listening for any more messages)" +
+                " Please be aware that this channel is entirely up to my disposition, that means *I'll remove your messages* so things stay organised here. Have fun!";
+
+            embed.Color = DiscordColor.Azure;
+            await _channel.SendMessageAsync(null, false, embed.Build());
+
+            embed = new DiscordEmbedBuilder();
 
             embed.Color = DiscordColor.Gold;
             embed.Description = Election.Description;
@@ -78,14 +100,11 @@ namespace BobDono.Controllers
 
             var message = await _channel.SendMessageAsync(null, false, embed.Build());
 
-            _electionService.Begin();
+            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>())
             {
+                Election = await electionService.GetElection(Election.Id);
                 Election.OpeningMessageId = message.Id;
-                _electionService.Update(Election);
             }
-            _electionService.Finish();
-
-
         }
 
         public async void UpdateOpeningMessage()

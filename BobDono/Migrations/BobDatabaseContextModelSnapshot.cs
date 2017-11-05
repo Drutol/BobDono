@@ -217,6 +217,8 @@ namespace BobDono.Migrations
 
                     b.Property<long?>("ElectionId");
 
+                    b.Property<string>("FeatureImage");
+
                     b.Property<bool>("Lost");
 
                     b.Property<long?>("ProposerId");

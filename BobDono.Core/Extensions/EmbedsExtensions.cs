@@ -19,6 +19,7 @@ namespace BobDono.Core.Extensions
                 Color = DiscordColor.Gray,
                 Description = contender.Waifu.Description,
                 ThumbnailUrl = contender.CustomImageUrl ?? contender.Waifu.ImageUrl,
+                ImageUrl = contender.FeatureImage,
                 Title = $"Contender: {contender.Waifu.Name}"
             };
 

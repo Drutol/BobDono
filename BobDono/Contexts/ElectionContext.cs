@@ -65,7 +65,7 @@ namespace BobDono.Contexts
         #region Commands
 
         [CommandHandler(Regex = @"add contender \d+\s?(.*)?",
-            HumanReadableCommand = "add contender <malId> [imageOverride]",
+            HumanReadableCommand = "add contender <malId> [imageOverride=none] [featureImage]",
             HelpText =
                 "Adds contender to election if election is in submission period. " +
                 "Additionaly default image can be overriden in case of default one being insufficient " +
@@ -83,19 +83,43 @@ namespace BobDono.Contexts
                     var user = await userService.GetOrCreateUser(args.Author);
                     var count = _election.Contenders?.Count(c => c.Proposer.Id == user.Id);
 
+                    var arguments = args.Message.Content.Split(' ');
+
+                    var malId = arguments[2];
+
                     //check if user didn't create more then he should be able to
                     if (count >= _election.EntrantsPerUser)
                     {
                         await args.Channel.SendTimedMessage($"You have already added {count} contestants.");
                     }
+                    else if (_election.Contenders.Any(contender => contender.Waifu.MalId == malId))
+                    {
+                        await args.Channel.SendTimedMessage("This contender has been already proposed by someone else.");
+                    }
                     else
                     {
                         await args.Channel.TriggerTypingAsync();
-                        var arguments = args.Message.Content.Split(" ");
+
+                        string thumb = null;
+                        string feature = null;
+
+                        if (arguments.Length >= 4)
+                        {
+                            if (arguments[3] != "none" && arguments[3].IsLink())
+                                thumb = arguments[3];
+                        }
+
+                        if(arguments.Length == 5)
+                        {
+                            if (arguments[4].IsLink())
+                                feature = arguments[4];
+                        }
 
                         var waifu = await waifuService.GetOrCreateWaifu(arguments[2]);
-                        var contender = contenderService.CreateContender(user, waifu, _election,
-                            arguments.Length == 4 ? arguments[3] : null);
+                        var contender = contenderService.CreateContender(user, waifu, _election);
+                        contender.FeatureImage = feature;
+                        contender.CustomImageUrl = thumb;
+
                         _election = await electionService.GetElection(_election.Id);
 
                         await args.Channel.SendMessageAsync(null, false, contender.GetEmbed());
