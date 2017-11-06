@@ -80,7 +80,7 @@ namespace BobDono.Controllers
                 "Welcome to so called election! (aka. Waifu War) I'll try to briefly describe how it works :)\n\n" +
                 $"Elections have 2 stages:\n\n**submission** stage is where everyone is allowed to add certain amount of contenders, we are using MAL ids to make it work. In order to add conteder use\n`{CommandHandlerAttribute.CommandStarter}add contender <id> [thumbnailOverride=none] [featureImage]`\n\n" +
                 $"**voting** stage where all contenders are arranged into brackets, you can vote once in every bracket using command \n`{CommandHandlerAttribute.CommandStarter}vote <bracketNumber> <contenderNumber>`" +
-                "In case of there being odd number of contestants triple bracket will be created in first stage. In case of remis there are some *algorithms* in place to resolve them... go to github if you are curious." +
+                "In case of there being odd number of contestants triple bracket will be created. In case of remis there are some *algorithms* in place to resolve them... go to github if you are curious." +
                 " Each stage lasts one day. When the final stage ends, first 3 places will be announced and whole election will transition into closed state (I won't be listening for any more messages)" +
                 " Please be aware that this channel is entirely up to my disposition, that means *I'll remove your messages* so things stay organised here. Due to that muting this channel is advised. Have fun!";
 
@@ -149,23 +149,8 @@ namespace BobDono.Controllers
 
             BracketStage stage;
             //create brackets
-            if (Election.Contenders.Count % 2 == 1) //if it's odd we are gonna take one contestant out and isert it at random
-            {
-                var contenders = Election.Contenders.ToList();
-                var randomIndex = _random.Next(0, contenders.Count);
-                var oddContender = contenders[randomIndex];
-                //we pull one out so we have even number
-                contenders.Remove(oddContender);
-                stage = CreateBracketStage(contenders);
 
-                randomIndex = _random.Next(0, stage.Brackets.Count);
-                //and then we insert him to random triple bracket
-                stage.Brackets.ElementAt(randomIndex).ThirdContender = oddContender;
-            }
-            else
-            {
                 stage = CreateBracketStage(Election.Contenders.ToList());
-            }
 
             Election.BracketStages.Add(stage);
 
@@ -210,7 +195,8 @@ namespace BobDono.Controllers
 
 
             //let's announce the winner
-            var winner = Election.BracketStages.Last().Brackets.First().Winner;
+            var finalBracket = Election.BracketStages.Last().Brackets.First();
+            var winner = finalBracket.Winner;
             var winnerEmbed = winner.GetEmbedBuilder();
             winnerEmbed.Author = null;
             winnerEmbed.Color = DiscordColor.Gold;
@@ -218,27 +204,44 @@ namespace BobDono.Controllers
 
             await _channel.SendMessageAsync(null, false, winnerEmbed);
 
-            //2nd place - second contender from last bracket
+            DiscordEmbedBuilder secondEmbed;
+            DiscordEmbedBuilder thirdEmbed;
 
-            var finalBracket = Election.BracketStages.Last().Brackets.First();
-            var secondPlace = finalBracket.FirstContender == winner
-                ? finalBracket.SecondContender
-                : finalBracket.FirstContender;
+            if (finalBracket.ThirdContender != null)
+            {
+                //2nd place - second contender from last bracket
+                var secondPlace = finalBracket.Loser;
 
-            var secondEmbed = secondPlace.GetEmbedBuilder();
+                secondEmbed = secondPlace.GetEmbedBuilder();
+
+
+
+
+                //3rd place - contender from brackets that made final brackets
+                var halfFinalStage = Election.BracketStages.ElementAt(Election.BracketStages.Count - 2);
+                var semiLosers = halfFinalStage.Brackets.Select(bracket => bracket.Loser);
+                var winnerOfLosers = FindWinner(semiLosers.ToList());
+
+                thirdEmbed = winnerOfLosers.GetEmbedBuilder();
+
+            }
+            else
+            {
+                var notWinners =
+                    new[] {finalBracket.FirstContender, finalBracket.SecondContender, finalBracket.ThirdContender}
+                        .Where(contender => contender != finalBracket.Winner).ToList();
+                var secondPlace = FindWinner(notWinners);
+
+                secondEmbed = secondPlace.GetEmbedBuilder();
+                thirdEmbed = notWinners.First(c => c != secondPlace).GetEmbedBuilder();
+            }
+
             secondEmbed.Author = null;
-            secondEmbed.Color = new DiscordColor(192,192,192);
+            secondEmbed.Color = new DiscordColor(192, 192, 192);
             secondEmbed.Title = $"2nd place: {secondEmbed.Title}";
 
             await _channel.SendMessageAsync(null, false, secondEmbed);
 
-            //3rd place - contender from brackets that made final bracket
-
-            var halfFinalStage = Election.BracketStages.ElementAt(Election.BracketStages.Count - 2);
-            var semiLosers = halfFinalStage.Brackets.Select(bracket => bracket.Loser);
-            var winnerOfLosers = FindWinner(semiLosers.ToList());
-
-            var thirdEmbed = winnerOfLosers.GetEmbedBuilder();
             thirdEmbed.Author = null;
             thirdEmbed.Color = DiscordColor.Brown;
             thirdEmbed.Title = $"3rd place: {thirdEmbed.Title}";
@@ -292,8 +295,23 @@ namespace BobDono.Controllers
                 embed.Title = $"Results of stage #{lastStage.Number}";
                 foreach (var bracket in lastStage.Brackets)
                 {
-                    embed.AddField($"Bracket #{bracket.Number}",
-                        $"Winner: {bracket.Winner.Waifu.Name} ({bracket.Winner.Votes.Count} votes)\nLoser: {bracket.Loser.Waifu.Name} ({bracket.Loser.Votes.Count} votes)");
+                    var content =
+                        $"Winner: {Format(bracket.Winner)}\n" +
+                        $"Loser: {Format(bracket.Loser)}";
+
+                    if (bracket.ThirdContender != null)
+                    {
+                        var loser =
+                            new[] {bracket.FirstContender, bracket.SecondContender, bracket.ThirdContender}.First(
+                                contender => contender.Id != bracket.Winner.Id && contender.Id != bracket.Loser.Id);
+                        content += $"\nLoser: {Format(loser)}";
+                    }
+
+                    embed.AddField($"Bracket #{bracket.Number}", content);
+
+                    string Format(WaifuContender con) =>
+                        $"{con.Waifu.Name} ({con.Votes.Count} votes { string.Join(", ", con.Votes.Select(vote => vote.User.Name))})";
+                    
                 }
 
                 await _channel.SendMessageAsync(null, false, embed);
@@ -318,6 +336,20 @@ namespace BobDono.Controllers
                 Number = Election.BracketStages.Count + 1,
             };
 
+            bool odd = false;
+            int randomIndex = 0;
+            WaifuContender oddContender = null;
+
+            if (contestants.Count % 2 == 1) //if it's odd we are gonna take one contestant out and isert it at random
+            {
+                randomIndex = _random.Next(0, contestants.Count);
+                oddContender = contestants[randomIndex];
+                //we pull one out so we have even number
+                contestants.Remove(oddContender);
+
+                odd = true;
+            }
+         
             contestants = contestants.OrderBy(contender => contender.SeedNumber).ToList();
 
             var brackets = new List<Bracket>();
@@ -330,6 +362,13 @@ namespace BobDono.Controllers
                     BracketStage = stage,
                     Number = k
                 });
+            }
+
+            if (odd)
+            {
+                randomIndex = _random.Next(0, brackets.Count);
+                //and then we insert him to random triple bracket
+                brackets.ElementAt(randomIndex).ThirdContender = oddContender;
             }
 
             stage.Brackets = brackets;
@@ -429,7 +468,6 @@ namespace BobDono.Controllers
                             .Select(i => contender.Votes.Skip(i * 2).Take(2)).ToList();
                         return (float)pairs.Sum(votes => (votes.Last().CreateDate - votes.First().CreateDate).TotalHours) /
                                   pairs.Count;
-
                     }
                 }
             }

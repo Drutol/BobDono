@@ -25,5 +25,23 @@ namespace BobDono.Models.Entities
                 .HasMany(b => b.Votes)
                 .WithOne(v => v.Bracket);
         }
+
+        protected bool Equals(Bracket other)
+        {
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Bracket) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
     }
 }

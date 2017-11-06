@@ -220,7 +220,7 @@ namespace BobDono.Contexts
                 var user = await userService.GetOrCreateUser(args.Author);
                 _election = await electionService.GetElection(_election.Id);
 
-                foreach (var id in new[] {"48391", "13701", "20626", "64167", "118763"})
+                foreach (var id in new[] {"48391", "13701", "20626", "64167", "118763" , "99441" })
                 {
 
                     var waifu = await waifuService.GetOrCreateWaifu(id);

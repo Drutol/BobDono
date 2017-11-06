@@ -29,5 +29,23 @@ namespace BobDono.Models.Entities
                 .HasOne(wc => wc.Election)
                 .WithMany(e => e.Contenders);
         }
+
+        protected bool Equals(WaifuContender other)
+        {
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((WaifuContender) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
     }
 }
