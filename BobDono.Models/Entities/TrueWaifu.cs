@@ -13,6 +13,7 @@ namespace BobDono.Models.Entities
         public Waifu Waifu { get; set; }
         public string Description { get; set; }
         public string FeatureImage { get; set; }
+        public string ThumbImage { get; set; }
 
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -88,7 +88,7 @@ namespace BobDono.DataAccess.Services
             {
                 return await InternalInclude(Context.Set<T>()).FirstAsync(client => predicate(client));
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 return null;
             }

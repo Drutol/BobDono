@@ -12,13 +12,14 @@ using System;
 namespace BobDono.Migrations
 {
     [DbContext(typeof(BobDatabaseContext))]
-    [Migration("20171105104420_ModelCreation")]
+    [Migration("20171107193835_ModelCreation")]
     partial class ModelCreation
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
                 .HasAnnotation("ProductVersion", "2.0.0-rtm-26452");
 
             modelBuilder.Entity("BobDono.Models.Entities.Bracket", b =>
@@ -90,17 +91,9 @@ namespace BobDono.Migrations
 
                     b.Property<string>("Description");
 
-                    b.Property<ulong>("DiscordChannelId");
-
                     b.Property<int>("EntrantsPerUser");
 
                     b.Property<string>("Name");
-
-                    b.Property<ulong>("OpeningMessageId");
-
-                    b.Property<ulong>("PendingVotingStartMessageId");
-
-                    b.Property<ulong>("ResultsMessageId");
 
                     b.Property<int>("StageCount");
 
@@ -111,6 +104,14 @@ namespace BobDono.Migrations
                     b.Property<DateTime>("VotingEndDate");
 
                     b.Property<DateTime>("VotingStartDate");
+
+                    b.Property<long>("_discordChannelId");
+
+                    b.Property<long>("_openingMessageId");
+
+                    b.Property<long>("_pendingVotingStartMessageId");
+
+                    b.Property<long>("_resultsMessageId");
 
                     b.HasKey("Id");
 
@@ -142,11 +143,11 @@ namespace BobDono.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("DiscordId");
-
                     b.Property<string>("Name");
 
                     b.Property<long?>("TrueWaifuId");
+
+                    b.Property<long>("_discordId");
 
                     b.HasKey("Id");
 

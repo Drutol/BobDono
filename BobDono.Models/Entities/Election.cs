@@ -17,13 +17,43 @@ namespace BobDono.Models.Entities
             ClosedForcibly
         }
 
+
         public long Id { get; set; }
 
-        public ulong DiscordChannelId { get; set; }
+        #region MessageIds
+        public long _discordChannelId { get; set; }
+        public long _openingMessageId { get; set; }
+        public long _pendingVotingStartMessageId { get; set; }
+        public long _resultsMessageId { get; set; }
 
-        public ulong OpeningMessageId { get; set; }
-        public ulong PendingVotingStartMessageId { get; set; }
-        public ulong ResultsMessageId { get; set; }
+        [NotMapped]
+        public ulong DiscordChannelId
+        {
+            get { return (ulong)_discordChannelId; }
+            set { _discordChannelId = (long)value; }
+        }
+
+        [NotMapped]
+        public ulong OpeningMessageId
+        {
+            get { return (ulong)_openingMessageId; }
+            set { _openingMessageId = (long)value; }
+        }
+
+        [NotMapped]
+        public ulong PendingVotingStartMessageId
+        {
+            get { return (ulong)_pendingVotingStartMessageId; }
+            set { _pendingVotingStartMessageId = (long)value; }
+        }
+
+        [NotMapped]
+        public ulong ResultsMessageId
+        {
+            get { return (ulong)_resultsMessageId; }
+            set { _resultsMessageId = (long)value; }
+        }
+
         public string BracketMessagesIdsBlob { get; set; }
 
         [NotMapped]
@@ -32,6 +62,8 @@ namespace BobDono.Models.Entities
             get { return BracketMessagesIdsBlob?.Split(';').Select(ulong.Parse).ToList() ?? new List<ulong>(); }
             set { BracketMessagesIdsBlob = string.Join(";", value.Select(u => u.ToString())); }
         }
+        #endregion
+
 
         public string Name { get; set; }
         public string Description { get; set; }

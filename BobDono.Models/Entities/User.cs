@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Models.Entities
@@ -9,7 +10,14 @@ namespace BobDono.Models.Entities
 
         public long Id { get; set; }
         public string Name { get; set; }
-        public ulong DiscordId { get; set; }
+
+        public long _discordId { get; set; }
+        [NotMapped]
+        public ulong DiscordId
+        {
+            get { return (ulong) _discordId; }
+            set { _discordId = (long) value; }
+        }
 
 
         public virtual ICollection<Election> Elections => 

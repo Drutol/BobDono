@@ -51,7 +51,7 @@ namespace BobDono.Modules
 
 
                 var cts = new CancellationTokenSource();
-                var timeout = TimeSpan.FromMinutes(1);
+                var timeout = TimeSpan.FromMinutes(2);
                 var guild = ResourceLocator.DiscordClient.GetNullsGuild();
                 var member = await guild.GetMemberAsync(args.Author.Id);
                 var channel = await member.CreateDmChannelAsync();
@@ -75,7 +75,20 @@ namespace BobDono.Modules
 
                         //get image
                         await channel.SendMessageAsync(
-                            "Would you like to add image that fully conveys your waifu's superiority?");
+                            "Would you like change default MAL image? Type `none` to skip.");
+                        var thumb = await channel.GetNextMessageAsync(timeout, cts.Token);
+                        if (thumb == "none")
+                            thumb = null;
+                        else
+                        {
+                            //is it really a link?
+                            if (!thumb.IsLink())
+                                thumb = null;
+                        }
+
+                        //get image
+                        await channel.SendMessageAsync(
+                            "Would you like to add feature image that fully conveys your waifu's superiority? Type `none` to skip.");
                         var img = await channel.GetNextMessageAsync(timeout, cts.Token);
                         if (img == "none")
                             img = null;
@@ -90,6 +103,7 @@ namespace BobDono.Modules
                         {
                             Description = description,
                             FeatureImage = img,
+                            ThumbImage = thumb,
                             User = user,
                             Waifu = waifu,
                         };
@@ -100,6 +114,8 @@ namespace BobDono.Modules
                     }
                     catch (OperationCanceledException)
                     {
+                        await channel.SendMessageAsync(
+                            "Well... you left your waifu waiting... that's not nice of you.");
                         return;
                     }
                     catch (Exception e)

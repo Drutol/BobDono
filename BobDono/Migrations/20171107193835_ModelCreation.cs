@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using System;
 using System.Collections.Generic;
 
@@ -12,12 +13,12 @@ namespace BobDono.Migrations
                 name: "Waifus",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    ImageUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    MalId = table.Column<string>(type: "TEXT", nullable: true),
-                    Name = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<long>(type: "int8", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    MalId = table.Column<string>(type: "text", nullable: true),
+                    Name = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -28,11 +29,11 @@ namespace BobDono.Migrations
                 name: "TrueWaifus",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    FeatureImage = table.Column<string>(type: "TEXT", nullable: true),
-                    WaifuId = table.Column<long>(type: "INTEGER", nullable: true)
+                    Id = table.Column<long>(type: "int8", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    FeatureImage = table.Column<string>(type: "text", nullable: true),
+                    WaifuId = table.Column<long>(type: "int8", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -49,11 +50,11 @@ namespace BobDono.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DiscordId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: true),
-                    TrueWaifuId = table.Column<long>(type: "INTEGER", nullable: true)
+                    Id = table.Column<long>(type: "int8", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    TrueWaifuId = table.Column<long>(type: "int8", nullable: true),
+                    _discordId = table.Column<long>(type: "int8", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -70,23 +71,23 @@ namespace BobDono.Migrations
                 name: "Elections",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AuthorId = table.Column<long>(type: "INTEGER", nullable: true),
-                    BracketMessagesIdsBlob = table.Column<string>(type: "TEXT", nullable: true),
-                    CurrentState = table.Column<int>(type: "INTEGER", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    DiscordChannelId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    EntrantsPerUser = table.Column<int>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: true),
-                    OpeningMessageId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    PendingVotingStartMessageId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    ResultsMessageId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    StageCount = table.Column<int>(type: "INTEGER", nullable: false),
-                    SubmissionsEndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    SubmissionsStartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    VotingEndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    VotingStartDate = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<long>(type: "int8", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    AuthorId = table.Column<long>(type: "int8", nullable: true),
+                    BracketMessagesIdsBlob = table.Column<string>(type: "text", nullable: true),
+                    CurrentState = table.Column<int>(type: "int4", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    EntrantsPerUser = table.Column<int>(type: "int4", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    StageCount = table.Column<int>(type: "int4", nullable: false),
+                    SubmissionsEndDate = table.Column<DateTime>(type: "timestamp", nullable: false),
+                    SubmissionsStartDate = table.Column<DateTime>(type: "timestamp", nullable: false),
+                    VotingEndDate = table.Column<DateTime>(type: "timestamp", nullable: false),
+                    VotingStartDate = table.Column<DateTime>(type: "timestamp", nullable: false),
+                    _discordChannelId = table.Column<long>(type: "int8", nullable: false),
+                    _openingMessageId = table.Column<long>(type: "int8", nullable: false),
+                    _pendingVotingStartMessageId = table.Column<long>(type: "int8", nullable: false),
+                    _resultsMessageId = table.Column<long>(type: "int8", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -103,8 +104,8 @@ namespace BobDono.Migrations
                 name: "UserWaifu",
                 columns: table => new
                 {
-                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
-                    WaifuId = table.Column<long>(type: "INTEGER", nullable: false)
+                    UserId = table.Column<long>(type: "int8", nullable: false),
+                    WaifuId = table.Column<long>(type: "int8", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -127,12 +128,12 @@ namespace BobDono.Migrations
                 name: "BracketStages",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    ElectionId = table.Column<long>(type: "INTEGER", nullable: true),
-                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Number = table.Column<int>(type: "INTEGER", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<long>(type: "int8", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    ElectionId = table.Column<long>(type: "int8", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "timestamp", nullable: false),
+                    Number = table.Column<int>(type: "int4", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "timestamp", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -149,15 +150,15 @@ namespace BobDono.Migrations
                 name: "WaifuContenders",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    CustomImageUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    ElectionId = table.Column<long>(type: "INTEGER", nullable: true),
-                    FeatureImage = table.Column<string>(type: "TEXT", nullable: true),
-                    Lost = table.Column<bool>(type: "INTEGER", nullable: false),
-                    ProposerId = table.Column<long>(type: "INTEGER", nullable: true),
-                    SeedNumber = table.Column<int>(type: "INTEGER", nullable: false),
-                    WaifuId = table.Column<long>(type: "INTEGER", nullable: true)
+                    Id = table.Column<long>(type: "int8", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    CustomImageUrl = table.Column<string>(type: "text", nullable: true),
+                    ElectionId = table.Column<long>(type: "int8", nullable: true),
+                    FeatureImage = table.Column<string>(type: "text", nullable: true),
+                    Lost = table.Column<bool>(type: "bool", nullable: false),
+                    ProposerId = table.Column<long>(type: "int8", nullable: true),
+                    SeedNumber = table.Column<int>(type: "int4", nullable: false),
+                    WaifuId = table.Column<long>(type: "int8", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -186,15 +187,15 @@ namespace BobDono.Migrations
                 name: "Brackets",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    BracketStageId = table.Column<long>(type: "INTEGER", nullable: true),
-                    FirstContenderId = table.Column<long>(type: "INTEGER", nullable: true),
-                    LoserId = table.Column<long>(type: "INTEGER", nullable: true),
-                    Number = table.Column<int>(type: "INTEGER", nullable: false),
-                    SecondContenderId = table.Column<long>(type: "INTEGER", nullable: true),
-                    ThirdContenderId = table.Column<long>(type: "INTEGER", nullable: true),
-                    WinnerId = table.Column<long>(type: "INTEGER", nullable: true)
+                    Id = table.Column<long>(type: "int8", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    BracketStageId = table.Column<long>(type: "int8", nullable: true),
+                    FirstContenderId = table.Column<long>(type: "int8", nullable: true),
+                    LoserId = table.Column<long>(type: "int8", nullable: true),
+                    Number = table.Column<int>(type: "int4", nullable: false),
+                    SecondContenderId = table.Column<long>(type: "int8", nullable: true),
+                    ThirdContenderId = table.Column<long>(type: "int8", nullable: true),
+                    WinnerId = table.Column<long>(type: "int8", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -241,12 +242,12 @@ namespace BobDono.Migrations
                 name: "Votes",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    BracketId = table.Column<long>(type: "INTEGER", nullable: true),
-                    ContenderId = table.Column<long>(type: "INTEGER", nullable: true),
-                    CreateDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UserId = table.Column<long>(type: "INTEGER", nullable: true)
+                    Id = table.Column<long>(type: "int8", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    BracketId = table.Column<long>(type: "int8", nullable: true),
+                    ContenderId = table.Column<long>(type: "int8", nullable: true),
+                    CreateDate = table.Column<DateTime>(type: "timestamp", nullable: false),
+                    UserId = table.Column<long>(type: "int8", nullable: true)
                 },
                 constraints: table =>
                 {

@@ -44,7 +44,9 @@ namespace BobDono.DataAccess.Database
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=bob.db",builder => builder.MigrationsAssembly("BobDono"));           
+            //optionsBuilder.UseSqlite("Data Source=bob.db",builder => builder.MigrationsAssembly("BobDono"));           
+            optionsBuilder.UseNpgsql(
+                "Server=127.0.0.1;Port=5432;Database=bob;User Id=bob;Password=verysecurepassword;", builder => builder.MigrationsAssembly("BobDono"));
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

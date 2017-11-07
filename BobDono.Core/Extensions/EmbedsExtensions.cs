@@ -34,7 +34,7 @@ namespace BobDono.Core.Extensions
             {
                 Color = DiscordColor.HotPink,
                 Description = waifu.Waifu.Description,
-                ThumbnailUrl = waifu.Waifu.ImageUrl,
+                ThumbnailUrl = waifu.ThumbImage ?? waifu.Waifu.ImageUrl,
                 Author = new DiscordEmbedBuilder.EmbedAuthor { Name = waifu.User.Name},
                 Title = waifu.Waifu.Name,
                 Footer = new DiscordEmbedBuilder.EmbedFooter { Text = $"Id: {waifu.Waifu.MalId}"}
@@ -63,10 +63,11 @@ namespace BobDono.Core.Extensions
             {
                 var builder = new DiscordEmbedBuilder
                 {
-
                     Color = DiscordColor.Brown,
                     Title = $"Bracket #{stage.Number}, Contender #{contenderNumber}",
-                    ImageUrl = contender.CustomImageUrl ?? contender.Waifu.ImageUrl
+                    ImageUrl = contender.CustomImageUrl ?? contender.Waifu.ImageUrl,
+                    Footer = new DiscordEmbedBuilder.EmbedFooter { Text = contender.Waifu.Name}
+                    
                 };
                 return builder.Build();
             }
