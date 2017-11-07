@@ -207,7 +207,7 @@ namespace BobDono.Controllers
             DiscordEmbedBuilder secondEmbed;
             DiscordEmbedBuilder thirdEmbed;
 
-            if (finalBracket.ThirdContender != null)
+            if (finalBracket.ThirdContender == null)
             {
                 //2nd place - second contender from last bracket
                 var secondPlace = finalBracket.Loser;
@@ -229,11 +229,11 @@ namespace BobDono.Controllers
             {
                 var notWinners =
                     new[] {finalBracket.FirstContender, finalBracket.SecondContender, finalBracket.ThirdContender}
-                        .Where(contender => contender != finalBracket.Winner).ToList();
+                        .Where(contender => !contender.Equals(finalBracket.Winner)).ToList();
                 var secondPlace = FindWinner(notWinners);
 
                 secondEmbed = secondPlace.GetEmbedBuilder();
-                thirdEmbed = notWinners.First(c => c != secondPlace).GetEmbedBuilder();
+                thirdEmbed = notWinners.First(c => !c.Equals(secondPlace) && !c.Equals(finalBracket.Winner)).GetEmbedBuilder();
             }
 
             secondEmbed.Author = null;
