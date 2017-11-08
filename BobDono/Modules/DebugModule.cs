@@ -24,12 +24,13 @@ namespace BobDono.Modules
         {
             if (ResourceLocator.ExceptionHandler.CaughtThings.Any())
             {
-                var s = string.Join("\n\n",
-                    _exceptionHandler.CaughtThings.Select(exception =>
-                        $"```{exception}```"));
-                if (s.Length > 2000)
-                    s = s.Substring(0, 2000);
-                await args.Channel.SendMessageAsync(s);
+                for (int i = 0; i < Math.Min(ResourceLocator.ExceptionHandler.CaughtThings.Count,5); i++)
+                {
+                    var s = string.Join("\n\n",$"```{_exceptionHandler.CaughtThings[i]}```");
+                    if (s.Length > 2000)
+                        s = s.Substring(Math.Min(2000, s.Length));
+                    await args.Channel.SendMessageAsync(s);
+                }
             }
             else
             {

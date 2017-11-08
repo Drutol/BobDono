@@ -20,7 +20,7 @@ namespace BobDono.Core.BL
 
         public Dictionary<Type,ModuleAttribute> Modules { get; } = new Dictionary<Type, ModuleAttribute>();
         public List<HandlerEntry> Handlers { get; } = new List<HandlerEntry>();
-        private readonly Dictionary<Type, object> _moduleInstances = new Dictionary<Type, object>();
+        public Dictionary<Type, object> ModuleInstances { get; } = new Dictionary<Type, object>();
 
         public void Initialize()
         {
@@ -90,7 +90,7 @@ namespace BobDono.Core.BL
                             Handlers.Add(handler);
                         }
                     }
-                    _moduleInstances[module.module] = instance;
+                    ModuleInstances[module.module] = instance;
                 }
             }
             _botContext.Commands = dict;

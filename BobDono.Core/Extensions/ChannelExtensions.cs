@@ -50,7 +50,10 @@ namespace BobDono.Core.Extensions
                 var response = await channel.GetNextMessageAsync(timeout, token);
                 try
                 {
-                    return await converter(response);
+                    var res = await converter(response);
+                    if(res == null)
+                        continue;
+                    return res;
                 }
                 catch
                 {

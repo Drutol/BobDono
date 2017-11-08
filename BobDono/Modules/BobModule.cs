@@ -17,7 +17,7 @@ namespace BobDono.Modules
         public Task GeneralCommand(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             var builder = new DiscordEmbedBuilder();
-            builder.Title = "Bob-dono the waifu connesieur.";
+            builder.Title = "Bob-dono the waifu connoisseur.";
             builder.Description =
                 "Hi, I'm Bob. It's good to see you here. Let's embark on this magical adventure together!\n\nI offer following modules:\n\n";
             builder.Color = DiscordColor.Brown;
@@ -30,8 +30,12 @@ namespace BobDono.Modules
                     continue;
 
                 builder.Description +=
-                    $"**{module.Key.Name}**\n*{module.Key.Description ?? " "}*\n{string.Join("\n", module.Value.Where(attribute => !attribute.Debug && !attribute.FallbackCommand).Select(attribute => $"`{attribute.HumanReadableCommand}`"))}\n\n";
+                    $"**{module.Key.Name}**\n{module.Key.Description ?? " "}\n\n{string.Join("\n", module.Value.Where(attribute => !attribute.Debug && !attribute.FallbackCommand).Select(attribute => $"`{attribute.HumanReadableCommand}` - *{attribute.HelpText}*"))}\n\n";
             }
+
+            builder.Description += "\n" +
+                                   "So maybe now about me... I'm a bot... Bob The Bot... nice to meet you. I hope I won't crash on you.\n" +
+                                   "I was written by @Drutol#5419 in C# using DSharpPlus library and my very own framework. You can find my insides on github!";
 
             return args.Channel.SendMessageAsync(null, false, builder.Build());
         }

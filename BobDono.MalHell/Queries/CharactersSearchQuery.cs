@@ -25,8 +25,17 @@ namespace BobDono.MalHell.Queries
         {
             var output = new List<AnimeCharacter>();
 
-            var raw = await _httpClientProvider.HttpClient.GetStringAsync(
-                $"https://myanimelist.net/character.php?q={query}");
+            var q = $"https://myanimelist.net/character.php?q={WebUtility.UrlEncode(query)}";
+            string raw = null;
+            try
+            {
+                raw = await _httpClientProvider.HttpClient.GetStringAsync(q);
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+            
             if (string.IsNullOrEmpty(raw))
                 return null;
             var doc = new HtmlDocument();

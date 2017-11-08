@@ -145,6 +145,22 @@ namespace BobDono.Modules
             }
         }
 
+        [CommandHandler(Regex = "waifu",HumanReadableCommand = "waifu",HelpText = "Displays your waifu.")]
+        public async Task Waifu(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
+            {
+                userService.ConfigureIncludes().WithChain(query =>
+                {
+                    return query.Include(u => u.TrueWaifu)
+                        .ThenInclude(w => w.Waifu);
+                }).Commit();
+                var user = await userService.GetOrCreateUser(args.Author);
+
+                await DisplayWaifuForUser(user, args.Channel);
+            }
+        }
+
         [CommandHandler(Regex = @"waifu (<@\d+>|\w+)", HumanReadableCommand = "waifu <username>", HelpText = "Shows waifu of specified user.")]
         public async Task ViewWaifu(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
@@ -158,21 +174,26 @@ namespace BobDono.Modules
                 }).Commit();
                 var user = await userService.FirstAsync(u => u.Name.ToLower().Contains(username.ToLower()));
 
-                if (user == null)
-                {
-                    await args.Channel.SendMessageAsync("Couldn't find specified user.");
-                    return;
-                }
-
-                if (user.TrueWaifu == null)
-                {
-                    await args.Channel.SendMessageAsync("Specified user didn't set his waifu yet. What a barbarian.");
-                    return;
-                }
-
-
-                await args.Channel.SendMessageAsync(null, false, user.TrueWaifu.GetEmbedBuilder());
+                await DisplayWaifuForUser(user,args.Channel);
             }
+        }
+
+        private async Task DisplayWaifuForUser(User user,DiscordChannel channel)
+        {
+            if (user == null)
+            {
+                await channel.SendMessageAsync("Couldn't find specified user.");
+                return;
+            }
+
+            if (user.TrueWaifu == null)
+            {
+                await channel.SendMessageAsync("Specified user didn't set his waifu yet. What a barbarian.");
+                return;
+            }
+
+
+            await channel.SendMessageAsync(null, false, user.TrueWaifu.GetEmbedBuilder());
         }
 
 
@@ -185,8 +206,17 @@ namespace BobDono.Modules
             {
                 userService.ConfigureIncludes().WithChain(query => query.Include(u => u.TrueWaifu)).Commit();
                 var user = await userService.GetOrCreateUser(args.Author);
+                if (user.TrueWaifu != null)
+                {
+                    trueWaifuService.Remove(user.TrueWaifu);
+                    await args.Channel.SendMessageAsync("Your waifu is no more...");
+                }
+                else
+                {
+                    await args.Channel.SendMessageAsync("Your waifu can't get any more imaginary than this...");
+                }
 
-                trueWaifuService.Remove(user.TrueWaifu);
+
             }
         }
 
@@ -197,7 +227,9 @@ namespace BobDono.Modules
             {
                 trueWaifuService.ConfigureIncludes().WithChain(q => q.Include(w => w.Waifu).Include(w => w.User)).Commit();
 
-                var s = string.Join("\n",trueWaifuService.GetAll().Select(waifu =>
+                var waifus = trueWaifuService.GetAll();
+                
+                var s = string.Join("\n", waifus.Where(w => w.User != null && w.Waifu != null).Select(waifu =>
                     $"**{waifu.User.Name}** -- {waifu.Waifu.Name} *({waifu.Waifu.MalId})*"));
 
                 await args.Channel.SendMessageAsync(s);

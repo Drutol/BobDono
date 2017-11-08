@@ -13,18 +13,6 @@ namespace BobDono.DataAccess.Database
     {
         public static void Initialize()
         {
-            try
-            {
-                using (var db = new BobDatabaseContext())
-                {
-                    db.Database.Migrate();
-                    db.SaveChanges();
-                }
-            }
-            catch (Exception)
-            {
-                //db exists
-            }
 
         }
 

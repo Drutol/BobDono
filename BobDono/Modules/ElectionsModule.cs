@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -32,7 +33,7 @@ namespace BobDono.Modules
         private readonly IBotContext _botContext;
         private readonly IExceptionHandler _exceptionHandler;
         private readonly IElectionService _electionService;
-        private readonly List<ElectionContext> _electionsContexts = new List<ElectionContext>();
+        public List<ElectionContext> ElectionsContexts { get; } = new List<ElectionContext>();
 
         public ElectionsModule(IUserService userService,IBotContext botContext, IExceptionHandler exceptionHandler, IElectionService  electionService)
         {
@@ -55,7 +56,7 @@ namespace BobDono.Modules
                 {
                     try
                     {
-                        _electionsContexts.Add(
+                        ElectionsContexts.Add(
                             dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
                                 election)));
                     }
@@ -70,7 +71,6 @@ namespace BobDono.Modules
 
         [CommandHandler(
             Regex = @"election create", 
-            Authorize = true, 
             HumanReadableCommand = "election create",
             HelpText = "Starts new election.", 
             Awaitable = false)]
@@ -88,7 +88,7 @@ namespace BobDono.Modules
                 var member = await guild.GetMemberAsync(args.Author.Id);
                 var channel = await member.CreateDmChannelAsync();
                 await channel.SendMessageAsync(
-                    "You are about to create new election, you can always cancel by typing `quit`.\nProvide short name for it:");
+                    "You are about to create new election, you can always cancel by typing `quit`.\n");
 
                 var election = new Election();
                 try
@@ -98,9 +98,19 @@ namespace BobDono.Modules
                     try
                     {
 
-                        election.Name = await channel.GetNextMessageAsync(timeout, cts.Token);
-                        await channel.SendMessageAsync("Longer description if you could:");
-                        election.Description = await channel.GetNextMessageAsync(timeout, cts.Token);
+                        election.Name = await channel.GetNextValidResponse<string>("Provide short name for it (2 characters+, alphanumeric)", async s =>
+                        {
+                            if (s.Length >= 2 && Regex.IsMatch(s,"^[a-zA-Z0-9_]*$"))
+                                return s;
+                            return null;
+                        },timeout, cts.Token);
+                        election.Description = await channel.GetNextValidResponse("Longer description if you could (500 characters):",
+                            async s =>
+                            {
+                                if (s.Length <= 500)
+                                    return s;
+                                return null;
+                            },timeout, cts.Token);
                         int submissionDays = 1;
                         while (submissionDays == 0)
                         {
@@ -127,7 +137,7 @@ namespace BobDono.Modules
                             var response = await channel.GetNextMessageAsync(timeout, cts.Token);
                             if (int.TryParse(response, out int count))
                             {
-                                if (count >= 1 || count <= 7)
+                                if (count >= 1 || count <= 9)
                                 {
                                     submissionCount = count;
                                 }
@@ -169,7 +179,7 @@ namespace BobDono.Modules
                     _botContext.NewPrivateMessage -= HandleQuit;
                 }
 
-                await Task.Delay(1000);
+                await Task.Delay(5000);
 
                 try
                 {
@@ -178,7 +188,7 @@ namespace BobDono.Modules
                         var electionContext = dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
                             await electionService.CreateElection(election, user)));
                         electionContext.OnCreated();
-                        _electionsContexts.Add(electionContext);
+                        ElectionsContexts.Add(electionContext);
                     }
                 }
                 catch (Exception e)
@@ -199,7 +209,7 @@ namespace BobDono.Modules
             }
         }
 
-        [CommandHandler(Regex = @"election list (<@\d+>|\w+)",HumanReadableCommand = "election list <username>")]
+        [CommandHandler(Regex = @"election list (<@\d+>|\w+)",HumanReadableCommand = "election list <username>",HelpText = "Lists all election related to given user.")]
         public async Task ListElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))

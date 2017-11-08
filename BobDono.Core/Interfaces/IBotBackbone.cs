@@ -11,6 +11,7 @@ namespace BobDono.Core.Interfaces
     {
         Dictionary<Type, ModuleAttribute> Modules { get; }
         List<HandlerEntry> Handlers { get; }
+        Dictionary<Type, object> ModuleInstances { get; }
         void Initialize();
     }
 }

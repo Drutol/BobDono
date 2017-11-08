@@ -25,7 +25,7 @@ namespace BobDono.Core.Attributes
         public bool Authorize { get; set; }
         public ulong? LimitToChannel { get; set; }
         public bool Awaitable { get; set; } = true;
-        public string HelpText { get; set; } = "This command doesn't need explanation just like a good painting.";
+        public string HelpText { get; set; } /*= "This command doesn't need explanation just like a good painting.";*/
         public bool FallbackCommand { get; set; }
         public bool Debug { get; set; }
         public bool IgnoreRegexWrap { get; set; }

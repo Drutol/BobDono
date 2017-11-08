@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BobDono.Contexts;
 using BobDono.Core;
 using BobDono.Core.Attributes;
+using BobDono.Core.BL;
 using BobDono.Core.Extensions;
 using BobDono.Core.Utils;
 using BobDono.DataAccess.Services;
@@ -23,12 +25,14 @@ namespace BobDono.Controllers
         public Election Election { get; set; }
         private readonly DiscordChannel _channel;
         private readonly IElectionService _electionService;
+        private readonly ElectionContext _context;
 
         private Random _random = new Random();
 
-        public ElectionController(Election election, DiscordChannel channel, IElectionService electionService)
+        public ElectionController(ElectionContext context, Election election, DiscordChannel channel, IElectionService electionService)
         {
             Election = election;
+            _context = context;
             _channel = channel;
             _electionService = electionService;
         }
@@ -136,41 +140,55 @@ namespace BobDono.Controllers
 
         public async Task TransitionToVoting()
         {
-            Election.CurrentState = Election.State.Voting;
 
-            //prepare seeds
-            var seeds = new List<int>();
-            for (int i = 0; i < Election.Contenders.Count; i++)
-                seeds.Add(i);
-            seeds.Shuffle();
-            //add seeds to contenders
-            for (int i = 0; i < Election.Contenders.Count; i++)
-                Election.Contenders.ElementAt(i).SeedNumber = seeds[i];
 
-            BracketStage stage;
-            //create brackets
+            if (Election.Contenders.Count > 1)
+            {
+                Election.CurrentState = Election.State.Voting;
+                //prepare seeds
+                var seeds = new List<int>();
+                for (int i = 0; i < Election.Contenders.Count; i++)
+                    seeds.Add(i);
+                seeds.Shuffle();
+                //add seeds to contenders
+                for (int i = 0; i < Election.Contenders.Count; i++)
+                    Election.Contenders.ElementAt(i).SeedNumber = seeds[i];
+
+                BracketStage stage;
+                //create brackets
 
                 stage = CreateBracketStage(Election.Contenders.ToList());
 
-            Election.BracketStages.Add(stage);
+                Election.BracketStages.Add(stage);
 
-            //proces dates
-            Election.StageCount = GetStageCount();
-            Election.VotingEndDate = Election.VotingStartDate.AddDays(Election.StageCount);
+                //proces dates
+                Election.StageCount = GetStageCount();
+                Election.VotingEndDate = Election.VotingStartDate.AddDays(Election.StageCount);
 
-            //update channel
-            var ids = await SendBracketInfo(stage.Brackets);
-            Election.BracketMessagesIds = ids;
+                //update channel
+                var ids = await SendBracketInfo(stage.Brackets);
+                Election.BracketMessagesIds = ids;
 
-            try
-            {
-                var msg = await _channel.GetMessageAsync(Election.PendingVotingStartMessageId);
-                await msg.DeleteAsync();
+                try
+                {
+                    var msg = await _channel.GetMessageAsync(Election.PendingVotingStartMessageId);
+                    await msg.DeleteAsync();
+                }
+                catch (Exception)
+                {
+                    //debug
+                }
             }
-            catch (Exception)
+            else
             {
-                //debug
+                Election.CurrentState = Election.State.Closed;
+
+                await _channel.SendMessageAsync(
+                    "There was not enough contenders to create brackets. Election is now closed.");
+
+                _context.DeregisterTimer();
             }
+            
 
         }
 
@@ -248,6 +266,7 @@ namespace BobDono.Controllers
 
             await _channel.SendMessageAsync(null, false, thirdEmbed);
 
+            _context.DeregisterTimer();
         }
 
         public async Task CloseCurrentStage()

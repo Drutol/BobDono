@@ -98,6 +98,7 @@ namespace BobDono
                 }
                 catch (Exception e)
                 {
+
                     await messageCreateEventArgs.Channel.SendMessageAsync(ResourceLocator.ExceptionHandler.Handle(e));
                 }
             }

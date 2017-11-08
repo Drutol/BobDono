@@ -33,14 +33,17 @@ namespace BobDono.Contexts
         private readonly IElectionService _electionService;
         private readonly IUserService _userService;
         private readonly IContenderService _contenderService;
+        private readonly IExceptionHandler _exceptionHandler;
+        private TimerService.TimerRegistration _timerRegistration;
 
         public ElectionContext(Election election, IWaifuService waifuService, IElectionService electionService,
-            IUserService userService, IContenderService contenderService)
+            IUserService userService, IContenderService contenderService, IExceptionHandler exceptionHandler)
         {
             _waifuService = waifuService;
             _electionService = electionService;
             _userService = userService;
             _contenderService = contenderService;
+            _exceptionHandler = exceptionHandler;
 
             _election = election;
             _channel = ResourceLocator.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
@@ -50,14 +53,15 @@ namespace BobDono.Contexts
 
             ChannelIdContext = election.DiscordChannelId;
 
-            _controller = new ElectionController(_election, _channel, _electionService);
+            _controller = new ElectionController(this,_election, _channel, _electionService);
 
-            TimerService.Instance.Register(
-                new TimerService.TimerRegistration
-                {
-                    Interval = TimeSpan.FromHours(1),
-                    Task = OnHourPassed
-                }.FireOnNextFullHour());
+            _timerRegistration = new TimerService.TimerRegistration
+            {
+                Interval = TimeSpan.FromHours(1),
+                Task = OnHourPassed
+            }.FireOnNextFullHour();
+
+            TimerService.Instance.Register(_timerRegistration);
 
             ClearChannel();
         }
@@ -132,7 +136,7 @@ namespace BobDono.Contexts
             }
         }
 
-        [CommandHandler(Regex = @"vote \d+ [1,2,3]", HelpText = "Submit your vote in given bracket. Can be used one per bracket. Cannot be undone.",HumanReadableCommand = "vote <bracketNumber> <contestantNumber>")]
+        [CommandHandler(Regex = @"vote \d+ [1,2,3]", HelpText = "Submit your vote in given bracket. Can be used once per bracket. Cannot be undone.",HumanReadableCommand = "vote <bracketNumber> <contestantNumber>")]
         public async Task Vote(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
@@ -254,13 +258,21 @@ namespace BobDono.Contexts
 
         private async void OnHourPassed()
         {
-            using(var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(ResourceLocator.ExecutionContext))
+            try
             {
-                _election = await electionService.GetElection(_election.Id);
-                _controller.Election = _election;
-
-                await _controller.ProcessTimePass();
+                using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(ResourceLocator.ExecutionContext))
+                {
+                    _election = await electionService.GetElection(_election.Id);
+                    _controller.Election = _election;
+                    if(_election.CurrentState != Election.State.Closed && _election.CurrentState != Election.State.ClosedForcibly)
+                        await _controller.ProcessTimePass();
+                }
             }
+            catch (Exception e)
+            {
+                _exceptionHandler.Handle(e);
+            }
+
         }
 
         private async void ClearChannel()
@@ -280,5 +292,9 @@ namespace BobDono.Contexts
         }
 
 
+        public void DeregisterTimer()
+        {
+            TimerService.Instance.Deregister(_timerRegistration);
+        }
     }
 }
