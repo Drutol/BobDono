@@ -76,10 +76,10 @@ namespace BobDono.Contexts
                 "to capture the glory of your proposed character.")]
         public async Task AddContender(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
-            using (var contenderService = _contenderService.ObtainLifetimeHandle<ContenderService>(executionContext))
-            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(executionContext))
-            using (var waifuService = _waifuService.ObtainLifetimeHandle<WaifuService>(executionContext))
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+            using (var contenderService = _contenderService.ObtainLifetimeHandle(executionContext))
+            using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
+            using (var waifuService = _waifuService.ObtainLifetimeHandle(executionContext))
             {
                 _election = await electionService.GetElection(_election.Id);
                 if (_election.CurrentState == Election.State.Submission)
@@ -139,8 +139,8 @@ namespace BobDono.Contexts
         [CommandHandler(Regex = @"vote \d+ [1,2,3]", HelpText = "Submit your vote in given bracket. Can be used once per bracket. Cannot be undone.",HumanReadableCommand = "vote <bracketNumber> <contestantNumber>")]
         public async Task Vote(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
-            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(executionContext))
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+            using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
             {
                 //prepare parameters
                 var parameters = args.Message.Content.Split(' ');
@@ -195,7 +195,7 @@ namespace BobDono.Contexts
         [CommandHandler(Regex = @"start",Debug = true)]
         public async Task Start(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(executionContext))
+            using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
             {
                 _controller.Election = await electionService.GetElection(_election.Id);
                 await _controller.TransitionToVoting();
@@ -205,7 +205,7 @@ namespace BobDono.Contexts
         [CommandHandler(Regex = @"close",Debug = true)]
         public async Task Close(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(executionContext))
+            using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
             {
                 _controller.Election = await electionService.GetElection(_election.Id);
                 await _controller.CloseCurrentStage();
@@ -216,10 +216,10 @@ namespace BobDono.Contexts
         [CommandHandler(Regex = @"random",Debug = true)]
         public async Task AddRandomContenders(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
-            using (var contenderService = _contenderService.ObtainLifetimeHandle<ContenderService>(executionContext))
-            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(executionContext))
-            using (var waifuService = _waifuService.ObtainLifetimeHandle<WaifuService>(executionContext))
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+            using (var contenderService = _contenderService.ObtainLifetimeHandle(executionContext))
+            using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
+            using (var waifuService = _waifuService.ObtainLifetimeHandle(executionContext))
             {
                 var user = await userService.GetOrCreateUser(args.Author);
                 _election = await electionService.GetElection(_election.Id);
@@ -260,7 +260,7 @@ namespace BobDono.Contexts
         {
             try
             {
-                using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(ResourceLocator.ExecutionContext))
+                using (var electionService = _electionService.ObtainLifetimeHandle(ResourceLocator.ExecutionContext))
                 {
                     _election = await electionService.GetElection(_election.Id);
                     _controller.Election = _election;

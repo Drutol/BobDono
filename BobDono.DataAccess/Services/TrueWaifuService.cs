@@ -10,14 +10,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.DataAccess.Services
 {
-    public class TrueWaifuService : ServiceBase<TrueWaifu> , ITrueWaifuService
+    public class TrueWaifuService : ServiceBase<TrueWaifu,ITrueWaifuService> , ITrueWaifuService
     {
         public TrueWaifuService()
         {
 
         }
 
-        protected override IQueryable<TrueWaifu> Include(DbSet<TrueWaifu> query)
+        protected override IQueryable<TrueWaifu> Include(IQueryable<TrueWaifu> query)
         {
             return query.Include(w => w.Waifu);
         }
@@ -27,7 +27,7 @@ namespace BobDono.DataAccess.Services
             
         }
 
-        public override IServiceBase<TrueWaifu> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose = true)
+        public override ITrueWaifuService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
         {
             return new TrueWaifuService(executionContext.Context as BobDatabaseContext, saveOnDispose);
         }

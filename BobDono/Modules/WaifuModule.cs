@@ -44,8 +44,8 @@ namespace BobDono.Modules
             HelpText = "Set your waifu.")]
         public async Task SetWaifu(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
-            using (var waifuService = _waifuService.ObtainLifetimeHandle<WaifuService>(executionContext))
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+            using (var waifuService = _waifuService.ObtainLifetimeHandle(executionContext))
             {
                 var user = await userService.GetOrCreateUser(args.Author);
 
@@ -148,7 +148,7 @@ namespace BobDono.Modules
         [CommandHandler(Regex = "waifu",HumanReadableCommand = "waifu",HelpText = "Displays your waifu.")]
         public async Task Waifu(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             {
                 userService.ConfigureIncludes().WithChain(query =>
                 {
@@ -164,7 +164,7 @@ namespace BobDono.Modules
         [CommandHandler(Regex = @"waifu (<@\d+>|\w+)", HumanReadableCommand = "waifu <username>", HelpText = "Shows waifu of specified user.")]
         public async Task ViewWaifu(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             {
                 var username = args.Message.GetSubject();
                 userService.ConfigureIncludes().WithChain(query =>
@@ -201,8 +201,8 @@ namespace BobDono.Modules
             HelpText = "Remove your waifu. :(")]
         public async Task RemoveWaifu(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
-            using (var trueWaifuService = _trueWaifuService.ObtainLifetimeHandle<TrueWaifuService>(executionContext))
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+            using (var trueWaifuService = _trueWaifuService.ObtainLifetimeHandle(executionContext))
             {
                 userService.ConfigureIncludes().WithChain(query => query.Include(u => u.TrueWaifu)).Commit();
                 var user = await userService.GetOrCreateUser(args.Author);
@@ -223,7 +223,7 @@ namespace BobDono.Modules
         [CommandHandler(Regex = "waifulist",HumanReadableCommand = "waifulist",HelpText = "List all waifus set by users.")]
         public async Task WaifuList(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var trueWaifuService = _trueWaifuService.ObtainLifetimeHandle<TrueWaifuService>(executionContext))
+            using (var trueWaifuService = _trueWaifuService.ObtainLifetimeHandle(executionContext))
             {
                 trueWaifuService.ConfigureIncludes().WithChain(q => q.Include(w => w.Waifu).Include(w => w.User)).Commit();
 

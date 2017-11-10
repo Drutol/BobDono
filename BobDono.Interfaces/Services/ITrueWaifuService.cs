@@ -2,7 +2,8 @@
 
 namespace BobDono.Interfaces.Services
 {
-    public interface ITrueWaifuService : IServiceBase<TrueWaifu>
+    public interface ITrueWaifuService : IServiceBase<TrueWaifu,ITrueWaifuService>
     {
+
     }
 }

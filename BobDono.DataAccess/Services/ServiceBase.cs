@@ -7,25 +7,41 @@ using BobDono.DataAccess.Database;
 using BobDono.Interfaces;
 using BobDono.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace BobDono.DataAccess.Services
 {
-    public abstract class ServiceBase<T> : IServiceBase<T> where T : class
+    public abstract class ServiceBase<TEntity,TService> : IServiceBase<TEntity,TService> 
+        where TService : class, IServiceBase<TEntity, TService>
+        where TEntity : class
     {
-        public class IncludeConfigurator<T> where T :class
+        public class IncludeConfigurator<TEntity,TService> : IIncludeConfigurator<TEntity, TService>
+            where TService : class, IServiceBase<TEntity, TService>
+            where TEntity : class
         {
-            public delegate IQueryable<T> EntityIncludeDelegate(DbSet<T> query);
-            private readonly ServiceBase<T> _parent;
-            private ServiceBase<T>.IncludeConfigurator<T>.EntityIncludeDelegate _includeChain;
+            private readonly ServiceBase<TEntity,TService> _parent;
+            private EntityIncludeDelegate<TEntity> _includeChain;
 
-            internal IncludeConfigurator(ServiceBase<T> parent)
+            internal IncludeConfigurator(ServiceBase<TEntity, TService> parent)
             {
                 _parent = parent;
             }
 
-            public IncludeConfigurator<T> WithChain(ServiceBase<T>.IncludeConfigurator<T>.EntityIncludeDelegate chain)
+            public IIncludeConfigurator<TEntity, TService> WithChain(EntityIncludeDelegate<TEntity> chain)
             {
                 _includeChain = chain;
+                return this;
+            }
+
+            public IIncludeConfigurator<TEntity, TService> ExtendChain(EntityIncludeDelegate<TEntity> chain)
+            {
+                _includeChain = query => chain(_parent.Include(query));
+                return this;
+            }
+
+            public IIncludeConfigurator<TEntity, TService> IgnoreDefaultServiceIncludes()
+            {
+                _includeChain = IncludeOverride;
                 return this;
             }
 
@@ -33,27 +49,20 @@ namespace BobDono.DataAccess.Services
             {
                 _parent._includeOverride = _includeChain;
             }
+
+            private IQueryable<TEntity> IncludeOverride(IQueryable<TEntity> query)
+            {
+                return query;
+            }
         }
 
         private readonly bool _saveOnDispose;
         protected BobDatabaseContext Context;
-        private IncludeConfigurator<T>.EntityIncludeDelegate _includeOverride;
+        private EntityIncludeDelegate<TEntity> _includeOverride;
 
         internal ServiceBase()
         {
-            
-        }
 
-        private IQueryable<T> InternalInclude(DbSet<T> query)
-        {
-            var q = _includeOverride == null ? Include(query) : _includeOverride(query);
-            _includeOverride = null;
-            return q;
-        }
-
-        protected virtual IQueryable<T> Include(DbSet<T> query)
-        {
-            return query;
         }
 
         internal ServiceBase(BobDatabaseContext dbContext, bool saveOnDispose)
@@ -62,92 +71,58 @@ namespace BobDono.DataAccess.Services
             _saveOnDispose = saveOnDispose;
         }
 
-        private void Begin()
+        private IQueryable<TEntity> InternalInclude(IQueryable<TEntity> query)
         {
-            Context = new BobDatabaseContext();
+            var q = _includeOverride == null ? Include(query) : _includeOverride(query);
+            _includeOverride = null;
+            return q;
         }
 
-        public List<T> GetAll()
+        protected virtual IQueryable<TEntity> Include(IQueryable<TEntity> query)
         {
-            return InternalInclude(Context.Set<T>()).ToList();
+            return query;
         }
 
-        public Task<List<T>> GetAllAsync()
+        public List<TEntity> GetAll()
         {
-            return InternalInclude(Context.Set<T>()).ToListAsync();
+            return InternalInclude(Context.Set<TEntity>()).ToList();
         }
 
-        public Task<List<T>> GetAllWhereAsync(Predicate<T> predicate)
+        public Task<List<TEntity>> GetAllAsync()
         {
-            return InternalInclude(Context.Set<T>()).Where(client => predicate(client)).ToListAsync();
+            return InternalInclude(Context.Set<TEntity>()).ToListAsync();
         }
 
-        public async Task<T> FirstAsync(Predicate<T> predicate)
+        public Task<List<TEntity>> GetAllWhereAsync(Expression<Func<TEntity,bool>> predicate)
+        {
+            return InternalInclude(Context.Set<TEntity>()).Where(predicate).ToListAsync();
+        }
+
+        public async Task<TEntity> FirstAsync(Expression<Func<TEntity, bool>> predicate)
         {
             try
             {
-                return await InternalInclude(Context.Set<T>()).FirstAsync(client => predicate(client));
+                return await InternalInclude(Context.Set<TEntity>()).FirstAsync(predicate);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
         }
-
-        public void OneShot(Action expression)
+      
+        public TEntity Add(TEntity entity)
         {
-            try
-            {
-                Begin();
-                expression.Invoke();
-            }
-            finally
-            {
-                Context.SaveChanges();
-                Dispose();
-            }
+            return Context.Add(entity).Entity;
         }
 
-        public TReturn OneShot<TReturn>(Func<TReturn> expression)
+        public void Remove(TEntity entity)
         {
-            try
-            {
-                Begin();
-                return expression.Invoke();
-            }
-            finally
-            {
-                Dispose();
-            }
+            Context.Set<TEntity>().Remove(entity);
         }
 
-        public async Task<TReturn> OneShotAsync<TReturn>(Func<Task<TReturn>> expression)
+        public void Update(TEntity entity)
         {
-            try
-            {
-                Begin();
-                return await expression();
-            }
-            finally
-            {
-                Dispose();
-            }
-        }
-
-
-        public T Add(T client)
-        {
-            return Context.Add(client).Entity;
-        }
-
-        public void Remove(T client)
-        {
-            Context.Set<T>().Remove(client);
-        }
-
-        public void Update(T client)
-        {
-            Context.Set<T>().Update(client);
+            Context.Set<TEntity>().Update(entity);
         }
 
         public async Task SaveChangesAsync()
@@ -155,16 +130,13 @@ namespace BobDono.DataAccess.Services
             await Context.SaveChangesAsync();
         }
 
-        public abstract IServiceBase<T> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose = true);
+        public abstract TService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext,
+            bool saveOnDispose = true);
 
-        public TService ObtainLifetimeHandle<TService>(ICommandExecutionContext executionContext, bool saveOnDispose = true) where TService  : class, IServiceBase<T>
-        {
-            return ObtainLifetimeHandle(executionContext,saveOnDispose) as TService;
-        }
 
-        public TService ObtainLifetimeHandle<TService>(bool saveOnDispose = true) where TService : class, IServiceBase<T>
+        public TService ObtainLifetimeHandle(bool saveOnDispose = true)
         {
-            return ObtainLifetimeHandle<TService>(new CommandExecutionContext());
+            return ObtainLifetimeHandle(new CommandExecutionContext(),saveOnDispose);
         }
 
         public void Dispose()
@@ -187,9 +159,9 @@ namespace BobDono.DataAccess.Services
             }
         }
 
-        public IncludeConfigurator<T> ConfigureIncludes()
+        public IIncludeConfigurator<TEntity,TService> ConfigureIncludes()
         {
-            return new IncludeConfigurator<T>(this);
+            return new IncludeConfigurator<TEntity,TService>(this);
         }
     }
 }

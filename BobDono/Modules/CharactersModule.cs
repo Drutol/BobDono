@@ -146,7 +146,7 @@ namespace BobDono.Modules
                 builder.AddField("Mangaography:",
                     string.Join("\n", details.Mangaography.Take(3).Select(manga => $"{manga.Title} *({manga.Id})*")));
 
-            using (var waifuService = _trueWaifuService.ObtainLifetimeHandle<TrueWaifuService>(context))
+            using (var waifuService = _trueWaifuService.ObtainLifetimeHandle(context))
             {
                 waifuService.ConfigureIncludes().WithChain(q => q.Include(w => w.Waifu).Include(w => w.User)).Commit();
                 var trueWaifus = waifuService.GetAll()

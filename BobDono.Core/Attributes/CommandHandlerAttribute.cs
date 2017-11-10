@@ -5,7 +5,7 @@ namespace BobDono.Core.Attributes
 {
     public class CommandHandlerAttribute : Attribute
     {
-        public const string CommandStarter = "!";
+        public const string CommandStarter = "b/";
 
         private string _regex;
         private string _humanReadableCommand;

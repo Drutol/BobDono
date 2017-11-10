@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DSharpPlus.EventArgs;
 
 namespace BobDono.Interfaces
 {
@@ -7,5 +8,6 @@ namespace BobDono.Interfaces
     {
         List<Exception> CaughtThings { get; set; }
         string Handle(Exception e);
+        string Handle(Exception e, MessageCreateEventArgs args);
     }
 }

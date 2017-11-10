@@ -38,6 +38,7 @@ namespace BobDono.Core
             builder.RegisterType<UserService>().As<IUserService>().SingleInstance();
             builder.RegisterType<TrueWaifuService>().As<ITrueWaifuService>().SingleInstance();
             builder.RegisterType<ContenderService>().As<IContenderService>().SingleInstance();
+            builder.RegisterType<ExceptionReportsService>().As<IExceptionReportsService>().SingleInstance();
             builder.RegisterType<CharacterDetailsQuery>().As<ICharacterDetailsQuery>().SingleInstance();
             builder.RegisterType<ProfileQuery>().As<IProfileQuery>().SingleInstance();
             builder.RegisterType<CharactersSearchQuery>().As<ICharactersSearchQuery>().SingleInstance();

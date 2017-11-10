@@ -35,7 +35,12 @@ namespace BobDono.Core.Extensions
 
         public static bool IsMe(this DiscordUser user)
         {
-            return user.IsBot;
+#if DEBUG
+            return user.Id == 343050467879813140; //ranko
+#else
+            return user.Id == 377859054464401408; //bob
+#endif
+
         }
     }
 }

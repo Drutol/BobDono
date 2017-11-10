@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Configurations>Debug;Release;MigrateDb</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MigrateDb|AnyCPU'">
+    <DefineConstants>TRACE;MIGRATEDB;NETCOREAPP2_0;DEBUG</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;RELEASE;NETCOREAPP2_0</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

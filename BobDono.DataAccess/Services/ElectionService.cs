@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.DataAccess.Services
 {
-    public class ElectionService : ServiceBase<Election>, IElectionService
+    public class ElectionService : ServiceBase<Election,IElectionService>, IElectionService
     {
         public ElectionService()
         {
@@ -23,10 +23,12 @@ namespace BobDono.DataAccess.Services
             
         }
 
-        protected override IQueryable<Election> Include(DbSet<Election> query)
+        protected override IQueryable<Election> Include(IQueryable<Election> query)
         {
             return query.IncludeAll();
         }
+
+
 
         public async Task<Election> GetElection(long id)
         {
@@ -41,9 +43,9 @@ namespace BobDono.DataAccess.Services
             return election;
         }
 
-        public override IServiceBase<Election> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose = true)
+        public override IElectionService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
         {
-            return  new ElectionService(executionContext.Context as BobDatabaseContext, saveOnDispose);
+            return new ElectionService(executionContext.Context as BobDatabaseContext, saveOnDispose);
         }
     }
 }

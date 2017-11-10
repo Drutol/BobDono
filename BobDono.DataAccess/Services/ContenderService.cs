@@ -7,7 +7,7 @@ using BobDono.Models.Entities;
 
 namespace BobDono.DataAccess.Services
 {
-    public class ContenderService : ServiceBase<WaifuContender> , IContenderService
+    public class ContenderService : ServiceBase<WaifuContender,IContenderService> , IContenderService
     {
 
         public ContenderService()
@@ -35,7 +35,7 @@ namespace BobDono.DataAccess.Services
             return contender;
         }
 
-        public override IServiceBase<WaifuContender> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose = true)
+        public override IContenderService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
         {
             return new ContenderService(executionContext.Context as BobDatabaseContext, saveOnDispose);
         }

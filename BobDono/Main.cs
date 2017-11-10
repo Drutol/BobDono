@@ -12,7 +12,9 @@ using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
 using BobDono.DataAccess.Database;
 using BobDono.Interfaces;
+using BobDono.Models;
 using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
 namespace BobDono
@@ -49,6 +51,8 @@ namespace BobDono
             await Task.Delay(1000);
             _botBackbone = ResourceLocator.BotBackbone;
             _botBackbone.Initialize();
+
+            await _client.UpdateStatusAsync(new Game("b/bob for help"), UserStatus.Online);
             await Task.Delay(-1);
         }
 #pragma warning disable 4014

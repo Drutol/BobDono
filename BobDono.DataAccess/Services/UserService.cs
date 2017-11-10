@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BobDono.DataAccess.Services
 {
 
-    public class UserService : ServiceBase<User> , IUserService
+    public class UserService : ServiceBase<User,IUserService> , IUserService
     {
         public UserService()
         {
@@ -40,7 +40,7 @@ namespace BobDono.DataAccess.Services
             return user;
         }
 
-        public override IServiceBase<User> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose)
+        public override IUserService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
         {
             return new UserService(executionContext.Context as BobDatabaseContext, saveOnDispose);
         }

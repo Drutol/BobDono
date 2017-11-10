@@ -29,12 +29,12 @@ namespace BobDono.DataAccess.Database
         public DbSet<Waifu> Waifus { get; set; }
         public DbSet<WaifuContender> WaifuContenders { get; set; }
         public DbSet<TrueWaifu> TrueWaifus { get; set; }
+        public DbSet<ExceptionReport> ExceptionReports { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //optionsBuilder.UseSqlite("Data Source=bob.db",builder => builder.MigrationsAssembly("BobDono"));           
             optionsBuilder.UseNpgsql(
-                "Server=127.0.0.1;Port=5432;Database=bob;User Id=bob;Password=verysecurepassword;", builder => builder.MigrationsAssembly("BobDono"));
+                Secrets.ConncetionString, builder => builder.MigrationsAssembly("BobDono"));
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

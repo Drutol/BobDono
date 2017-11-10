@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.DataAccess.Services
 {
-    public class WaifuService : ServiceBase<Waifu> , IWaifuService
+    public class WaifuService : ServiceBase<Waifu,IWaifuService> , IWaifuService
     {
         private readonly ICharacterDetailsQuery _characterDetailsQuery;
 
@@ -44,10 +44,9 @@ namespace BobDono.DataAccess.Services
             return waifu;
         }
 
-        public override IServiceBase<Waifu> ObtainLifetimeHandle(ICommandExecutionContext executionContext, bool saveOnDispose)
+        public override IWaifuService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
         {
             return new WaifuService(_characterDetailsQuery, executionContext.Context as BobDatabaseContext, saveOnDispose);
         }
-
     }
 }

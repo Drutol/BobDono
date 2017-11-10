@@ -9,7 +9,7 @@ namespace BobDono.DataAccess.Extensions
 {
     public static class ElectionExtensions
     {
-        public static IQueryable<Election> IncludeAll(this DbSet<Election> set)
+        public static IQueryable<Election> IncludeAll(this IQueryable<Election> set)
         {
             return set
                 .Include(election => election.Contenders)

@@ -3,7 +3,7 @@ using BobDono.Models.Entities;
 
 namespace BobDono.Interfaces.Services
 {
-    public interface IWaifuService : IServiceBase<Waifu>
+    public interface IWaifuService : IServiceBase<Waifu,IWaifuService>
     {
         Task<Waifu> GetOrCreateWaifu(string malId);
     }

@@ -5,7 +5,7 @@ using BobDono.Models.MalHell;
 
 namespace BobDono.Interfaces.Services
 {
-    public interface ICharacterDetailsService : IServiceBase<CharacterDetailsData>
+    public interface ICharacterDetailsService : IServiceBase<CharacterDetailsData,ICharacterDetailsService>
     {
 
     }

@@ -49,7 +49,7 @@ namespace BobDono.Modules
         {
             using (var dependencyScope = ResourceLocator.ObtainScope())
             using (var electionService =
-                _electionService.ObtainLifetimeHandle<ElectionService>(ResourceLocator.ExecutionContext))
+                _electionService.ObtainLifetimeHandle(ResourceLocator.ExecutionContext))
             {
                 foreach (var election in electionService.GetAll()
                     .Where(election => election.CurrentState != Election.State.Closed))
@@ -76,9 +76,17 @@ namespace BobDono.Modules
             Awaitable = false)]
         public async Task CreateElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
-            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>(executionContext))
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+            using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
             {
+                electionService.ConfigureIncludes().IgnoreDefaultServiceIncludes().Commit();
+                if ((await electionService.GetAllWhereAsync(e => e.CurrentState < Election.State.Closed)).Count >= 2)
+                {
+                    await args.Channel.SendMessageAsync(
+                        "There are already 2 ongoing elections. Please wait until one of them closes and try again.");
+                    return;
+                }
+
                 var user = await userService.GetOrCreateUser(args.Author);
 
 
@@ -98,9 +106,10 @@ namespace BobDono.Modules
                     try
                     {
 
-                        election.Name = await channel.GetNextValidResponse<string>("Provide short name for it (2 characters+, alphanumeric)", async s =>
+                        election.Name = await channel.GetNextValidResponse<string>("Provide short name for it (2 characters+, alphanumeric). It will be used as channel name.", async s =>
                         {
-                            if (s.Length >= 2 && Regex.IsMatch(s,"^[a-zA-Z0-9_]*$"))
+                            s = s.Replace(" ", "-");
+                            if (s.Length >= 2 && Regex.IsMatch(s, "^[a-zA-Z0-9_-]*$"))
                                 return s;
                             return null;
                         },timeout, cts.Token);
@@ -212,7 +221,7 @@ namespace BobDono.Modules
         [CommandHandler(Regex = @"election list (<@\d+>|\w+)",HumanReadableCommand = "election list <username>",HelpText = "Lists all election related to given user.")]
         public async Task ListElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            using (var userService = _userService.ObtainLifetimeHandle<UserService>(executionContext))
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             {
                 var username = args.Message.GetSubject();
                 userService.ConfigureIncludes().WithChain(query =>

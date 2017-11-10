@@ -5,8 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Interfaces
 {
-    public interface ICommandExecutionContext
+    public interface IDatabaseCommandExecutionContext
     {
         DbContext Context { get; }
+    }
+
+    public interface ICommandExecutionContext : IDatabaseCommandExecutionContext
+    {
+
     }
 }

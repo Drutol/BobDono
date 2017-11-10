@@ -40,7 +40,7 @@ namespace BobDono.Controllers
 
         public async Task ProcessTimePass()
         {
-            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>())
+            using (var electionService = _electionService.ObtainLifetimeHandle())
             {
 
                 Election = await electionService.GetElection(Election.Id);
@@ -88,12 +88,12 @@ namespace BobDono.Controllers
                 " Each stage lasts one day. When the final stage ends, first 3 places will be announced and whole election will transition into closed state (I won't be listening for any more messages)" +
                 " Please be aware that this channel is entirely up to my disposition, that means *I'll remove your messages* so things stay organised here. Due to that muting this channel is advised. Have fun!";
 
-            embed.Color = DiscordColor.Magenta;
+            embed.Color = DiscordColor.Gray;
             await _channel.SendMessageAsync(null, false, embed.Build());
 
             embed = new DiscordEmbedBuilder();
 
-            embed.Color = DiscordColor.Gold;
+            embed.Color = DiscordColor.CornflowerBlue;
             embed.Description = Election.Description;
             embed.Title = $"Election: {Election.Name}";
             embed.Author = new DiscordEmbedBuilder.EmbedAuthor {Name = Election.Author.Name};
@@ -106,7 +106,7 @@ namespace BobDono.Controllers
 
             var message = await _channel.SendMessageAsync(null, false, embed.Build());
 
-            using (var electionService = _electionService.ObtainLifetimeHandle<ElectionService>())
+            using (var electionService = _electionService.ObtainLifetimeHandle())
             {
                 Election = await electionService.GetElection(Election.Id);
                 Election.OpeningMessageId = message.Id;
