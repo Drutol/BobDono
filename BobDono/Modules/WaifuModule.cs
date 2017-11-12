@@ -46,7 +46,9 @@ namespace BobDono.Modules
         {
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             using (var waifuService = _waifuService.ObtainLifetimeHandle(executionContext))
+            using (var truewWaifuService = _trueWaifuService.ObtainLifetimeHandle(executionContext))
             {
+                userService.ConfigureIncludes().WithChain(query => query.Include(u => u.TrueWaifu)).Commit();
                 var user = await userService.GetOrCreateUser(args.Author);
 
 
@@ -97,6 +99,11 @@ namespace BobDono.Modules
                             //is it really a link?
                             if (!img.IsLink())
                                 img = null;
+                        }
+
+                        if (user.TrueWaifu != null)
+                        {
+                            truewWaifuService.Remove(user.TrueWaifu);
                         }
 
                         var trueWaifu = new TrueWaifu
@@ -161,18 +168,27 @@ namespace BobDono.Modules
             }
         }
 
-        [CommandHandler(Regex = @"waifu (<@\d+>|\w+)", HumanReadableCommand = "waifu <username>", HelpText = "Shows waifu of specified user.")]
+        [CommandHandler(Regex = @"waifu (<@\d+>|\w+|<@!\d+>)", HumanReadableCommand = "waifu <username>", HelpText = "Shows waifu of specified user.")]
         public async Task ViewWaifu(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             {
-                var username = args.Message.GetSubject();
+
                 userService.ConfigureIncludes().WithChain(query =>
                 {
                     return query.Include(u => u.TrueWaifu)
                                 .ThenInclude(w => w.Waifu);
                 }).Commit();
-                var user = await userService.FirstAsync(u => u.Name.ToLower().Contains(username.ToLower()));
+
+                User user = null;
+                if (args.Message.GetSubject(out var username))
+                {
+                    user = await userService.FirstAsync(u => u.Name.ToLower().Contains(username.ToLower()));
+                }
+                else
+                {
+                    user = await userService.FirstAsync(u => u.DiscordId == args.Message.MentionedUsers.First().Id);
+                }
 
                 await DisplayWaifuForUser(user,args.Channel);
             }

@@ -91,7 +91,7 @@ namespace BobDono.Modules
 
 
                 var cts = new CancellationTokenSource();
-                var timeout = TimeSpan.FromMinutes(1);
+                var timeout = TimeSpan.FromMinutes(3);
                 var guild = ResourceLocator.DiscordClient.GetNullsGuild();
                 var member = await guild.GetMemberAsync(args.Author.Id);
                 var channel = await member.CreateDmChannelAsync();
@@ -120,7 +120,7 @@ namespace BobDono.Modules
                                     return s;
                                 return null;
                             },timeout, cts.Token);
-                        int submissionDays = 1;
+                        int submissionDays = 0;
                         while (submissionDays == 0)
                         {
                             await channel.SendMessageAsync(
@@ -128,7 +128,7 @@ namespace BobDono.Modules
                             var response = await channel.GetNextMessageAsync(timeout, cts.Token);
                             if (int.TryParse(response, out int days))
                             {
-                                if (days >= 1 || days <= 7)
+                                if (days >= 1 && days <= 7)
                                 {
                                     submissionDays = days;
                                 }
@@ -138,7 +138,7 @@ namespace BobDono.Modules
                         election.SubmissionsEndDate = DateTime.Today.AddHours(election.SubmissionsStartDate.Hour+1).AddDays(submissionDays);
                         election.VotingStartDate = election.SubmissionsEndDate.AddHours(2); //TODO Maybe add commands?
 
-                        int submissionCount = 2;
+                        int submissionCount = 0;
                         while (submissionCount == 0)
                         {
                             await channel.SendMessageAsync(
@@ -146,7 +146,7 @@ namespace BobDono.Modules
                             var response = await channel.GetNextMessageAsync(timeout, cts.Token);
                             if (int.TryParse(response, out int count))
                             {
-                                if (count >= 1 || count <= 9)
+                                if (count >= 1 && count <= 9)
                                 {
                                     submissionCount = count;
                                 }
@@ -218,12 +218,12 @@ namespace BobDono.Modules
             }
         }
 
-        [CommandHandler(Regex = @"election list (<@\d+>|\w+)",HumanReadableCommand = "election list <username>",HelpText = "Lists all election related to given user.")]
+        [CommandHandler(Regex = @"election list (<@\d+>|\w+|<@!\d+>)", HumanReadableCommand = "election list <username>",HelpText = "Lists all election related to given user.")]
         public async Task ListElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             {
-                var username = args.Message.GetSubject();
+                
                 userService.ConfigureIncludes().WithChain(query =>
                 {
                     return query.Include(u => u.Elections)
@@ -232,8 +232,17 @@ namespace BobDono.Modules
                             .ThenInclude(b => b.BracketStage)
                                 .ThenInclude(bs => bs.Election);
                 }).Commit();
-                var user = await userService.FirstAsync(u => u.Name.ToLower().Contains(username.ToLower()));
 
+
+                User user = null;
+                if (args.Message.GetSubject(out var username))
+                {
+                    user = await userService.FirstAsync(u => u.Name.ToLower().Contains(username.ToLower()));
+                }
+                else
+                {
+                    user = await userService.FirstAsync(u => u.DiscordId == args.Message.MentionedUsers.First().Id);
+                }
                 if (user == null)
                 {
                     await args.Channel.SendMessageAsync("Couldn't find specified user.");

@@ -14,8 +14,14 @@ namespace BobDono.Core.Extensions
 
         public static DiscordGuild GetNullsGuild(this DiscordClient client)
         {
+#if DEBUG
             return _nullsGuild ??
-                   (_nullsGuild = client.Guilds.First(pair => pair.Value.Id == 317924870950223872 || pair.Value.Id == 343060137164144642).Value);
+                   (_nullsGuild = client.Guilds.First(pair => pair.Value.Id == 343060137164144642).Value);
+#else
+            return _nullsGuild ??
+                   (_nullsGuild = client.Guilds.First(pair => pair.Value.Id == 317924870950223872).Value);
+#endif
+
         }
 
         public static async Task<DiscordChannel> GetElectionsCategory(this DiscordGuild guild)

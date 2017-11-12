@@ -53,7 +53,15 @@ namespace BobDono.Modules
             var handler = ResourceLocator.BotContext.Commands.Values.SelectMany(list => list).FirstOrDefault(
                 attribute => attribute.HumanReadableCommand != null &&
                              attribute.HumanReadableCommand.Substring(attribute.IgnoreRegexWrap ? 0 :CommandHandlerAttribute.CommandStarter.Length)
-                             .ToLower().StartsWith(cmd.ToLower()));
+                             .ToLower().Equals(cmd.ToLower()));
+
+            if (handler == null)
+                handler = ResourceLocator.BotContext.Commands.Values.SelectMany(list => list).FirstOrDefault(
+                    attribute => attribute.HumanReadableCommand != null &&
+                                 attribute.HumanReadableCommand.Substring(attribute.IgnoreRegexWrap
+                                         ? 0
+                                         : CommandHandlerAttribute.CommandStarter.Length)
+                                     .ToLower().StartsWith(cmd.ToLower()));
             if (handler != null)
             {
                 await args.Channel.SendMessageAsync($"Help for `{handler.HumanReadableCommand}`\n\n{handler.HelpText}");

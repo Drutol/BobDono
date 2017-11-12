@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -53,11 +54,23 @@ namespace BobDono
             _botBackbone.Initialize();
 
             await _client.UpdateStatusAsync(new Game("b/bob for help"), UserStatus.Online);
+
+            if (_client.Guilds.Count > 2)
+            {
+                foreach (var guild in _client.Guilds)
+                {
+                    if (guild.Key != 317924870950223872 && guild.Key != 343060137164144642)
+                        await guild.Value.LeaveAsync();
+                }
+            }
+
             await Task.Delay(-1);
         }
 #pragma warning disable 4014
         private async Task ClientOnMessageCreated(MessageCreateEventArgs messageCreateEventArgs)
         {
+
+            //Console.WriteLine(messageCreateEventArgs.Message.Content);
             if (messageCreateEventArgs.Author.IsBot)
                 return;
 

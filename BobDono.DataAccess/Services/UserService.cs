@@ -24,7 +24,7 @@ namespace BobDono.DataAccess.Services
 
         public async Task<User> GetOrCreateUser(DiscordUser discordUser)
         {
-            var user = await Include(Context.Users).FirstOrDefaultAsync(u => u.DiscordId == discordUser.Id);
+            var user = await FirstAsync(u => u.DiscordId == discordUser.Id);
 
             if (user != null)
                 return user;

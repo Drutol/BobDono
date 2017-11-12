@@ -44,7 +44,7 @@ namespace BobDono.Modules
             }
         }
 
-        [CommandHandler(Regex = @"characters (<@\d+>|\w+)", HumanReadableCommand = "characters <username>", HelpText = "Shows favourite character of specified user.")]
+        [CommandHandler(Regex = @"characters (<@\d+>|\w+|<@!\d+>)", HumanReadableCommand = "characters <username>", HelpText = "Shows favourite character of specified user.")]
         public async Task DisplayInfoForUserCommand(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             string response = null;

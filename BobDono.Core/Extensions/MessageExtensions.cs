@@ -9,12 +9,15 @@ namespace BobDono.Core.Extensions
 {
     public static class MessageExtensions
     {
-        public static string GetSubject(this DiscordMessage message)
+        public static bool GetSubject(this DiscordMessage message,out string name)
         {
-            var args = message.Content.Split(' ');
-            return message.MentionedUsers.Any()
-                ? message.MentionedUsers.First().Username
-                : args.Last();
+            if (message.MentionedUsers.Any())
+            {
+                name = null;
+                return false;
+            }
+            name = message.Content.Split(' ').Last();
+            return true;
         }
     }
 }

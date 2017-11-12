@@ -30,10 +30,13 @@ namespace BobDono.Core.Extensions
 
         public static DiscordEmbed GetEmbedBuilder(this TrueWaifu waifu)
         {
+            string content = null;
+            content = waifu.Waifu.Description.Length > 1000 ? $"{waifu.Waifu.Description.Substring(0, 1000)}..." : waifu.Waifu.Description;
+
             var builder = new DiscordEmbedBuilder
             {
                 Color = DiscordColor.HotPink,
-                Description = waifu.Waifu.Description,
+                Description = content,
                 ThumbnailUrl = waifu.ThumbImage ?? waifu.Waifu.ImageUrl,
                 Author = new DiscordEmbedBuilder.EmbedAuthor { Name = waifu.User.Name},
                 Title = waifu.Waifu.Name,
