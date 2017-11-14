@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BobDono.Contexts;
 using BobDono.Core;
 using BobDono.Core.Attributes;
 using BobDono.Core.BL;
+using BobDono.Core.Extensions;
 using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
 using BobDono.DataAccess.Database;
@@ -34,6 +37,7 @@ namespace BobDono
 
         private async Task RunBotAsync()
         {
+            CultureInfo.CurrentCulture = new CultureInfo("en-GB");
             _client = new DiscordClient(new DiscordConfiguration
             {
                 Token = Secrets.BotKey,
@@ -91,7 +95,9 @@ namespace BobDono
                             if (handlerEntry.Predicates.All(predicate =>
                                 predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs, context)))
                             {
-                                await InvokeContextual(context, handlerEntry, ResourceLocator.ExecutionContext);
+                                var ctx = ResourceLocator.ExecutionContext;
+                                ctx.AuthenticatedCaller = messageCreateEventArgs.Author.IsAuthenticated();
+                                await InvokeContextual(context, handlerEntry, ctx);
 
                                 if(!invokedModules.ContainsKey(handlerEntry.Attribute.ParentModuleAttribute))
                                     invokedModules[handlerEntry.Attribute.ParentModuleAttribute] = new HashSet<IModule>();
@@ -103,20 +109,26 @@ namespace BobDono
                     }
                     else
                     {
+                        if(ResourceLocator.BotBackbone.Modules[typeof(ElectionContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
+                            continue;
+
                         if (handlerEntry.Predicates.All(predicate =>
                             predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs)))
                         {
+                            var ctx = ResourceLocator.ExecutionContext;
+                            ctx.AuthenticatedCaller = messageCreateEventArgs.Author.IsAuthenticated();
                             if (handlerEntry.Attribute.Awaitable)
-                                await handlerEntry.DelegateAsync.Invoke(messageCreateEventArgs, ResourceLocator.ExecutionContext);
+                                await handlerEntry.DelegateAsync.Invoke(messageCreateEventArgs, ctx);
                             else
-                                handlerEntry.DelegateAsync.Invoke(messageCreateEventArgs, ResourceLocator.ExecutionContext);
+                                handlerEntry.DelegateAsync.Invoke(messageCreateEventArgs, ctx);
                         }
                     }
                 }
                 catch (Exception e)
                 {
-
-                    await messageCreateEventArgs.Channel.SendMessageAsync(ResourceLocator.ExceptionHandler.Handle(e));
+                    var res = ResourceLocator.ExceptionHandler.Handle(e);
+                    if (!handlerEntry.Attribute.ParentModuleAttribute.IsChannelContextual)
+                        await messageCreateEventArgs.Channel.SendMessageAsync(res);
                 }
             }
 
@@ -135,14 +147,18 @@ namespace BobDono
                     {
                         if (handlerEntry.Predicates.OfType<CommandPredicates.ChannelContextFilter>().First()
                             .MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs, context))
-                            await InvokeContextual(context, handlerEntry , ResourceLocator.ExecutionContext);
+                        {
+                            var ctx = ResourceLocator.ExecutionContext;
+                            ctx.AuthenticatedCaller = messageCreateEventArgs.Author.IsAuthenticated();
+                            await InvokeContextual(context, handlerEntry , ctx);
+                        }
                     }
 
                 }
             }
             catch (Exception e)
             {
-                await messageCreateEventArgs.Channel.SendMessageAsync(ResourceLocator.ExceptionHandler.Handle(e));
+                ResourceLocator.ExceptionHandler.Handle(e);
             }
 
 

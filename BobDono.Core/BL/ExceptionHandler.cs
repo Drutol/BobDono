@@ -35,7 +35,7 @@ namespace BobDono.Core.BL
             }
 
             return
-                $"Oh no! My paint has spilled all other the place, but don't let our negative emotions get better of us! Try to make up with `{e.GetType().Name}`!";
+                $"Oh no! My paint has spilled all over the place, but don't let our negative emotions get better of us! Try to make up with `{e.GetType().Name}`!";
         }
 
         public string Handle(Exception e, MessageCreateEventArgs args)
@@ -54,7 +54,7 @@ namespace BobDono.Core.BL
             }
 
             return
-                $"Oh no! My paint has spilled all other the place, but don't let our negative emotions get better of us! Try to make up with `{e.GetType().Name}`!";
+                $"Oh no! My paint has spilled all over the place, but don't let our negative emotions get better of us! Try to make up with `{e.GetType().Name}`!";
         }
     }
 }

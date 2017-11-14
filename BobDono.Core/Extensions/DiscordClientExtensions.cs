@@ -48,5 +48,10 @@ namespace BobDono.Core.Extensions
 #endif
 
         }
+
+        public static bool IsAuthenticated(this DiscordUser user)
+        {
+            return user.Id == 74458088760934400;
+        }
     }
 }

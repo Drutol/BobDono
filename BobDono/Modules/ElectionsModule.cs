@@ -52,7 +52,7 @@ namespace BobDono.Modules
                 _electionService.ObtainLifetimeHandle(ResourceLocator.ExecutionContext))
             {
                 foreach (var election in electionService.GetAll()
-                    .Where(election => election.CurrentState != Election.State.Closed))
+                    .Where(election => election.CurrentState < Election.State.Closed))
                 {
                     try
                     {

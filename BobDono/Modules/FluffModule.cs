@@ -26,13 +26,34 @@ namespace BobDono.Modules
             await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/annak.png");
         }
 
+        [CommandHandler(Regex = @":\)",HumanReadableCommand = ":)", HelpText = ":)")]
+        public async Task Raphi(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/raphi.png");
+        }
+
+        [CommandHandler(Regex = "vigne",HumanReadableCommand = "vigne", HelpText = "Wow...")]
+        public async Task Vigne(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/vigne.png");
+        }
+
+        [CommandHandler(Regex = "tasts",HumanReadableCommand = "tasts", HelpText = "Yours are quite inferior.")]
+        public async Task Tasts(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/tasts.png");
+        }
+
         [CommandHandler(IgnoreRegexWrap = true, Regex = ".*java.*", HumanReadableCommand = "..java..",
             HelpText = "Oh sorry, I have allergy for **this** word.")]
         public async Task CoughCough(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             if (!(_botBackbone.ModuleInstances[typeof(ElectionsModule)] as ElectionsModule).ElectionsContexts.Any(
                 context => context.ChannelIdContext == args.Channel.Id))
-                await args.Channel.SendMessageAsync("*cough cough*");
+            {
+                if(!args.Message.Content.ToLower().Contains("javascript"))
+                    await args.Channel.SendMessageAsync("*cough cough*");
+            }
         }
     }
 }

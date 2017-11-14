@@ -24,9 +24,9 @@ namespace BobDono.DataAccess.Services
         }
 
 
-        public async Task<Waifu> GetOrCreateWaifu(string malId)
+        public async Task<Waifu> GetOrCreateWaifu(string malId, bool force)
         {
-            var waifu = await Context.Waifus.FirstOrDefaultAsync(w => w.MalId == malId);
+            var waifu = force ? null : await FirstAsync(w => w.MalId == malId);
 
             if (waifu != null)
                 return waifu;
@@ -40,6 +40,16 @@ namespace BobDono.DataAccess.Services
                 Name = data.Name,
                 MalId = data.Id.ToString()
             };
+
+            if (data.VoiceActors.Any())
+                waifu.Voiceactors =
+                    data.VoiceActors.Take(3).Select(person => $"{person.Name} *({person.Id})*").ToArray();
+            if (data.Animeography.Any())
+                waifu.Animeography =
+                    data.Animeography.Take(3).Select(show => $"{show.Title} *({show.Id})*").ToArray();
+            if (data.Mangaography.Any())
+                waifu.Mangaography =
+                    data.Mangaography.Take(3).Select(manga => $"{manga.Title} *({manga.Id})*").ToArray();
 
             return waifu;
         }

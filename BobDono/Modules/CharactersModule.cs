@@ -65,8 +65,7 @@ namespace BobDono.Modules
         [CommandHandler(Regex = "character \"([^\"]*)\"", HumanReadableCommand = "character <\"name\">", HelpText = "Gets character info from MAL, you can type in multiple words into quotes.")]
         public async Task CharacterWithQuotes(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            var groups = Regex.Matches(args.Message.Content,
-                @"character ""([^""]*)""");
+            var groups = Regex.Matches(args.Message.Content,@"character ""([^""]*)""");
 
             await SearchForCharacter(groups[0].Groups[1].Value, null, null, args.Channel,
                 executionContext);
@@ -82,7 +81,7 @@ namespace BobDono.Modules
             if (int.TryParse(messageArgs[1], out int parsed))
                 id = messageArgs[1];
 
-            await SearchForCharacter(messageArgs[1], messageArgs.Length == 3 ? messageArgs[3] : null, id, args.Channel,
+            await SearchForCharacter(messageArgs[1], messageArgs.Length == 3 ? messageArgs[2] : null, id, args.Channel,
                 context);
 
         }

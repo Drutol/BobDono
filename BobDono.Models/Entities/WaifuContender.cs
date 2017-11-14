@@ -16,6 +16,7 @@ namespace BobDono.Models.Entities
         public string FeatureImage { get; set; }
 
         public bool Lost { get; set; }
+        public long SubmissionEmbedId { get; set; }
 
         public virtual ICollection<Vote> Votes { get; set; } = new List<Vote>();
 

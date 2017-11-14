@@ -251,6 +251,59 @@ namespace BobDono.Modules
                 await args.Channel.SendMessageAsync(s);
             }
         }
+
+        [CommandHandler(Regex = @"waifuedit (thumb|note|feature) .*",HumanReadableCommand = "waifuedit thumb/desc/feature/ <value>",HelpText = "Edits... your... waifu? Am I correct? かな\nYou can type `none` for description to remove it, keep in mind that descriprion is 500 characters long.")]
+        public async Task WaifuEdit(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+            using (var trueWaifuService = _trueWaifuService.ObtainLifetimeHandle(executionContext))
+            {
+                userService.ConfigureIncludes().WithChain(query => query.Include(u => u.TrueWaifu)).Commit();
+                var user = await userService.GetOrCreateUser(args.Author);
+
+                if (user.TrueWaifu == null)
+                {
+                    await args.Channel.SendMessageAsync("You need to set your waifu first in order to edit it... ne?");
+                    return;
+                }
+
+                var param = args.Message.Content.Split(' ');
+
+                if (param.Length < 3)
+                {
+                    await args.Message.CreateReactionAsync(DiscordEmoji.FromName(ResourceLocator.DiscordClient, ":humm:"));
+                    return;
+                }
+
+                switch (param[1])
+                {
+                    case "thumb":
+                        if(param[2] == "none")
+                            user.TrueWaifu.ThumbImage = null;
+                        else if (param[2].IsLink())
+                            user.TrueWaifu.ThumbImage = param[2];
+                        break;
+                    case "note":
+                        user.TrueWaifu.Description = param[2] == "none" ? null : args.Message.Content.Substring(17);
+                        if (user.TrueWaifu.Description?.Length > 500)
+                        {
+                            user.TrueWaifu.Description = user.TrueWaifu.Description.Substring(0, 500);
+                        }
+                        break;
+                    case "feature":
+                        if (param[2] == "none")
+                            user.TrueWaifu.FeatureImage = null;
+                        else if(param[2].IsLink())
+                            user.TrueWaifu.FeatureImage = param[2];
+                        break;
+                }
+
+                trueWaifuService.ConfigureIncludes().WithChain(q => q.Include(w => w.Waifu).Include(w => w.User)).Commit();
+                var waifu = await trueWaifuService.FirstAsync(w => w.User.Id == user.Id);
+
+                await args.Channel.SendMessageAsync(null,false,waifu.GetEmbedBuilder());
+            }         
+        }
     }
 }
 

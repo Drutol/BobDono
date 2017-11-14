@@ -12,6 +12,6 @@ namespace BobDono.Interfaces
 
     public interface ICommandExecutionContext : IDatabaseCommandExecutionContext
     {
-
+        bool AuthenticatedCaller { get; set; }
     }
 }

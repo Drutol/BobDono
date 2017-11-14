@@ -52,7 +52,7 @@ namespace BobDono.Modules
             var cmd = args.Message.Content.Substring(5 + CommandHandlerAttribute.CommandStarter.Length).Trim();
             var handler = ResourceLocator.BotContext.Commands.Values.SelectMany(list => list).FirstOrDefault(
                 attribute => attribute.HumanReadableCommand != null &&
-                             attribute.HumanReadableCommand.Substring(attribute.IgnoreRegexWrap ? 0 :CommandHandlerAttribute.CommandStarter.Length)
+                             attribute.HumanReadableCommand.Substring(attribute.IgnoreRegexWrap ? 0 :CommandHandlerAttribute.CommandStarter.Length).Split(' ').First()
                              .ToLower().Equals(cmd.ToLower()));
 
             if (handler == null)
