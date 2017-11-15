@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using BobDono.Contexts;
 using BobDono.Core;
@@ -13,6 +15,7 @@ using BobDono.Interfaces;
 using BobDono.Interfaces.Services;
 using BobDono.Models.Entities;
 using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace BobDono.Controllers
 {
@@ -329,6 +332,7 @@ namespace BobDono.Controllers
                 var embed = new DiscordEmbedBuilder();
                 var lastStage = Election.BracketStages.Last();
                 embed.Title = $"Results of stage #{lastStage.Number}";
+                embed.Color = DiscordColor.Gray;
                 foreach (var bracket in lastStage.Brackets)
                 {
                     var content =
@@ -533,11 +537,38 @@ namespace BobDono.Controllers
             var output = new List<ulong>();
             foreach (var bracket in brackets)
             {
-                foreach (var discordEmbed in bracket.GetEmbeds())
+                var thumbs = new List<byte[]>();
+                var httpClient = new HttpClient();
+                thumbs.Add(await httpClient.GetByteArrayAsync(
+                    bracket.FirstContender.CustomImageUrl ?? bracket.FirstContender.Waifu.ImageUrl));
+                thumbs.Add(await httpClient.GetByteArrayAsync(
+                    bracket.FirstContender.CustomImageUrl ?? bracket.SecondContender.Waifu.ImageUrl));
+                if (bracket.ThirdContender != null)
+                    thumbs.Add(await httpClient.GetByteArrayAsync(
+                        bracket.FirstContender.CustomImageUrl ?? bracket.ThirdContender.Waifu.ImageUrl));
+                httpClient.Dispose();
+
+                using (var image = await Task.Run(() => BracketImageGenerator.Generate(thumbs)))
                 {
-                    var msg = await _channel.SendMessageAsync(null, false, discordEmbed);
-                    output.Add(msg.Id);
-                }
+                    image.Seek(0, SeekOrigin.Begin);
+                    var msgHeader = await _channel.SendMessageAsync(null, false, new DiscordEmbedBuilder
+                    {
+                        Title = $"Bracket #{bracket.Number}",
+                        Color = DiscordColor.Brown,
+                    });
+                    var imgMessage = await _channel.SendFileAsync(image, $"Bracket {bracket.Number}.png");
+                    var footerString = $"1: {bracket.FirstContender.Waifu.Name}\n";
+                    footerString += $"2: {bracket.SecondContender.Waifu.Name}";
+                    if(bracket.ThirdContender != null)
+                        footerString += $"\n3: {bracket.ThirdContender.Waifu.Name}";
+                    var msgFooter = await _channel.SendMessageAsync(null, false, new DiscordEmbedBuilder
+                    {
+                        Description = footerString,
+                    });
+                    output.Add(msgHeader.Id);
+                    output.Add(imgMessage.Id);
+                    output.Add(msgFooter.Id);
+                }              
             }
             return output;
         }

@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BobDono.Contexts;
+using BobDono.Controllers;
 using BobDono.Core;
 using BobDono.Core.Attributes;
 using BobDono.Core.BL;
@@ -30,7 +33,13 @@ namespace BobDono
 
         public static async Task Main(string[] args)
         {
-
+            //BracketImageGenerator.Generate(new List<byte[]>
+            //{
+            //    File.ReadAllBytes("Assets/annak.png") ,
+            //    File.ReadAllBytes("Assets/vigne.png") ,
+            //    File.ReadAllBytes("Assets/raphi.png") ,
+                
+            //});
             var prog = new BobDono();
             await prog.RunBotAsync();
         }

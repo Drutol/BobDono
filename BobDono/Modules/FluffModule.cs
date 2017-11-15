@@ -44,6 +44,12 @@ namespace BobDono.Modules
             await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/tasts.png");
         }
 
+        [CommandHandler(Regex = "rika",HumanReadableCommand = "rika", HelpText = "Could you maybe just stop?")]
+        public async Task Rika(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/rika.png");
+        }
+
         [CommandHandler(IgnoreRegexWrap = true, Regex = ".*java.*", HumanReadableCommand = "..java..",
             HelpText = "Oh sorry, I have allergy for **this** word.")]
         public async Task CoughCough(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
