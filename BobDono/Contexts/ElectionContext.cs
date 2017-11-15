@@ -206,6 +206,9 @@ namespace BobDono.Contexts
 
                             await _channel.SendTimedMessage(
                                 $"Thanks for submitting your vote for {contender.Waifu.Name}");
+
+                            _controller.Election = _election;
+                            _controller.UpdateOpeningMessage();
                         }
                     }
                 }
@@ -275,6 +278,7 @@ namespace BobDono.Contexts
             }
 
         }
+        
         #region Debug
 
         [CommandHandler(Regex = @"start",Debug = true)]
