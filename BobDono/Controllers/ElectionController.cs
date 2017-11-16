@@ -283,8 +283,8 @@ namespace BobDono.Controllers
                 var votes = contender.Votes.Where(vote => vote.Bracket.BracketStage.Equals(stage)).ToList();
                 return
                     votes.Any()
-                        ? $"({votes.Count} votes: {string.Join(", ", votes.Select(vote => vote.User.Name))})"
-                        : $"({votes.Count} votes)";
+                        ? $"(*{votes.Count} votes*: {string.Join(", ", votes.Select(vote => vote.User.Name))})"
+                        : $"(*{votes.Count} votes*)";
 
             }
         }
@@ -336,15 +336,15 @@ namespace BobDono.Controllers
                 foreach (var bracket in lastStage.Brackets)
                 {
                     var content =
-                        $"Winner: {Format(bracket.Winner)}\n" +
-                        $"Loser: {Format(bracket.Loser)}";
+                        $"*Winner*: {Format(bracket.Winner)}\n" +
+                        $"*Loser*: {Format(bracket.Loser)}";
 
                     if (bracket.ThirdContender != null)
                     {
                         var loser =
                             new[] {bracket.FirstContender, bracket.SecondContender, bracket.ThirdContender}.First(
                                 contender => contender.Id != bracket.Winner.Id && contender.Id != bracket.Loser.Id);
-                        content += $"\nLoser: {Format(loser)}";
+                        content += $"\n*Loser*: {Format(loser)}";
                     }
 
                     embed.AddField($"Bracket #{bracket.Number}", content);
@@ -354,8 +354,8 @@ namespace BobDono.Controllers
                         var votes = con.Votes.Where(vote => vote.Bracket.BracketStage.Equals(lastStage)).ToList();
                         return
                             votes.Any()
-                                ? $"{con.Waifu.Name} ({votes.Count} votes: {string.Join(", ", votes.Select(vote => vote.User.Name))})"
-                                : $"{con.Waifu.Name} ({votes.Count} votes)";
+                                ? $"{con.Waifu.Name} (*{votes.Count} votes*: {string.Join(", ", votes.Select(vote => vote.User.Name))})"
+                                : $"{con.Waifu.Name} (*{votes.Count} votes*)";
                     }
                         
 
@@ -542,10 +542,10 @@ namespace BobDono.Controllers
                 thumbs.Add(await httpClient.GetByteArrayAsync(
                     bracket.FirstContender.CustomImageUrl ?? bracket.FirstContender.Waifu.ImageUrl));
                 thumbs.Add(await httpClient.GetByteArrayAsync(
-                    bracket.FirstContender.CustomImageUrl ?? bracket.SecondContender.Waifu.ImageUrl));
+                    bracket.SecondContender.CustomImageUrl ?? bracket.SecondContender.Waifu.ImageUrl));
                 if (bracket.ThirdContender != null)
                     thumbs.Add(await httpClient.GetByteArrayAsync(
-                        bracket.FirstContender.CustomImageUrl ?? bracket.ThirdContender.Waifu.ImageUrl));
+                        bracket.ThirdContender.CustomImageUrl ?? bracket.ThirdContender.Waifu.ImageUrl));
                 httpClient.Dispose();
 
                 using (var image = await Task.Run(() => BracketImageGenerator.Generate(thumbs)))
@@ -557,10 +557,10 @@ namespace BobDono.Controllers
                         Color = DiscordColor.Brown,
                     });
                     var imgMessage = await _channel.SendFileAsync(image, $"Bracket {bracket.Number}.png");
-                    var footerString = $"1: {bracket.FirstContender.Waifu.Name}\n";
-                    footerString += $"2: {bracket.SecondContender.Waifu.Name}";
+                    var footerString = $"*1*: {bracket.FirstContender.Waifu.Name}\n";
+                    footerString += $"*2*: {bracket.SecondContender.Waifu.Name}";
                     if(bracket.ThirdContender != null)
-                        footerString += $"\n3: {bracket.ThirdContender.Waifu.Name}";
+                        footerString += $"\n*3*: {bracket.ThirdContender.Waifu.Name}";
                     var msgFooter = await _channel.SendMessageAsync(null, false, new DiscordEmbedBuilder
                     {
                         Description = footerString,
