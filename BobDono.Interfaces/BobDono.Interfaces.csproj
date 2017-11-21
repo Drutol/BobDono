@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="3.1.2" />
+    <PackageReference Include="DSharpPlus" Version="3.2.3" />
   </ItemGroup>
 
   <ItemGroup>

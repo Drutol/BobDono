@@ -24,6 +24,12 @@ namespace BobDono.Controllers
         private const string CurrentEntriesCount = "Current Entries:";
         private const string ParticipantsCount = "Participants:";
         private const string TotalVotes = "Total Votes:";
+#if DEBUG
+        private const long MentionGroupId = 382597879497490444;
+#else
+        private const long MentionGroupId = 381412270481342465;
+#endif
+
 
         public Election Election { get; set; }
         private readonly DiscordChannel _channel;
@@ -86,19 +92,20 @@ namespace BobDono.Controllers
             embed.Description =
                 "Welcome to so called election! (aka. Waifu War) I'll try to briefly describe how it works :)\n\n" +
                 $"Elections have 2 stages:\n\n**submission** stage is where everyone is allowed to add certain amount of contenders, we are using MAL ids to make it work. In order to add conteder use\n`{CommandHandlerAttribute.CommandStarter}add contender <id> [thumbnailOverride=none] [featureImage]`\n\n" +
-                $"**voting** stage where all contenders are arranged into brackets, you can vote once in every bracket using command \n`{CommandHandlerAttribute.CommandStarter}vote <bracketNumber> <contenderNumber>`" +
+                $"**voting** stage where all contenders are arranged into brackets, you can vote once in every bracket using command:\n`{CommandHandlerAttribute.CommandStarter}vote <bracketNumber> <contenderNumber>`\n\n" +
                 "In case of there being odd number of contestants triple bracket will be created. In case of remis there are some *algorithms* in place to resolve them... go to github if you are curious." +
                 " Each stage lasts one day. When the final stage ends, first 3 places will be announced and whole election will transition into closed state (I won't be listening for any more messages)" +
                 " Please be aware that this channel is entirely up to my disposition, that means *I'll remove your messages* so things stay organised here. Due to that muting this channel is advised. Have fun!";
 
             embed.Color = DiscordColor.Gray;
-            await _channel.SendMessageAsync(null, false, embed.Build());
+            var msg = await _channel.SendMessageAsync(null, false, embed.Build());
+            await msg.PinAsync();
 
             embed = new DiscordEmbedBuilder();
 
             embed.Color = DiscordColor.CornflowerBlue;
             embed.Description = Election.Description;
-            embed.Title = $"Election: {Election.Name}";
+            embed.Title = $":book: Election: {Election.Name}";
             embed.Author = new DiscordEmbedBuilder.EmbedAuthor {Name = Election.Author.Name};
             embed.AddField("Submission time:",
                 $"{Election.SubmissionsStartDate} - {Election.SubmissionsEndDate} - *({(Election.SubmissionsEndDate - Election.SubmissionsStartDate).Days} days)*");
@@ -108,7 +115,7 @@ namespace BobDono.Controllers
             embed.AddField(TotalVotes, "0");
 
             var message = await _channel.SendMessageAsync(null, false, embed.Build());
-
+            await message.PinAsync();
             using (var electionService = _electionService.ObtainLifetimeHandle())
             {
                 Election = await electionService.GetElection(Election.Id);
@@ -136,7 +143,7 @@ namespace BobDono.Controllers
         {
             Election.CurrentState = Election.State.PedningVotingStart;
 
-            var msg = await _channel.SendMessageAsync($"Voting will start at {Election.VotingStartDate}");
+            var msg = await _channel.SendMessageAsync($"<@&{MentionGroupId}> Voting will start at {Election.VotingStartDate}");
 
             Election.PendingVotingStartMessageId = msg.Id;
         }
@@ -283,8 +290,8 @@ namespace BobDono.Controllers
                 var votes = contender.Votes.Where(vote => vote.Bracket.BracketStage.Equals(stage)).ToList();
                 return
                     votes.Any()
-                        ? $"(*{votes.Count} votes*: {string.Join(", ", votes.Select(vote => vote.User.Name))})"
-                        : $"(*{votes.Count} votes*)";
+                        ? $"(**{votes.Count} votes**: {string.Join(", ", votes.Select(vote => vote.User.Name))})"
+                        : $"(**{votes.Count} votes**)";
 
             }
         }
@@ -321,7 +328,7 @@ namespace BobDono.Controllers
                     bracket.Loser = bracket.FirstContender;
             }
 
-
+            await _channel.SendMessageAsync($"<@&{MentionGroupId}>");
             if (lastBrackets.Count == 1) //this was last bracket so we cannot create new one
             {
                 await TransitionToClosed();
@@ -336,15 +343,15 @@ namespace BobDono.Controllers
                 foreach (var bracket in lastStage.Brackets)
                 {
                     var content =
-                        $"*Winner*: {Format(bracket.Winner)}\n" +
-                        $"*Loser*: {Format(bracket.Loser)}";
+                        $"**Winner**: {Format(bracket.Winner)}\n" +
+                        $"**Loser**: {Format(bracket.Loser)}";
 
                     if (bracket.ThirdContender != null)
                     {
                         var loser =
                             new[] {bracket.FirstContender, bracket.SecondContender, bracket.ThirdContender}.First(
                                 contender => contender.Id != bracket.Winner.Id && contender.Id != bracket.Loser.Id);
-                        content += $"\n*Loser*: {Format(loser)}";
+                        content += $"\n**Loser**: {Format(loser)}";
                     }
 
                     embed.AddField($"Bracket #{bracket.Number}", content);
@@ -354,8 +361,8 @@ namespace BobDono.Controllers
                         var votes = con.Votes.Where(vote => vote.Bracket.BracketStage.Equals(lastStage)).ToList();
                         return
                             votes.Any()
-                                ? $"{con.Waifu.Name} (*{votes.Count} votes*: {string.Join(", ", votes.Select(vote => vote.User.Name))})"
-                                : $"{con.Waifu.Name} (*{votes.Count} votes*)";
+                                ? $"{con.Waifu.Name} (**{votes.Count} votes**: {string.Join(", ", votes.Select(vote => vote.User.Name))})"
+                                : $"{con.Waifu.Name} (**{votes.Count} votes**)";
                     }
                         
 
@@ -367,6 +374,7 @@ namespace BobDono.Controllers
                 //create new bracket
                 var stage = CreateBracketStage(lastBrackets.Select(bracket => bracket.Winner).ToList());
 
+                
                 var ids = await SendBracketInfo(stage.Brackets);
                 Election.BracketMessagesIds = ids;
 
@@ -557,10 +565,10 @@ namespace BobDono.Controllers
                         Color = DiscordColor.Brown,
                     });
                     var imgMessage = await _channel.SendFileAsync(image, $"Bracket {bracket.Number}.png");
-                    var footerString = $"*1*: {bracket.FirstContender.Waifu.Name}\n";
-                    footerString += $"*2*: {bracket.SecondContender.Waifu.Name}";
+                    var footerString = $"**1**: {bracket.FirstContender.Waifu.Name}\n";
+                    footerString += $"**2**: {bracket.SecondContender.Waifu.Name}";
                     if(bracket.ThirdContender != null)
-                        footerString += $"\n*3*: {bracket.ThirdContender.Waifu.Name}";
+                        footerString += $"\n**3**: {bracket.ThirdContender.Waifu.Name}";
                     var msgFooter = await _channel.SendMessageAsync(null, false, new DiscordEmbedBuilder
                     {
                         Description = footerString,

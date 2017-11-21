@@ -5,6 +5,7 @@ using System.Reflection;
 using BobDono.Interfaces;
 using BobDono.Models;
 using BobDono.Models.Entities;
+using BobDono.Models.Entities.Simple;
 using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.DataAccess.Database
@@ -30,6 +31,11 @@ namespace BobDono.DataAccess.Database
         public DbSet<WaifuContender> WaifuContenders { get; set; }
         public DbSet<TrueWaifu> TrueWaifus { get; set; }
         public DbSet<ExceptionReport> ExceptionReports { get; set; }
+        public DbSet<ElectionTheme> ElectionThemes { get; set; }
+        public DbSet<HallOfFameMember> HallOfFameMembers { get; set; }
+
+        public DbSet<HallOfFameChannel> HallOfFameChannels { get; set; }
+        public DbSet<ElectionThemeChannel> ElectionThemeChannels { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -55,7 +55,7 @@ namespace BobDono.Core.BL
 
         private async void TimerTrigger(object state)
         {
-            await Task.Delay(10000);
+            await Task.Delay(TimeSpan.FromMinutes(2));
             (state as Action)();
         }
     }

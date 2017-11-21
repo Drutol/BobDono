@@ -155,10 +155,10 @@ namespace BobDono.Modules
                         election.EntrantsPerUser = submissionCount;
 
                         await channel.SendMessageAsync(
-                            "That'd be evrything I guess, let the wars begin. I'll now create a new battlefield!");
+                            "That'd be everything I guess, let the wars begin. I'll now create a new battlefield!");
                         try
                         {
-                            var category = await guild.GetElectionsCategory();
+                            var category = await guild.GetCategoryChannel(DiscordClientExtensions.ChannelCategory.Elections);
                             var electionChannel = await guild.CreateChannelAsync(election.Name, ChannelType.Text,
                                 category,
                                 null, null, null,
@@ -188,8 +188,20 @@ namespace BobDono.Modules
                     _botContext.NewPrivateMessage -= HandleQuit;
                 }
 
-                await Task.Delay(5000);
 
+                int retries = 0;
+                while (true)
+                {
+                    var ch = ResourceLocator.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
+                    if(ch != null)
+                        break;
+                    await Task.Delay(3000);
+                    if (retries++ > 4)
+                    {
+                        await channel.SendMessageAsync("Something went wrong while obtaining discord channel.");
+                        return;
+                    }                   
+                }
                 try
                 {
                     using (var dependencyScope = ResourceLocator.ObtainScope())

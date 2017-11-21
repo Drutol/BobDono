@@ -66,8 +66,14 @@ namespace BobDono
             _botBackbone = ResourceLocator.BotBackbone;
             _botBackbone.Initialize();
 
-            await _client.UpdateStatusAsync(new Game("b/bob for help"), UserStatus.Online);
 
+
+            await _client.UpdateStatusAsync(new DiscordGame("b/bob for help"), UserStatus.Online);
+            _client.Resumed += async args =>
+            {
+                await _client.UpdateStatusAsync(new DiscordGame("b/bob for help"), UserStatus.Online);
+            };
+         
             if (_client.Guilds.Count > 2)
             {
                 foreach (var guild in _client.Guilds)

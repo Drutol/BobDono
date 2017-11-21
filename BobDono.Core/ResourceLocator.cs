@@ -38,6 +38,10 @@ namespace BobDono.Core
             builder.RegisterType<UserService>().As<IUserService>().SingleInstance();
             builder.RegisterType<TrueWaifuService>().As<ITrueWaifuService>().SingleInstance();
             builder.RegisterType<ContenderService>().As<IContenderService>().SingleInstance();
+            builder.RegisterType<HallOfFameMemberService>().As<IHallOfFameMemberService>().SingleInstance();
+            builder.RegisterType<HallOfFameChannelService>().As<IHallOfFameChannelService>().SingleInstance();
+            builder.RegisterType<ElectionThemeService>().As<IElectionThemeService>().SingleInstance();
+            builder.RegisterType<ElectionThemesChannelService>().As<IElectionThemesChannelService>().SingleInstance();
             builder.RegisterType<ExceptionReportsService>().As<IExceptionReportsService>().SingleInstance();
             builder.RegisterType<CharacterDetailsQuery>().As<ICharacterDetailsQuery>().SingleInstance();
             builder.RegisterType<ProfileQuery>().As<IProfileQuery>().SingleInstance();
@@ -53,7 +57,7 @@ namespace BobDono.Core
 
             foreach (var type in types.Union(BL.BotBackbone.GetModules()))
             {
-                builder.RegisterType(type);
+                builder.RegisterType(type).SingleInstance();
             }
 
             _container = builder.Build().BeginLifetimeScope();

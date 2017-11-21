@@ -48,7 +48,7 @@ namespace BobDono.Contexts
 
             _election = election;
             _channel = ResourceLocator.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
-
+            
             if (_channel == null)
                 throw new InvalidOperationException("Discord channel is invalid");
 
@@ -396,6 +396,29 @@ namespace BobDono.Contexts
                 var id = int.Parse(param[1]);
 
                 await (await args.Channel.GetMessageAsync((ulong) id)).DeleteAsync();
+            }
+            catch (Exception e)
+            {
+
+            }
+            finally
+            {
+                await args.Message.DeleteAsync();
+            }
+
+        }
+
+        [CommandHandler(Regex = @"init", Debug = true)]
+        public async Task ReinitializeElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            try
+            {
+                using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
+                {
+                    _election = await electionService.GetElection(_election.Id);
+                    _controller.Election = _election;
+                    _controller.Initialize();
+                }
             }
             catch (Exception e)
             {
