@@ -19,7 +19,7 @@ namespace BobDono.Core.Extensions
         public const string ElectionsMetaCategoryName = "ElectionsMeta";
 
         private static DiscordGuild _nullsGuild;
-        private static Dictionary<ChannelCategory, DiscordChannel> _categoryChannels= new Dictionary<ChannelCategory, DiscordChannel>();
+        private static Dictionary<ChannelCategory, DiscordChannel> _categoryChannels = new Dictionary<ChannelCategory, DiscordChannel>();
 
         public static DiscordGuild GetNullsGuild(this DiscordClient client)
         {
@@ -61,10 +61,10 @@ namespace BobDono.Core.Extensions
         private static async Task<DiscordChannel> GetCategoryChannel(DiscordGuild guild, string key)
         {
             var channel = (await guild.GetChannelsAsync()).FirstOrDefault(discordChannel =>
-                discordChannel.IsCategory && discordChannel.Name == ElectionsCategoryName);
+                discordChannel.IsCategory && discordChannel.Name == key);
             if (channel != null)
                 return channel;
-            return await guild.CreateChannelAsync(ElectionsCategoryName, ChannelType.Category);
+            return await guild.CreateChannelAsync(key, ChannelType.Category);
         }
 
         public static bool IsMe(this DiscordUser user)

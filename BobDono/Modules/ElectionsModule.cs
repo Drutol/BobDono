@@ -164,6 +164,7 @@ namespace BobDono.Modules
                                 null, null, null,
                                 election.Description);
                             election.DiscordChannelId = electionChannel.Id;
+                            (ResourceLocator.DiscordClient as CustomDiscordClient).CreatedChannels.Add(electionChannel);
                         }
                         catch (Exception e)
                         {

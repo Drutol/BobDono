@@ -51,7 +51,7 @@ namespace BobDono.Core
 
             builder.RegisterType<CommandExecutionContext>().As<ICommandExecutionContext>();
 
-            builder.RegisterInstance(client).As<DiscordClient>();
+            builder.RegisterInstance(client).As<DiscordClient>().SingleInstance();
 
 
 

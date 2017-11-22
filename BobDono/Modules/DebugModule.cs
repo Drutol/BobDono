@@ -68,6 +68,12 @@ namespace BobDono.Modules
             }
         }
 
+        [CommandHandler(Regex = "proudlyproclaim .*",Authorize = true)]
+        public async Task SaySomething(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendMessageAsync(args.Message.Content.Replace("proudlyproclaim ", ""));
+        }
+
         [CommandHandler(Regex = @"crash",HumanReadableCommand = "crash")]
         public async Task Crash(MessageCreateEventArgs args, ICommandExecutionContext context)
         {

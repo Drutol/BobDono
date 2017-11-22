@@ -47,7 +47,7 @@ namespace BobDono
         private async Task RunBotAsync()
         {
             CultureInfo.CurrentCulture = new CultureInfo("en-GB");
-            _client = new DiscordClient(new DiscordConfiguration
+            _client = new CustomDiscordClient(new DiscordConfiguration
             {
                 Token = Secrets.BotKey,
                 TokenType = TokenType.Bot,
@@ -124,7 +124,10 @@ namespace BobDono
                     }
                     else
                     {
+                        //TODO
                         if(ResourceLocator.BotBackbone.Modules[typeof(ElectionContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
+                            continue;
+                        if (ResourceLocator.BotBackbone.Modules[typeof(ElectionThemesContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
                             continue;
 
                         if (handlerEntry.Predicates.All(predicate =>

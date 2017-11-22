@@ -15,6 +15,7 @@ using BobDono.DataAccess.Services;
 using BobDono.Interfaces;
 using BobDono.Interfaces.Services;
 using BobDono.Models.Entities;
+using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
@@ -24,6 +25,7 @@ namespace BobDono.Contexts
     public class ElectionContext : ContextModuleBase
     {
         private Election _election;
+        private readonly CustomDiscordClient _discordClient;
         private DiscordChannel _channel;
 
         public sealed override ulong? ChannelIdContext { get; protected set; }
@@ -37,7 +39,7 @@ namespace BobDono.Contexts
         private readonly IExceptionHandler _exceptionHandler;
         private TimerService.TimerRegistration _timerRegistration;
 
-        public ElectionContext(Election election, IWaifuService waifuService, IElectionService electionService,
+        public ElectionContext(Election election,DiscordClient discordClient, IWaifuService waifuService, IElectionService electionService,
             IUserService userService, IContenderService contenderService, IExceptionHandler exceptionHandler)
         {
             _waifuService = waifuService;
@@ -47,8 +49,11 @@ namespace BobDono.Contexts
             _exceptionHandler = exceptionHandler;
 
             _election = election;
-            _channel = ResourceLocator.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
-            
+            _discordClient = discordClient as CustomDiscordClient;
+
+            var guild = _discordClient.GetNullsGuild();
+            _channel = _discordClient.GetChannel(guild, election.DiscordChannelId);
+
             if (_channel == null)
                 throw new InvalidOperationException("Discord channel is invalid");
 

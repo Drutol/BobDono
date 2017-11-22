@@ -26,7 +26,7 @@ namespace BobDono.Modules
 
             foreach (var module in ResourceLocator.BotContext.Commands)
             {
-                if (module.Key.Hidden)
+                if (module.Key.Hidden || module.Key.Authorize)
                     continue;
 
                 builder.AddField(module.Key.Name,

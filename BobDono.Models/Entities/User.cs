@@ -25,6 +25,7 @@ namespace BobDono.Models.Entities
 
         public virtual ICollection<UserWaifu> Waifus { get; set; }
         public virtual ICollection<Vote> Votes { get; set; }
+        public virtual ICollection<UserTheme> ElectionThemes { get; set; }
 
         public TrueWaifu TrueWaifu { get; set; }
 

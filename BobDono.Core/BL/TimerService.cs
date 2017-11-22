@@ -19,6 +19,12 @@ namespace BobDono.Core.BL
                 DueTime = TimeSpan.FromMinutes(60 - DateTime.UtcNow.Minute);
                 return this;
             }
+
+            public TimerRegistration FireOnNextFullDay()
+            {
+                DueTime = TimeSpan.FromHours(24 - DateTime.UtcNow.TimeOfDay.TotalHours);
+                return this;
+            }
         }
 
         private readonly List<TimerRegistration> _registeredTasks = new List<TimerRegistration>();
