@@ -12,8 +12,8 @@ using System;
 namespace BobDono.Migrations
 {
     [DbContext(typeof(BobDatabaseContext))]
-    [Migration("20171122075050_AddApprovalsToElectionTheme")]
-    partial class AddApprovalsToElectionTheme
+    [Migration("20171122114507_AddElectionThemesHallOfFame")]
+    partial class AddElectionThemesHallOfFame
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -125,6 +125,8 @@ namespace BobDono.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<bool>("Approved");
+
                     b.Property<DateTime>("CreateDate");
 
                     b.Property<string>("Description");
@@ -191,6 +193,10 @@ namespace BobDono.Migrations
 
                     b.Property<long>("DiscordChannelId");
 
+                    b.Property<DateTime>("NextElection");
+
+                    b.Property<long>("OpeningMessageId");
+
                     b.HasKey("Id");
 
                     b.ToTable("ElectionThemeChannels");
@@ -202,6 +208,8 @@ namespace BobDono.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<long>("DiscordChannelId");
+
+                    b.Property<long>("OpeningMessageId");
 
                     b.HasKey("Id");
 

@@ -17,6 +17,7 @@ namespace BobDono.Models.Entities
 
         public User Proposer { get; set; }
         public virtual ICollection<UserTheme> Approvals { get; set; } = new HashSet<UserTheme>();
+        public bool Approved { get; set; }
 
         public DateTime CreateDate { get; set; }
         public DateTime ElectionCreateDate { get; set; }

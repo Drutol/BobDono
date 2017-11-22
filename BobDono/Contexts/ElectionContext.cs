@@ -29,6 +29,7 @@ namespace BobDono.Contexts
         private DiscordChannel _channel;
 
         public sealed override ulong? ChannelIdContext { get; protected set; }
+        public override DiscordChannel Channel => _channel;
 
         private readonly ElectionController _controller;
 
@@ -461,16 +462,7 @@ namespace BobDono.Contexts
 
         }
 
-        private async void ClearChannel()
-        {
-            var messages = await _channel.GetMessagesAsync();
 
-            foreach (var message in messages)
-            {
-                if (!message.Author.IsMe())
-                    await message.DeleteAsync();
-            }
-        }
 
         public void OnCreated()
         {

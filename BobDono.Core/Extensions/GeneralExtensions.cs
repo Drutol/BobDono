@@ -27,5 +27,21 @@ namespace BobDono.Core.Extensions
             return Regex.IsMatch(s,
                 @"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)");
         }
+
+        public static DateTime GetNextElectionDate(this DateTime from)
+        {
+            if (from.Day >= 1 && from.Day < 15)
+            {
+                from = new DateTime(from.Year, from.Month, 15);
+            }
+            else
+            {
+                from = new DateTime(from.Year, from.Month, 1);
+                from = from.AddMonths(1);
+            }
+            return from;
+
+
+        }
     }
 }

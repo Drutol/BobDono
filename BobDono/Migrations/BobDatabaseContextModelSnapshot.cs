@@ -124,6 +124,8 @@ namespace BobDono.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<bool>("Approved");
+
                     b.Property<DateTime>("CreateDate");
 
                     b.Property<string>("Description");
@@ -190,6 +192,10 @@ namespace BobDono.Migrations
 
                     b.Property<long>("DiscordChannelId");
 
+                    b.Property<DateTime>("NextElection");
+
+                    b.Property<long>("OpeningMessageId");
+
                     b.HasKey("Id");
 
                     b.ToTable("ElectionThemeChannels");
@@ -201,6 +207,8 @@ namespace BobDono.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<long>("DiscordChannelId");
+
+                    b.Property<long>("OpeningMessageId");
 
                     b.HasKey("Id");
 

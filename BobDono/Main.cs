@@ -129,6 +129,8 @@ namespace BobDono
                             continue;
                         if (ResourceLocator.BotBackbone.Modules[typeof(ElectionThemesContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
                             continue;
+                        if (ResourceLocator.BotBackbone.Modules[typeof(HallOfFameContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
+                            continue;
 
                         if (handlerEntry.Predicates.All(predicate =>
                             predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs)))
@@ -144,7 +146,7 @@ namespace BobDono
                 }
                 catch (Exception e)
                 {
-                    var res = ResourceLocator.ExceptionHandler.Handle(e);
+                    var res = ResourceLocator.ExceptionHandler.Handle(e,messageCreateEventArgs);
                     if (!handlerEntry.Attribute.ParentModuleAttribute.IsChannelContextual)
                         await messageCreateEventArgs.Channel.SendMessageAsync(res);
                 }
@@ -176,7 +178,7 @@ namespace BobDono
             }
             catch (Exception e)
             {
-                ResourceLocator.ExceptionHandler.Handle(e);
+                ResourceLocator.ExceptionHandler.Handle(e,messageCreateEventArgs);
             }
 
 

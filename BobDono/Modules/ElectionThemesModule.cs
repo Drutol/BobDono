@@ -24,6 +24,7 @@ namespace BobDono.Modules
         private readonly IElectionThemesChannelService _electionThemesChannelService;
         private readonly CustomDiscordClient _discordClient;
 
+
         public List<ElectionThemesContext> ElectionThemesContexts { get; } = new List<ElectionThemesContext>();
 
         public ElectionThemesModule(IElectionThemesChannelService electionThemesChannelService, DiscordClient discordClient)
@@ -44,8 +45,10 @@ namespace BobDono.Modules
                 {
                     try
                     {
-                        ElectionThemesContexts.Add(
-                            dependencyScope.Resolve<ElectionThemesContext>(new TypedParameter(typeof(ElectionThemeChannel),channel)));
+                        var ctx = dependencyScope.Resolve<ElectionThemesContext>(
+                            new TypedParameter(typeof(ElectionThemeChannel), channel));
+                        ElectionThemesContexts.Add(ctx);
+                        ctx.OnTimePass();
                     }
                     catch (Exception) //couldn't create election -> channel removed
                     {
@@ -58,6 +61,7 @@ namespace BobDono.Modules
         [CommandHandler(Regex = "ethemescreate", Debug = true)]
         public async Task CreateElectionThemesChannel(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
+            ElectionThemesContext ctx = null;
             using (var dependencyScope = ResourceLocator.ObtainScope())
             using (var channelService = _electionThemesChannelService.ObtainLifetimeHandle(executionContext))
             {
@@ -70,14 +74,14 @@ namespace BobDono.Modules
                 var themeChannel = new ElectionThemeChannel
                 {
                     DiscordChannelId = (long) electionChannel.Id,
+                    NextElection = DateTime.Today.GetNextElectionDate(),
                 };
-                
+
                 channelService.Add(themeChannel);
-                var ctx = dependencyScope.Resolve<ElectionThemesContext>(
+                ctx = dependencyScope.Resolve<ElectionThemesContext>(
                     new TypedParameter(typeof(ElectionThemeChannel), themeChannel));
                 ElectionThemesContexts.Add(ctx);
-                ctx.OnCreate();
-
+                themeChannel.OpeningMessageId = await ctx.OnCreate(themeChannel);
             }
         }
     }

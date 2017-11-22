@@ -9,5 +9,6 @@ namespace BobDono.Models.Entities.Simple
         public long Id { get; set; }
 
         public long DiscordChannelId { get; set; }
+        public long OpeningMessageId { get; set; }
     }
 }
