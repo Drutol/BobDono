@@ -6,6 +6,7 @@ using Autofac;
 using BobDono.Core.Attributes;
 using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
+using BobDono.Interfaces.Services;
 
 namespace BobDono.Core.BL
 {

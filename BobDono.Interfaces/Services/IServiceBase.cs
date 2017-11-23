@@ -6,7 +6,7 @@ using BobDono.DataAccess.Services;
 
 namespace BobDono.Interfaces.Services
 {
-    public interface IServiceBase<TEntity,TService> : IDisposable 
+    public interface IServiceBase<TEntity,TService> : IDisposable , IServiceFactory<TService>
         where TEntity : class 
         where TService : class , IServiceBase<TEntity,TService>
     {
@@ -20,10 +20,7 @@ namespace BobDono.Interfaces.Services
         void Remove(TEntity client);
         void Update(TEntity client);
 
-        Task SaveChangesAsync();
-        
-        TService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true);
-        TService ObtainLifetimeHandle(bool saveOnDispose = true);
+        Task SaveChangesAsync();     
 
         IIncludeConfigurator<TEntity, TService> ConfigureIncludes();
     }

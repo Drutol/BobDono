@@ -15,7 +15,7 @@ namespace BobDono.DataAccess.Services
         where TService : class, IServiceBase<TEntity, TService>
         where TEntity : class
     {
-        public class IncludeConfigurator<TEntity,TService> : IIncludeConfigurator<TEntity, TService>
+        private class IncludeConfigurator<TEntity,TService> : IIncludeConfigurator<TEntity, TService>
             where TService : class, IServiceBase<TEntity, TService>
             where TEntity : class
         {

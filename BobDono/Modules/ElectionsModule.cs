@@ -29,13 +29,16 @@ namespace BobDono.Modules
     [Module(Name = "Elections",Description = "Allows to create new election, and view their overviews and such.")]
     public class ElectionsModule
     {
-        private readonly IUserService _userService;
+
         private readonly IBotContext _botContext;
         private readonly IExceptionHandler _exceptionHandler;
-        private readonly IElectionService _electionService;
+        private readonly IServiceFactory<IUserService> _userService;
+        private readonly IServiceFactory<IElectionService> _electionService;
         public List<ElectionContext> ElectionsContexts { get; } = new List<ElectionContext>();
 
-        public ElectionsModule(IUserService userService,IBotContext botContext, IExceptionHandler exceptionHandler, IElectionService  electionService)
+        public ElectionsModule(IServiceFactory<IUserService> userService,
+            IServiceFactory<IElectionService> electionService, IBotContext botContext,
+            IExceptionHandler exceptionHandler)
         {
             _userService = userService;
             _botContext = botContext;

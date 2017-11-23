@@ -15,10 +15,10 @@ namespace BobDono.Modules
     public class DebugModule
     {
         private readonly IExceptionHandler _exceptionHandler;
-        private readonly IWaifuService _waifuService;
+        private readonly IServiceFactory<IWaifuService> _waifuService;
         private readonly ICharacterDetailsQuery _characterDetailsQuery;
 
-        public DebugModule(IExceptionHandler exceptionHandler, IWaifuService waifuService, ICharacterDetailsQuery characterDetailsQuery)
+        public DebugModule(IExceptionHandler exceptionHandler, IServiceFactory<IWaifuService> waifuService, ICharacterDetailsQuery characterDetailsQuery)
         {
             _exceptionHandler = exceptionHandler;
             _waifuService = waifuService;
@@ -55,7 +55,7 @@ namespace BobDono.Modules
 
                 foreach (var waifu in all)
                 {
-                    var details = await _waifuService.GetOrCreateWaifu(waifu.MalId,true);
+                    var details = await ws.GetOrCreateWaifu(waifu.MalId,true);
                     waifu.Animeography = details.Animeography;
                     waifu.Mangaography = details.Mangaography;
                     waifu.Voiceactors = details.Voiceactors;

@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac;
 using BobDono.Contexts;
 using BobDono.Controllers;
 using BobDono.Core;
@@ -19,6 +20,7 @@ using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
 using BobDono.DataAccess.Database;
 using BobDono.Interfaces;
+using BobDono.Interfaces.Services;
 using BobDono.Models;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -33,13 +35,6 @@ namespace BobDono
 
         public static async Task Main(string[] args)
         {
-            //BracketImageGenerator.Generate(new List<byte[]>
-            //{
-            //    File.ReadAllBytes("Assets/annak.png") ,
-            //    File.ReadAllBytes("Assets/vigne.png") ,
-            //    File.ReadAllBytes("Assets/raphi.png") ,
-                
-            //});
             var prog = new BobDono();
             await prog.RunBotAsync();
         }

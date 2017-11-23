@@ -23,14 +23,14 @@ namespace BobDono.Modules
     [Module(Name = "Waifu",Description = "Allows to manage your waifu and browse other low-tier waifus of fellow sever members.")]
     public class WaifuModule
     {
-        private readonly IUserService _userService;
-        private readonly IWaifuService _waifuService;
         private readonly IBotContext _botContext;
         private readonly IExceptionHandler _exceptionHandler;
-        private readonly ITrueWaifuService _trueWaifuService;
+        private readonly IServiceFactory<IUserService> _userService;
+        private readonly IServiceFactory<IWaifuService> _waifuService;
+        private readonly IServiceFactory<ITrueWaifuService> _trueWaifuService;
 
-        public WaifuModule(IUserService userService, IWaifuService waifuService, IBotContext botContext,
-            IExceptionHandler exceptionHandler, ITrueWaifuService trueWaifuService)
+        public WaifuModule(IServiceFactory<IUserService> userService, IServiceFactory<IWaifuService> waifuService, 
+             IServiceFactory<ITrueWaifuService> trueWaifuService,IBotContext botContext, IExceptionHandler exceptionHandler)
         {
             _userService = userService;
             _waifuService = waifuService;
