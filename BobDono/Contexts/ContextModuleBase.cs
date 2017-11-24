@@ -13,11 +13,14 @@ namespace BobDono.Contexts
 {
     public abstract class ContextModuleBase : IModule
     {
-        public abstract ulong? ChannelIdContext { get; protected set; }
+        public ulong? ChannelIdContext { get; set; }
         public abstract DiscordChannel Channel { get; }
 
-        protected ContextModuleBase()
+        public static List<ulong> ContextChannels { get; } = new List<ulong>();
+
+        protected ContextModuleBase(ulong channelId)
         {
+            ContextChannels.Add(channelId);
             ResourceLocator.BotBackbone.Modules[GetType()].Contexts.Add(this);
         }
 

@@ -56,6 +56,9 @@
     <None Update="Assets\rika.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\shrug.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\tasts.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

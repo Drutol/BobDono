@@ -21,10 +21,9 @@ namespace BobDono.Contexts
         private readonly CustomDiscordClient _discordClient;
         private readonly DiscordChannel _channel;
 
-        public sealed override ulong? ChannelIdContext { get; protected set; }
         public override DiscordChannel Channel => _channel;
 
-        public HallOfFameContext(HallOfFameChannel channel, DiscordClient discordClient)
+        public HallOfFameContext(HallOfFameChannel channel, DiscordClient discordClient) : base((ulong)channel.DiscordChannelId)
         {
             _discordClient = discordClient as CustomDiscordClient;
             ChannelIdContext = (ulong) channel.DiscordChannelId;

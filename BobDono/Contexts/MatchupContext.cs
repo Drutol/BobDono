@@ -9,11 +9,11 @@ namespace BobDono.Contexts
     //[Module(IsChannelContextual = true)]
     public class MatchupContext : ContextModuleBase
     {
-        public override ulong? ChannelIdContext { get; protected set; }
+        public ulong? ChannelIdContext { get; protected set; }
         public override DiscordChannel Channel { get; }
 
 
-        public MatchupContext()
+        public MatchupContext() : base(1)
         {
             
         }

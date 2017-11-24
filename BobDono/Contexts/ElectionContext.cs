@@ -28,7 +28,6 @@ namespace BobDono.Contexts
         private readonly CustomDiscordClient _discordClient;
         private DiscordChannel _channel;
 
-        public sealed override ulong? ChannelIdContext { get; protected set; }
         public override DiscordChannel Channel => _channel;
 
         private readonly ElectionController _controller;
@@ -41,7 +40,7 @@ namespace BobDono.Contexts
         private TimerService.TimerRegistration _timerRegistration;
 
         public ElectionContext(Election election,DiscordClient discordClient, IWaifuService waifuService, IElectionService electionService,
-            IUserService userService, IContenderService contenderService, IExceptionHandler exceptionHandler)
+            IUserService userService, IContenderService contenderService, IExceptionHandler exceptionHandler) : base(election.DiscordChannelId)
         {
             _waifuService = waifuService;
             _electionService = electionService;

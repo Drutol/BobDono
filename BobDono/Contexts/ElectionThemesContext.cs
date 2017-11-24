@@ -30,7 +30,6 @@ namespace BobDono.Contexts
         private const string ApprovalStatusKey = "Approval Status";
         private const string NextElectionKey = "Next election";
 
-        public sealed override ulong? ChannelIdContext { get; protected set; }
         public override DiscordChannel Channel => _channel;
 
         private readonly CustomDiscordClient _discordClient;
@@ -47,7 +46,7 @@ namespace BobDono.Contexts
 
         public ElectionThemesContext(ElectionThemeChannel channel, DiscordClient discordClient,
             IExceptionHandler exceptionHandler, IUserService userService, IElectionThemeService electionThemeService,
-            IElectionThemesChannelService electionThemesChannelService, IElectionService electionService)
+            IElectionThemesChannelService electionThemesChannelService, IElectionService electionService) : base((ulong)channel.DiscordChannelId)
         {
             _discordClient = discordClient as CustomDiscordClient;
             _themesChannel = channel;
