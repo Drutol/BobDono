@@ -297,7 +297,7 @@ namespace BobDono.Contexts
 
                 embed.Color = theme.Approved ? DiscordColor.SapGreen : DiscordColor.Gray;
 
-                embed.Fields.First(field => field.Name.Equals(ApprovalsKey)).Value = string.Join(",", theme.Approvals
+                embed.Fields.First(field => field.Name.Equals(ApprovalsKey)).Value = string.Join(", ", theme.Approvals
                     .Select(a => a.User.Name));
                 embed.Fields.First(field => field.Name.Equals(ApprovalStatusKey)).Value =
                     theme.Approved ? ":white_check_mark:" : ":hourglass:";

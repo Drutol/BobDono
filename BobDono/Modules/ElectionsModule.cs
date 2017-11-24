@@ -26,7 +26,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Modules
 {
-    [Module(Name = "Elections",Description = "Allows to create new election, and view their overviews and such.")]
+    [Module(Name = "Elections", Description = "Allows to create new election, and view their overviews and such.")]
     public class ElectionsModule
     {
         private readonly IUserService _userService;
@@ -35,7 +35,8 @@ namespace BobDono.Modules
         private readonly IElectionService _electionService;
         public List<ElectionContext> ElectionsContexts { get; } = new List<ElectionContext>();
 
-        public ElectionsModule(IUserService userService,IBotContext botContext, IExceptionHandler exceptionHandler, IElectionService  electionService)
+        public ElectionsModule(IUserService userService, IBotContext botContext, IExceptionHandler exceptionHandler,
+            IElectionService electionService)
         {
             _userService = userService;
             _botContext = botContext;
@@ -70,9 +71,9 @@ namespace BobDono.Modules
         }
 
         [CommandHandler(
-            Regex = @"election create", 
+            Regex = @"election create",
             HumanReadableCommand = "election create",
-            HelpText = "Starts new election.", 
+            HelpText = "Starts new election.",
             Awaitable = false)]
         public async Task CreateElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
@@ -106,20 +107,23 @@ namespace BobDono.Modules
                     try
                     {
 
-                        election.Name = await channel.GetNextValidResponse<string>("Provide short name for it (2 characters+, alphanumeric). It will be used as channel name.", async s =>
-                        {
-                            s = s.Replace(" ", "-");
-                            if (s.Length >= 2 && Regex.IsMatch(s, "^[a-zA-Z0-9_-]*$"))
-                                return s;
-                            return null;
-                        },timeout, cts.Token);
-                        election.Description = await channel.GetNextValidResponse("Longer description if you could (500 characters):",
+                        election.Name = await channel.GetNextValidResponse<string>(
+                            "Provide short name for it (2 characters+, alphanumeric). It will be used as channel name.",
+                            async s =>
+                            {
+                                s = s.Replace(" ", "-");
+                                if (s.Length >= 2 && Regex.IsMatch(s, "^[a-zA-Z0-9_-]*$"))
+                                    return s;
+                                return null;
+                            }, timeout, cts.Token);
+                        election.Description = await channel.GetNextValidResponse(
+                            "Longer description if you could (500 characters):",
                             async s =>
                             {
                                 if (s.Length <= 500)
                                     return s;
                                 return null;
-                            },timeout, cts.Token);
+                            }, timeout, cts.Token);
                         int submissionDays = 0;
                         while (submissionDays == 0)
                         {
@@ -135,7 +139,8 @@ namespace BobDono.Modules
                             }
                         }
                         election.SubmissionsStartDate = DateTime.UtcNow;
-                        election.SubmissionsEndDate = DateTime.Today.AddHours(election.SubmissionsStartDate.Hour+1).AddDays(submissionDays);
+                        election.SubmissionsEndDate = DateTime.Today.AddHours(election.SubmissionsStartDate.Hour + 1)
+                            .AddDays(submissionDays);
                         election.VotingStartDate = election.SubmissionsEndDate.AddHours(2); //TODO Maybe add commands?
 
                         int submissionCount = 0;
@@ -158,7 +163,8 @@ namespace BobDono.Modules
                             "That'd be everything I guess, let the wars begin. I'll now create a new battlefield!");
                         try
                         {
-                            var category = await guild.GetCategoryChannel(DiscordClientExtensions.ChannelCategory.Elections);
+                            var category =
+                                await guild.GetCategoryChannel(DiscordClientExtensions.ChannelCategory.Elections);
                             var electionChannel = await guild.CreateChannelAsync(election.Name, ChannelType.Text,
                                 category,
                                 null, null, null,
@@ -194,20 +200,21 @@ namespace BobDono.Modules
                 while (true)
                 {
                     var ch = ResourceLocator.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
-                    if(ch != null)
+                    if (ch != null)
                         break;
                     await Task.Delay(3000);
                     if (retries++ > 4)
                     {
                         await channel.SendMessageAsync("Something went wrong while obtaining discord channel.");
                         return;
-                    }                   
+                    }
                 }
                 try
                 {
                     using (var dependencyScope = ResourceLocator.ObtainScope())
                     {
-                        var electionContext = dependencyScope.Resolve<ElectionContext>(new TypedParameter(typeof(Election),
+                        var electionContext = dependencyScope.Resolve<ElectionContext>(new TypedParameter(
+                            typeof(Election),
                             await electionService.CreateElection(election, user)));
                         electionContext.OnCreated();
                         ElectionsContexts.Add(electionContext);
@@ -231,20 +238,22 @@ namespace BobDono.Modules
             }
         }
 
-        [CommandHandler(Regex = @"election list (<@\d+>|\w+|<@!\d+>)", HumanReadableCommand = "election list <username>",HelpText = "Lists all election related to given user.")]
+        [CommandHandler(Regex = @"election list(\s<@\d+>|\s\w+|\s<@!\d+>|$)",
+            HumanReadableCommand = "election list <username>", HelpText = "Lists all election related to given user.")]
         public async Task ListElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             {
-                
-                userService.ConfigureIncludes().WithChain(query =>
+                IQueryable<User> IncChain(IQueryable<User> query)
                 {
                     return query.Include(u => u.Elections)
                         .Include(u => u.Votes)
-                            .ThenInclude(v => v.Bracket)
-                            .ThenInclude(b => b.BracketStage)
-                                .ThenInclude(bs => bs.Election);
-                }).Commit();
+                        .ThenInclude(v => v.Bracket)
+                        .ThenInclude(b => b.BracketStage)
+                        .ThenInclude(bs => bs.Election);
+                }
+
+                userService.ConfigureIncludes().WithChain(IncChain).Commit();
 
 
                 User user = null;
@@ -256,32 +265,34 @@ namespace BobDono.Modules
                 {
                     user = await userService.FirstAsync(u => u.DiscordId == args.Message.MentionedUsers.First().Id);
                 }
+  
                 if (user == null)
                 {
-                    await args.Channel.SendMessageAsync("Couldn't find specified user.");
-                    return;
+                    userService.ConfigureIncludes().WithChain(IncChain).Commit();
+                    user = await userService.GetOrCreateUser(args.Message.Author);
                 }
 
                 var createdElections = user.Elections.Distinct(Election.IdComparer).ToList();
-                var votedElections = user.Votes.Select(vote => vote.Bracket.BracketStage.Election).Distinct(Election.IdComparer).ToList();
+                var votedElections = user.Votes.Select(vote => vote.Bracket.BracketStage.Election)
+                    .Distinct(Election.IdComparer).ToList();
 
                 string output = null;
                 if (createdElections.Any())
                 {
-                    output = "_Created elections_\n";
+                    output = "**Created elections**\n\n";
                     foreach (var createdElection in createdElections)
-                        output += $"Created {createdElection.Name} - Id: {createdElection.Id}\n";
+                        output += $"{createdElection.Name} - Id: {createdElection.Id}\n";
                 }
 
                 if (votedElections.Any())
                 {
                     if (output == null)
-                        output = "_Created elections_\n";
+                        output = "**Elections participated in**\n\n";
                     else
-                        output += "_Created elections_\n";
+                        output += "\n**Elections participated in**\n\n";
 
                     foreach (var votedElection in votedElections)
-                        output += $"Voted in {votedElection.Name} - Id: {votedElection.Id}\n";
+                        output += $"{votedElection.Name} - Id: {votedElection.Id}\n";
                 }
 
                 if (output == null)
@@ -289,6 +300,68 @@ namespace BobDono.Modules
 
                 await args.Channel.SendMessageAsync(output);
             }
+        }
+
+        [CommandHandler(Regex = @"election votes\s?\d{0,2}", HumanReadableCommand = "election votes [lastVotesCount]",
+            HelpText =
+                "Prints your last votes. By default it will list all your votes from election stage you particiapted most recently.")]
+        public async Task ListVotes(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            var param = args.Message.Content.Split(' ');
+
+
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+            {
+                userService.ConfigureIncludes().WithChain(q =>
+                {
+                    return q
+                        .Include(u => u.Votes)
+                            .ThenInclude(vote => vote.Bracket)
+                            .ThenInclude(b => b.BracketStage)
+                            .ThenInclude(b => b.Election)
+                        .Include(u => u.Votes)
+                            .ThenInclude(u => u.Contender)
+                            .ThenInclude(c => c.Waifu);
+                }).Commit();
+                var user = await userService.GetOrCreateUser(args.Message.Author);
+                if (user.Votes.Any())
+                {
+                    string output;
+                    if (param.Length == 2) //last stage
+                    {
+                        var lastStage = user.Votes.Last().Bracket.BracketStage;
+                        var votesInStage = user.Votes.Where(vote => vote.Bracket.BracketStage == lastStage);
+                        output = $"**Votes in stage #{lastStage.Number} of {lastStage.Election.Name}**\n\n";
+                        foreach (var vote in votesInStage)
+                            output += $"{vote.Contender.Waifu.Name} *({vote.Contender.Waifu.MalId})* {(vote.Bracket.Winner != null && vote.Contender.Equals(vote.Bracket.Winner) ? ":trophy:" : "")}\n";
+                    }
+                    else //given amount
+                    {
+                        var votesToDisplay = int.Parse(param[2]);
+                        var votesPerElection = user.Votes.TakeLast(votesToDisplay).GroupBy(vote => vote.Bracket.BracketStage.Election);
+                        output = "";
+
+                        foreach (var electionVotes in votesPerElection)
+                        {
+                            output += $"**Votes in {electionVotes.Key.Name} election:**\n\n";
+                            foreach (var vote in electionVotes)
+                                output += $"{vote.Contender.Waifu.Name} *({vote.Contender.Waifu.MalId})*  Stage #{vote.Bracket.BracketStage.Number} {(vote.Bracket.Winner != null && vote.Contender.Equals(vote.Bracket.Winner) ? ":trophy:" : "")}\n";
+                            output += "\n";
+                        }
+                        
+                    }
+
+                    await args.Channel.SendMessageAsync(output);
+                }
+                else
+                {
+                    await args.Channel.SendMessageAsync(
+                        "You didn't vote in any elections yet... I'm dissapointed but I believe I'll do better in the future!");
+                }
+
+            }
+
+
         }
     }
 }
