@@ -7,5 +7,6 @@ namespace BobDono.Interfaces.Services
     public interface IUserService : IServiceBase<User,IUserService>
     {
         Task<User> GetOrCreateUser(DiscordUser discordUser);
+        Task<User> GetBobUser();
     }
 }

@@ -64,12 +64,21 @@ namespace BobDono.Modules
                                      .ToLower().StartsWith(cmd.ToLower()));
             if (handler != null)
             {
-                await args.Channel.SendMessageAsync($"Help for `{handler.HumanReadableCommand}`\n\n{handler.HelpText}");
+                await args.Channel.SendMessageAsync($"Help for `{handler.HumanReadableCommand}`\n\n" +
+                                                    $"Regex: `{handler.Regex}`\n" +
+                                                    $"{handler.HelpText}");
             }
             else
             {
                 await args.Channel.SendMessageAsync("No such command found.");
             }
         }
+
+        [CommandHandler(Regex = "help", HumanReadableCommand = "help", HelpText = "Guides you to help?")]
+        public async Task CryForHelp(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/cryforhelp.png");
+        }
+
     }
 }

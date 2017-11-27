@@ -92,7 +92,7 @@ namespace BobDono
             //Console.WriteLine(messageCreateEventArgs.Message.Content);
             if (messageCreateEventArgs.Author.IsBot)
             {
-                if (ContextModuleBase.ContextChannels.Any(arg => arg == messageCreateEventArgs.Channel.Id))
+                if (!messageCreateEventArgs.Author.IsMe() && ContextModuleBase.ContextChannels.Any(arg => arg == messageCreateEventArgs.Channel.Id))
                 {
                     await messageCreateEventArgs.Message.DeleteAsync();
                 }

@@ -300,9 +300,10 @@ namespace BobDono.Contexts
         public async Task Close(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             {
                 _controller.Election = await electionService.GetElection(_election.Id);
-                await _controller.CloseCurrentStage();
+                await _controller.CloseCurrentStage(userService);
             }
 
         }
@@ -318,7 +319,7 @@ namespace BobDono.Contexts
                 var user = await userService.GetOrCreateUser(args.Author);
                 _election = await electionService.GetElection(_election.Id);
 
-                foreach (var id in new[] {"48391", /*"13701",*/ "20626", "64167", "118763" , "99441" })
+                foreach (var id in new[] {"48391", "13701", "20626", "64167", "118763" , "99441" })
                 {
 
                     var waifu = await waifuService.GetOrCreateWaifu(id);
@@ -447,11 +448,12 @@ namespace BobDono.Contexts
             try
             {
                 using (var electionService = _electionService.ObtainLifetimeHandle(ResourceLocator.ExecutionContext))
+                using (var userService = _userService.ObtainLifetimeHandle(ResourceLocator.ExecutionContext))
                 {
                     _election = await electionService.GetElection(_election.Id);
                     _controller.Election = _election;
                     if(_election.CurrentState != Election.State.Closed && _election.CurrentState != Election.State.ClosedForcibly)
-                        await _controller.ProcessTimePass();
+                        await _controller.ProcessTimePass(userService);
                 }
             }
             catch (Exception e)
@@ -461,13 +463,10 @@ namespace BobDono.Contexts
 
         }
 
-
-
         public void OnCreated()
         {
             _controller.Initialize();
         }
-
 
         public void DeregisterTimer()
         {

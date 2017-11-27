@@ -35,7 +35,32 @@ namespace BobDono.DataAccess.Services
                 Name = discordUser.Username
             };
 
-            Context.Users.Add(user);
+            Add(user);
+
+            return user;
+        }
+
+
+
+
+
+#if DEBUG
+            private const ulong MyId = 343050467879813140; //ranko
+#else
+            private const ulong MyId == 377859054464401408; //bob
+#endif
+
+        public async Task<User> GetBobUser()
+        {
+            var user = await FirstAsync(u => u.DiscordId == MyId);
+
+            user = new User
+            {
+                DiscordId = MyId,
+                Name = "BobDono"
+            };
+
+            Add(user);
 
             return user;
         }

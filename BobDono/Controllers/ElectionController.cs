@@ -47,7 +47,7 @@ namespace BobDono.Controllers
         }
 
 
-        public async Task ProcessTimePass()
+        public async Task ProcessTimePass(IUserService userService)
         {
             using (var electionService = _electionService.ObtainLifetimeHandle())
             {
@@ -78,7 +78,7 @@ namespace BobDono.Controllers
                     var currentStage = Election.BracketStages.Last();
                     if (DateTime.UtcNow > currentStage.EndDate)
                     {
-                        await CloseCurrentStage();
+                        await CloseCurrentStage(userService);
                     }
                 }
             }
@@ -296,7 +296,7 @@ namespace BobDono.Controllers
             }
         }
 
-        public async Task CloseCurrentStage()
+        public async Task CloseCurrentStage(IUserService userService)
         {
             //remove old messages
             try
@@ -326,6 +326,19 @@ namespace BobDono.Controllers
                     bracket.Loser = bracket.FirstContender;
                 else if (bracket.Winner.Equals(bracket.ThirdContender))
                     bracket.Loser = bracket.FirstContender;
+
+                if (bracket.Winner.Votes.Count(FilterVoteForCurrentBracket) == bracket.Loser.Votes.Count(FilterVoteForCurrentBracket))
+                {
+                    bracket.Winner.Votes.Add(new Vote
+                    {
+                        Bracket = bracket,
+                        Contender = bracket.Winner,
+                        CreateDate = DateTime.UtcNow,
+                        User = await userService.GetBobUser()
+                    });
+                }
+
+                bool FilterVoteForCurrentBracket(Vote v) => v.Bracket.BracketStage.Equals(bracket.BracketStage);
             }
 
             await _channel.SendMessageAsync($"<@&{MentionGroupId}>");
@@ -335,13 +348,20 @@ namespace BobDono.Controllers
             }
             else
             {
-                //announce winners
-                var embed = new DiscordEmbedBuilder();
                 var lastStage = Election.BracketStages.Last();
-                embed.Title = $"Results of stage #{lastStage.Number}";
-                embed.Color = DiscordColor.Gray;
+                var first = true;
+                //announce winners
                 foreach (var bracket in lastStage.Brackets)
                 {
+                    var embed = new DiscordEmbedBuilder();
+                    if (first)
+                    {
+                        embed.Title = $"Results of stage #{lastStage.Number}";
+                        first = false;
+                    }
+
+                    embed.Color = DiscordColor.Gray;
+
                     var content =
                         $"**Winner**: {Format(bracket.Winner)}\n" +
                         $"**Loser**: {Format(bracket.Loser)}";
@@ -364,12 +384,10 @@ namespace BobDono.Controllers
                                 ? $"{con.Waifu.Name} (**{votes.Count} votes**: {string.Join(", ", votes.Select(vote => vote.User.Name))})"
                                 : $"{con.Waifu.Name} (**{votes.Count} votes**)";
                     }
-                        
 
+
+                    await _channel.SendMessageAsync(null, false, embed);
                 }
-
-                await _channel.SendMessageAsync(null, false, embed);
-
 
                 //create new bracket
                 var stage = CreateBracketStage(lastBrackets.Select(bracket => bracket.Winner).ToList());
@@ -456,8 +474,8 @@ namespace BobDono.Controllers
         {
             WaifuContender winner = null;
             //if we don't have remis
-            var firstCount = contestants[0].Votes.Count(FilterVoteForCurrentBracket);
-            var remis = contestants.Skip(1).All(c => c.Votes.Count(FilterVoteForCurrentBracket).Equals(firstCount));
+            var group = contestants.GroupBy(contender => contender.Votes.Count(FilterVoteForCurrentBracket));
+            var remis = group.Any(grouping => grouping.Count() > 1);
             if (!remis)
             {
                 foreach (var waifuContender in contestants)
@@ -475,18 +493,23 @@ namespace BobDono.Controllers
             else //we have a problem, frequency of given votes will decide as in measuring voters dedication.
             {
                 //not optimal but straightforward
-                bool isLowerResmis;
+                bool isLowerResmis = false;
                 bool isUpperRemis = false;
 
                 var minVotes = contestants.Min(contender => contender.Votes.Count(FilterVoteForCurrentBracket));
                 var maxVotes = contestants.Max(contender => contender.Votes.Count(FilterVoteForCurrentBracket));
 
-                //let's check what are we dealing with
-                isLowerResmis = contestants.Count(contender => contender.Votes.Count(FilterVoteForCurrentBracket) == minVotes) == 2;
-                if (!isLowerResmis)
+                if (contestants.Count > 2)
                 {
-                    isUpperRemis = contestants.Count(contender => contender.Votes.Count(FilterVoteForCurrentBracket) == maxVotes) == 2;
-                    //else we have triple remis
+                    //let's check what are we dealing with
+                    isLowerResmis = contestants.Count(contender =>
+                                        contender.Votes.Count(FilterVoteForCurrentBracket) == minVotes) == 2;
+                    if (!isLowerResmis)
+                    {
+                        isUpperRemis = contestants.Count(contender =>
+                                           contender.Votes.Count(FilterVoteForCurrentBracket) == maxVotes) == 2;
+                        //else we have triple remis
+                    }
                 }
 
                 if (isLowerResmis && minVotes > 0)
@@ -502,7 +525,7 @@ namespace BobDono.Controllers
                 {
                     var freq = contestants.Select(contender =>
                         new {Freq = GetFrequencyForContender(contender), Contender = contender}).ToList();
-                    winner = freq.First(arg => arg.Freq.Equals(freq.Max(arg1 => arg1.Freq))).Contender;
+                    winner = freq.First(arg => arg.Freq.Equals(freq.Min(arg1 => arg1.Freq))).Contender;
                 }
 
                 WaifuContender GetContenderWithMoreFrequentVotes(WaifuContender c1, WaifuContender c2)
@@ -514,21 +537,22 @@ namespace BobDono.Controllers
 
                 float GetFrequencyForContender(WaifuContender contender)
                 {
-                    var voteCount = contender.Votes.Count(FilterVoteForCurrentBracket);
-                    if (voteCount <= 1) //okay... now let's just use old plain random. I don't care. /shrug
-                    {
-                        return (float) _random.NextDouble();
-                    }
-                    else
-                    {
-                        var consecutiveVotePairsCount =
-                            (voteCount % 2 == 0 ? voteCount : voteCount - 1) / 2; //let's leave last one
-                        var pairs = Enumerable.Range(0, consecutiveVotePairsCount)
-                            .Select(i => contender.Votes.Where(FilterVoteForCurrentBracket).Skip(i * 2).Take(2)).ToList();
-                        return (float) pairs.Sum(votes =>
-                                   (votes.Last().CreateDate - votes.First().CreateDate).TotalHours) /
-                               pairs.Count;
-                    }
+                    return (float)_random.NextDouble();
+                    //var voteCount = contender.Votes.Count(FilterVoteForCurrentBracket);
+                    //if (voteCount <= 1) //okay... now let's just use old plain random. I don't care. /shrug
+                    //{
+                        
+                    //}
+                    //else
+                    //{
+                    //    var consecutiveVotePairsCount =
+                    //        (voteCount % 2 == 0 ? voteCount : voteCount - 1) / 2; //let's leave last one
+                    //    var pairs = Enumerable.Range(0, consecutiveVotePairsCount)
+                    //        .Select(i => contender.Votes.Where(FilterVoteForCurrentBracket).Skip(i * 2).Take(2)).ToList();
+                    //    return (float) pairs.Sum(votes =>
+                    //               Math.Abs((votes.Last().CreateDate - votes.First().CreateDate).TotalHours)) /
+                    //           pairs.Count;
+                    //}
                 }
 
 

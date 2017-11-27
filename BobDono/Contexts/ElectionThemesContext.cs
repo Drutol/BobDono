@@ -29,6 +29,7 @@ namespace BobDono.Contexts
         private const string ApprovalsKey = "Approvals";
         private const string ApprovalStatusKey = "Approval Status";
         private const string NextElectionKey = "Next election";
+        private const int ApprovalsCount = 5;
 
         public override DiscordChannel Channel => _channel;
 
@@ -189,7 +190,7 @@ namespace BobDono.Contexts
                         //else we can add approval
                         theme.Approvals.Add(new UserTheme {Theme = theme, User = user});
 
-                        if (theme.Approvals.Count >= 3)
+                        if (theme.Approvals.Count >= ApprovalsCount)
                             theme.Approved = true;
 
                         await UpdateThemeMessage(theme);
@@ -285,6 +286,35 @@ namespace BobDono.Contexts
             OnTimePass();
         }
 
+        [CommandHandler(Regex = "updateopeningmessage",Debug = true)]
+        public async Task UpdateOpeningMessage(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            try
+            {
+                var message = await _channel.GetMessageAsync((ulong) _themesChannel.OpeningMessageId);
+                var embed = new DiscordEmbedBuilder(message.Embeds.First());
+
+                embed.Title = "What's going on?";
+                embed.Description =
+                    "This is place for proposing future election themes, I'll take random one on every 1st and 15th day of the month and start election\n\n" +
+                    $"You can add theme using command:\n`{CommandHandlerAttribute.CommandStarter}add theme <name>\\n<description>`\n\n" +
+                    $"Each theme needs to be approved by at least {ApprovalsCount} people using reactions, once you approve something it cannot be undone. " +
+                    "Every person can add up to 3 themes. " +
+                    $"If theme doersn't get {ApprovalsCount} approvals it will be deleted after a week.";
+
+                await message.ModifyAsync(default, new Optional<DiscordEmbed>(embed.Build()));
+            }
+            catch (Exception)
+            {
+                //somebody removed a message
+                //Fox?
+            }
+            finally
+            {
+                await args.Message.DeleteAsync();
+            }
+        }
+
         #endregion
 
         private async Task UpdateThemeMessage(ElectionTheme theme)
@@ -337,9 +367,9 @@ namespace BobDono.Contexts
             embed.Description =
                 "This is place for proposing future election themes, I'll take random one on every 1st and 15th day of the month and start election\n\n" +
                 $"You can add theme using command:\n`{CommandHandlerAttribute.CommandStarter}add theme <name>\\n<description>`\n\n" +
-                "Each theme needs to be approved by at least 3 people using reactions, once you approve something it cannot be undone. " +
+                $"Each theme needs to be approved by at least {ApprovalsCount} people using reactions, once you approve something it cannot be undone. " +
                 "Every person can add up to 3 themes. " +
-                "If theme doersn't get 3 approvals it will be deleted after a week.";
+                $"If theme doersn't get {ApprovalsCount} approvals it will be deleted after a week.";
                 
             embed.Color = DiscordColor.Gray;
             embed.AddField(NextElectionKey, $"{channel.NextElection} *({(channel.NextElection - DateTime.UtcNow).Days} days)*");

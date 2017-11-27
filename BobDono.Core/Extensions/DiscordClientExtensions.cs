@@ -74,7 +74,6 @@ namespace BobDono.Core.Extensions
 #else
             return user.Id == 377859054464401408; //bob
 #endif
-
         }
 
         public static bool IsAuthenticated(this DiscordUser user)
