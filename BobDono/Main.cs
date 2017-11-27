@@ -68,10 +68,10 @@ namespace BobDono
 
 
 
-            await _client.UpdateStatusAsync(new DiscordGame("b/bob for help"), UserStatus.Online);
+            await _client.UpdateStatusAsync(new DiscordGame("b/help for no help"), UserStatus.Online);
             _client.Resumed += async args =>
             {
-                await _client.UpdateStatusAsync(new DiscordGame("b/bob for help"), UserStatus.Online);
+                await _client.UpdateStatusAsync(new DiscordGame("b/help for no help"), UserStatus.Online);
             };
          
             if (_client.Guilds.Count > 2)

@@ -47,7 +47,7 @@ namespace BobDono.DataAccess.Services
 #if DEBUG
             private const ulong MyId = 343050467879813140; //ranko
 #else
-            private const ulong MyId == 377859054464401408; //bob
+            private const ulong MyId = 377859054464401408; //bob
 #endif
 
         public async Task<User> GetBobUser()

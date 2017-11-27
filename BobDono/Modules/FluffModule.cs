@@ -101,6 +101,8 @@ namespace BobDono.Modules
 
                     try
                     {
+                        await args.Channel.TriggerTypingAsync();
+
                         using (var client = new HttpClient())
                         {
                             var lang = args.Message.Content.Contains("en") ? "eng" : "jpn";
@@ -140,7 +142,7 @@ namespace BobDono.Modules
                 }
                 else
                 {
-                    await args.Channel.SendMessageAsync($"!tr {ocrText}");
+                    await args.Channel.SendMessageAsync($"{(args.Message.Content.Contains("en") ? "" : "!tr ")}{ocrText}");
                 }
             }
             catch (Exception e)
