@@ -260,5 +260,7 @@ paket-files/
 __pycache__/
 *.pyc
 
+BobDono/EasterAssets/*
+BobDono/Modules/EasterEggModule.cs
 BobDono.Models/Secrets.cs
 BobDono/bob.db

@@ -12,11 +12,13 @@ namespace BobDono.Core.Extensions
         public enum ChannelCategory
         {
             Elections,
-            ElectionsMeta
+            ElectionsMeta,
+            Matchups
         }
 
         public const string ElectionsCategoryName = "Elections";
         public const string ElectionsMetaCategoryName = "ElectionsMeta";
+        public const string MatchupsCategoryName = "Matchups";
 
         private static DiscordGuild _nullsGuild;
         private static Dictionary<ChannelCategory, DiscordChannel> _categoryChannels = new Dictionary<ChannelCategory, DiscordChannel>();
@@ -46,6 +48,9 @@ namespace BobDono.Core.Extensions
                     break;
                 case ChannelCategory.ElectionsMeta:
                     key = ElectionsMetaCategoryName;
+                    break;
+                case ChannelCategory.Matchups:
+                    key = MatchupsCategoryName;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(category), category, null);

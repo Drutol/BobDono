@@ -47,5 +47,19 @@ namespace BobDono.Modules
         {
             await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/shrug.png");
         }
+
+        [CommandHandler(Regex = "cry", HumanReadableCommand = "shrug", HelpText = "That's serious cry don't overuse it...")]
+        public async Task Cry(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            if (args.Author.Id == 202501452596379648) //fox
+            {
+                await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/lolicry.png");
+            }
+            else
+            {
+                await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/cry.png");
+            }
+
+        }
     }
 }

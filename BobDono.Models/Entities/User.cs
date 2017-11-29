@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using BobDono.Models.Entities.JoinEntities;
 using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Models.Entities
@@ -26,6 +27,8 @@ namespace BobDono.Models.Entities
         public virtual ICollection<UserWaifu> Waifus { get; set; }
         public virtual ICollection<Vote> Votes { get; set; }
         public virtual ICollection<UserTheme> ElectionThemes { get; set; }
+        public virtual ICollection<UserMatchup> MatchupsParticipatingIn { get; set; }
+        public virtual ICollection<Matchup> CreatedMatchups { get; set; }
 
         public TrueWaifu TrueWaifu { get; set; }
 
@@ -42,6 +45,10 @@ namespace BobDono.Models.Entities
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Votes)
                 .WithOne(vote => vote.User);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.CreatedMatchups)
+                .WithOne(m => m.Author);
         }
     }
 }

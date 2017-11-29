@@ -56,12 +56,14 @@ namespace BobDono.DataAccess.Database
         private IEnumerable<Type> GetClassesFromNamespace()
         {
             var @interface = typeof(IModelWithRelation);
-            string @namespace = "BobDono.Models.Entities";
-            string @namespace2 = "BobDono.Models.MalHell";
+            var namespaces = new[]
+            {
+                "BobDono.Models.Entities", "BobDono.Models.MalHell", "BobDono.Models.Entities.JoinEntities"
+            };
 
             return Assembly.GetAssembly(typeof(UserWaifu))
                 .GetTypes()
-                .Where(t => t.IsClass && (t.Namespace == @namespace || t.Namespace == @namespace2) && @interface.IsAssignableFrom(t));
+                .Where(t => t.IsClass && namespaces.Any(n => n.Equals(t.Namespace)) && @interface.IsAssignableFrom(t));
         }
 
     }

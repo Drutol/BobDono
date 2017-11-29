@@ -8,6 +8,8 @@ namespace BobDono.Models.Entities
     {
         public long Id { get; set; }
 
+        public Matchup Matchup { get; set; }
+
         public User First { get; set; }
         public User Second { get; set; }
 

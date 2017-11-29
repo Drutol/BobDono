@@ -138,7 +138,7 @@ namespace BobDono.Modules
 
                 if (string.IsNullOrEmpty(ocrText))
                 {
-                    await args.Channel.SendMessageAsync("I'm unable to read your doodly thingies.");
+                    await args.Channel.SendMessageAsync("I'm unable to read your doodly thingies. Don't worry, it's still art... it's just... special.");
                 }
                 else
                 {
