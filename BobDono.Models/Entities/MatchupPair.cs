@@ -7,6 +7,8 @@ namespace BobDono.Models.Entities
     public class MatchupPair
     {
         public long Id { get; set; }
+        public long DiscordMessageId { get; set; }
+        public int Number { get; set; }
 
         public Matchup Matchup { get; set; }
 
@@ -18,5 +20,6 @@ namespace BobDono.Models.Entities
 
         public DateTime FirstParticipantsChallengeCompletionDate { get; set; }
         public DateTime SecondParticipantsChallengeCompletionDate { get; set; }
+
     }
 }

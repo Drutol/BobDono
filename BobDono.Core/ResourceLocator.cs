@@ -41,6 +41,7 @@ namespace BobDono.Core
             builder.RegisterType<HallOfFameMemberService>().As<IHallOfFameMemberService>().SingleInstance();
             builder.RegisterType<HallOfFameChannelService>().As<IHallOfFameChannelService>().SingleInstance();
             builder.RegisterType<ElectionThemeService>().As<IElectionThemeService>().SingleInstance();
+            builder.RegisterType<MatchupService>().As<IMatchupService>().SingleInstance();
             builder.RegisterType<ElectionThemesChannelService>().As<IElectionThemesChannelService>().SingleInstance();
             builder.RegisterType<ExceptionReportsService>().As<IExceptionReportsService>().SingleInstance();
             builder.RegisterType<CharacterDetailsQuery>().As<ICharacterDetailsQuery>().SingleInstance();
@@ -51,7 +52,7 @@ namespace BobDono.Core
 
             builder.RegisterType<CommandExecutionContext>().As<ICommandExecutionContext>();
 
-            builder.RegisterInstance(client).As<DiscordClient>().SingleInstance();
+            builder.RegisterInstance(client).As<DiscordClient>().As<CustomDiscordClient>().SingleInstance();
 
 
 

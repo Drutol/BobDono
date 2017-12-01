@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Models.Entities.JoinEntities
 {
-    public class UserMatchup
+    public class UserMatchup : IModelWithRelation
     {
         public long UserId { get; set; }
         public User User { get; set; }

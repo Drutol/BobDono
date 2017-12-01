@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -27,7 +28,6 @@ namespace BobDono.Modules
         private readonly IBotContext _botContext;
         private readonly IExceptionHandler _exceptionHandler;
 
-
         public List<MatchupContext> MatchupContexts { get; set; } = new List<MatchupContext>();
 
         public MatchupModule(IUserService userService, IMatchupService matchupService, IBotContext botContext, IExceptionHandler exceptionHandler)
@@ -36,9 +36,34 @@ namespace BobDono.Modules
             _matchupService = matchupService;
             _botContext = botContext;
             _exceptionHandler = exceptionHandler;
+
+            InitializeExistingElections();
         }
 
-        [CommandHandler]
+        private void InitializeExistingElections()
+        {
+            using (var dependencyScope = ResourceLocator.ObtainScope())
+            using (var electionService = _matchupService.ObtainLifetimeHandle(ResourceLocator.ExecutionContext))
+            {
+                foreach (var matchup in electionService.GetAll()
+                    .Where(matchup => matchup.CurrentState < Matchup.State.Finished))
+                {
+                    try
+                    {
+                        MatchupContexts.Add(
+                            dependencyScope.Resolve<MatchupContext>(new TypedParameter(typeof(Matchup),
+                                matchup)));
+                    }
+                    catch (Exception)
+                    {
+                        //we will mark it as closed
+                        matchup.CurrentState = Matchup.State.ClosedForcibly;
+                    }
+                }
+            }
+        }
+
+        [CommandHandler(Regex = "matchup create",Awaitable = false,HumanReadableCommand = "matchup create",HelpText = "Creates new matchup.")]
         public async Task CreateNewMatchup(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
@@ -132,7 +157,7 @@ namespace BobDono.Modules
 
 
                         matchup.Author = user;
-
+                        matchupService.Add(matchup);
                     }
                     catch (OperationCanceledException)
                     {
@@ -153,10 +178,10 @@ namespace BobDono.Modules
                 {
                     using (var dependencyScope = ResourceLocator.ObtainScope())
                     {
-                        var electionContext = dependencyScope.Resolve<MatchupContext>(new TypedParameter(
+                        var matchupContext = dependencyScope.Resolve<MatchupContext>(new TypedParameter(
                             typeof(Matchup),matchup));
-                        electionContext.OnCreated();
-                        MatchupContexts.Add(electionContext);
+                        matchup.OpeningMessageId = await matchupContext.OnCreate(matchup);
+                        MatchupContexts.Add(matchupContext);
                     }
                 }
                 catch (Exception e)

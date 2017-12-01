@@ -30,9 +30,9 @@ namespace BobDono.Modules
                     continue;
 
                 builder.AddField(module.Key.Name,
-                    $"{module.Key.Description ?? " "}\n{string.Join(",", module.Value.Where(attribute => !attribute.Debug && !attribute.FallbackCommand).Select(attribute => $"`{attribute.HumanReadableCommand}`"))}\n");
+                    $"{string.Join(",", module.Value.Where(attribute => !attribute.Debug && !attribute.FallbackCommand && !attribute.Hidden).Select(attribute => $"`{attribute.HumanReadableCommand}`"))}\n");
             }
-
+            //{module.Key.Description ?? " "}\n
             var about = "\n" +
                         $"You can call `{CommandHandlerAttribute.CommandStarter}help <command>` to get more info.";
 

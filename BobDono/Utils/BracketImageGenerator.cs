@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Pens;
-using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Helpers;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.Primitives;
 
-namespace BobDono.Controllers
+namespace BobDono.Utils
 {
     public static class BracketImageGenerator
     {

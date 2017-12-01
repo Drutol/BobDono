@@ -11,7 +11,8 @@ namespace BobDono.Models.Entities
 
         public long Id { get; set; }
         public string Name { get; set; }
-
+        public string AvatarUrl { get; set; }
+        
         public long _discordId { get; set; }
         [NotMapped]
         public ulong DiscordId
@@ -31,6 +32,7 @@ namespace BobDono.Models.Entities
         public virtual ICollection<Matchup> CreatedMatchups { get; set; }
 
         public TrueWaifu TrueWaifu { get; set; }
+
 
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {

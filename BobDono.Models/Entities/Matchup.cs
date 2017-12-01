@@ -12,11 +12,13 @@ namespace BobDono.Models.Entities
         {
             Submissions,
             Running,
-            Finished
+            Finished,
+            ClosedForcibly
         }
 
         public long Id { get; set; }
         public long DiscordChannelId { get; set; }
+        public long OpeningMessageId { get; set; }
 
         public User Author { get; set; }
 

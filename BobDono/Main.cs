@@ -137,6 +137,8 @@ namespace BobDono
                             continue;
                         if (ResourceLocator.BotBackbone.Modules[typeof(HallOfFameContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
                             continue;
+                        if (ResourceLocator.BotBackbone.Modules[typeof(MatchupContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
+                            continue;
 
                         if (handlerEntry.Predicates.All(predicate =>
                             predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs)))

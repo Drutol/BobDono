@@ -26,6 +26,8 @@ namespace BobDono.DataAccess.Services
         {
             var user = await FirstAsync(u => u.DiscordId == discordUser.Id);
 
+            user.AvatarUrl = discordUser.AvatarUrl;
+
             if (user != null)
                 return user;
 

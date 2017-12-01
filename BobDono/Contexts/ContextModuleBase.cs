@@ -20,6 +20,7 @@ namespace BobDono.Contexts
 
         protected ContextModuleBase(ulong channelId)
         {
+            ChannelIdContext = channelId;
             ContextChannels.Add(channelId);
             ResourceLocator.BotBackbone.Modules[GetType()].Contexts.Add(this);
         }
@@ -30,8 +31,16 @@ namespace BobDono.Contexts
 
             foreach (var message in messages)
             {
-                if (!message.Author.IsMe())
-                    await message.DeleteAsync();
+                try
+                {
+                    if (!message.Author.IsMe())
+                        await message.DeleteAsync();
+                }
+                catch
+                {
+
+                }
+
             }
         }
     }
