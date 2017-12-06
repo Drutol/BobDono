@@ -87,9 +87,16 @@ namespace BobDono.Controllers
                 var embed = new DiscordEmbedBuilder
                 {
                     Color = DiscordColor.Chartreuse,
-                    Title = $"Pair #{matchupPair.Number} - {matchupPair.First.Name} & {matchupPair.Second.Name}",
-                    Author = new DiscordEmbedBuilder.EmbedAuthor {Url = matchupPair.First.AvatarUrl},
-                    Footer = new DiscordEmbedBuilder.EmbedFooter {IconUrl = matchupPair.Second.AvatarUrl}
+                    Author = new DiscordEmbedBuilder.EmbedAuthor
+                    {
+                        IconUrl = matchupPair.First.AvatarUrl,
+                        Name = matchupPair.First.Name
+                    },
+                    Footer = new DiscordEmbedBuilder.EmbedFooter
+                    {
+                        IconUrl = matchupPair.Second.AvatarUrl,
+                        Text = matchupPair.Second.Name
+                    }
                 };
 
                 embed.AddField($"{matchupPair.First.Name}'s assigned challenge:", "N/A");
@@ -118,9 +125,6 @@ namespace BobDono.Controllers
             var message = await _channel.GetMessageAsync((ulong)pair.DiscordMessageId);
 
             var embed = new DiscordEmbedBuilder(message.Embeds.First());
-
-            embed.Author = new DiscordEmbedBuilder.EmbedAuthor {IconUrl = pair.First.AvatarUrl, Name = pair.First.Name};
-            embed.Footer = new DiscordEmbedBuilder.EmbedFooter {IconUrl = pair.Second.AvatarUrl, Text = pair.Second.Name};
 
             embed.Fields.First().Value = pair.FirstParticipantsChallenge ?? "N/A";
             embed.Fields.Last().Value = pair.SecondParticipantsChallenge ?? "N/A";

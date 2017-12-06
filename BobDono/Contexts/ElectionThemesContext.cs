@@ -134,10 +134,11 @@ namespace BobDono.Contexts
                     Name = randomTheme.Title,
                     Description = randomTheme.Description,
                     SubmissionsStartDate = DateTime.UtcNow,
-                    SubmissionsEndDate = DateTime.Today.AddHours(DateTime.UtcNow.Hour + 1).AddDays(3),
+                    SubmissionsEndDate = DateTime.Today.AddHours(DateTime.UtcNow.Hour + 1).AddDays(2),
                     EntrantsPerUser = 2,
+                    FeatureImageRequired = true,
                 };
-                election.VotingStartDate = election.VotingStartDate.AddHours(2);
+                election.VotingStartDate = election.SubmissionsEndDate.AddHours(2);
 
                 var guild = _discordClient.GetNullsGuild();
                 var category = await guild.GetCategoryChannel(DiscordClientExtensions.ChannelCategory.Elections);

@@ -159,6 +159,18 @@ namespace BobDono.Modules
                         }
                         election.EntrantsPerUser = submissionCount;
 
+                        election.FeatureImageRequired = await channel.GetNextValidResponse(
+                            "Are feature imges for contenders obligatory? (y/n)",
+                            async s =>
+                            {
+                                if (s == "y")
+                                    return true;
+                                if (s == "n")
+                                    return false;
+                                throw new Exception();
+                            }, timeout, cts.Token);
+
+
                         await channel.SendMessageAsync(
                             "That'd be everything I guess, let the wars begin. I'll now create a new battlefield!");
                         try

@@ -131,6 +131,13 @@ namespace BobDono.Contexts
                                 if (arguments[4].IsLink())
                                     feature = arguments[4];
                             }
+                            else if (_election.FeatureImageRequired)
+                            {
+                                await args.Channel.SendTimedMessage(
+                                    "This election requires you to provide feature image for your contender... put some heart into it...\nThis message will self destruct in 10 seconds so copy your previous command.",TimeSpan.FromSeconds(10));
+                                await args.Message.DeleteAsync();
+                                return;
+                            }
 
                             var waifu = await waifuService.GetOrCreateWaifu(arguments[2]);
                             var contender = contenderService.CreateContender(user, waifu, _election);
@@ -138,12 +145,19 @@ namespace BobDono.Contexts
                             contender.CustomImageUrl = thumb;
 
                             _election = await electionService.GetElection(_election.Id);
-
-                            contender.SubmissionEmbedId =
-                                (long)(await args.Channel.SendMessageAsync(null, false, contender.GetEmbed())).Id;
-
                             _controller.Election = _election;
-                            _controller.UpdateOpeningMessage();
+                            try
+                            {
+                                contender.SubmissionEmbedId =
+                                    (long)(await args.Channel.SendMessageAsync(null, false, contender.GetEmbed())).Id;
+                                _controller.UpdateOpeningMessage();
+                            }
+                            catch (Exception e)
+                            {
+                                //shouldn't happen but
+                                _exceptionHandler.Handle(e, args);
+                            }
+
                         }
                     }
                     await args.Message.DeleteAsync();
@@ -399,7 +413,7 @@ namespace BobDono.Contexts
             try
             {
                 var param = args.Message.Content.Split(' ');
-                var id = int.Parse(param[1]);
+                var id = long.Parse(param[1]);
 
                 await (await args.Channel.GetMessageAsync((ulong) id)).DeleteAsync();
             }

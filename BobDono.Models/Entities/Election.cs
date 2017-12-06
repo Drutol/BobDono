@@ -68,6 +68,7 @@ namespace BobDono.Models.Entities
         public string Name { get; set; }
         public string Description { get; set; }
         public int EntrantsPerUser { get; set; }
+        public bool FeatureImageRequired { get; set; }
 
         public DateTime SubmissionsStartDate { get; set; }
         public DateTime SubmissionsEndDate { get; set; }
