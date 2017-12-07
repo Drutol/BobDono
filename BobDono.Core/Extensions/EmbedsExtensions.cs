@@ -19,7 +19,7 @@ namespace BobDono.Core.Extensions
 
             var builder = new DiscordEmbedBuilder
             {
-                Author = new DiscordEmbedBuilder.EmbedAuthor {Name = contender.Proposer.Name},
+                Author = new DiscordEmbedBuilder.EmbedAuthor {Name = contender.Proposer.Name, IconUrl = contender.Proposer.AvatarUrl},
                 Color = DiscordColor.Gray,
                 Description = content,
                 ThumbnailUrl = contender.CustomImageUrl ?? contender.Waifu.ImageUrl,

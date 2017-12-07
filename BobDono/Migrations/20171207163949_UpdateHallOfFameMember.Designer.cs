@@ -12,9 +12,10 @@ using System;
 namespace BobDono.Migrations
 {
     [DbContext(typeof(BobDatabaseContext))]
-    partial class BobDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20171207163949_UpdateHallOfFameMember")]
+    partial class UpdateHallOfFameMember
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

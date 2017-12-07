@@ -19,7 +19,7 @@ namespace BobDono.DataAccess.Extensions
                     .ThenInclude(contenders => contenders.Proposer)             
                 .Include(election => election.BracketStages)
                     .ThenInclude(s => s.Brackets)
-                    .ThenInclude(bracket => bracket.Votes)   
+                    .ThenInclude(bracket => bracket.Votes)  
                 .Include(election => election.BracketStages)
                     .ThenInclude(s => s.Brackets)
                     .ThenInclude(bracket => bracket.Votes)

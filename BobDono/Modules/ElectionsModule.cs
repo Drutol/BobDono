@@ -112,7 +112,7 @@ namespace BobDono.Modules
                             async s =>
                             {
                                 s = s.Replace(" ", "-");
-                                if (s.Length >= 2 && Regex.IsMatch(s, "^[a-zA-Z0-9_-]*$"))
+                                if (s.Length >= 2 && Regex.IsMatch(s, "^[a-zA-Z0-9_-]*$") && s.Length <= 28)
                                     return s;
                                 return null;
                             }, timeout, cts.Token);
