@@ -8,7 +8,9 @@ using BobDono.Core.Extensions;
 using BobDono.Interfaces;
 using BobDono.Interfaces.Services;
 using BobDono.Models.Entities;
+using DSharpPlus;
 using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Controllers
 {
@@ -16,21 +18,32 @@ namespace BobDono.Controllers
     {
         private readonly DiscordChannel _channel;
         private readonly IMatchupService _matchupService;
+        private readonly DiscordClient _discordClient;
 
         public Matchup Matchup { get; set; }
 
-        public MatchupController(Matchup matchup, DiscordChannel channel, IMatchupService  matchupService)
+        public MatchupController(Matchup matchup, DiscordChannel channel, IMatchupService  matchupService, DiscordClient discordClient)
         {
             Matchup = matchup;
 
             _channel = channel;
             _matchupService = matchupService;
+            _discordClient = discordClient;
         }
 
         public async Task ProcessTimePass(ICommandExecutionContext context)
         {
             using (var matchupService = _matchupService.ObtainLifetimeHandle(context))
             {
+                matchupService.ConfigureIncludes()
+                    .WithChain(query =>
+                    {
+                        return query.Include(m => m.MatchupPairs)
+                            .ThenInclude(p => p.First)
+                            .Include(m => m.MatchupPairs)
+                            .ThenInclude(p => p.Second)
+                            .Include(m => m.Participants).ThenInclude(p => p.User);
+                    }).Commit();
                 Matchup = await matchupService.GetMatchup(Matchup.Id);
 
                 switch (Matchup.CurrentState)
@@ -42,6 +55,7 @@ namespace BobDono.Controllers
                         }
                         break;
                     case Matchup.State.Running:
+                        await NotifySlackers();
                         if (DateTime.UtcNow > Matchup.ChallengesEndDate)
                         {
                             await TransitionToClosed();
@@ -51,11 +65,64 @@ namespace BobDono.Controllers
             }
         }
 
+        private async Task NotifySlackers()
+        {
+            if ((Matchup.ChallengesEndDate - DateTime.UtcNow).Hours == 24)
+            {
+                foreach (var pair in Matchup.MatchupPairs)
+                {
+                    if (pair.FirstParticipantsChallengeCompletionDate == default)
+                    {
+                        await NotifyUser(pair.First.DiscordId);
+                    }
+
+                    if (pair.SecondParticipantsChallengeCompletionDate == default)
+                    {
+                        await NotifyUser(pair.Second.DiscordId);
+                    }
+                }
+            }
+
+            async Task NotifyUser(ulong id)
+            {
+                var channel =
+                    await _discordClient.CreateDmAsync(await _discordClient.GetNullsGuild()
+                        .GetMemberAsync(id));
+                await channel.SendMessageAsync(
+                    $"Hey! Be sure to mark your challenge as completed in <#{Matchup.DiscordChannelId}>!");
+            }
+        }
+
         public async Task TransitionToClosed()
         {
             Matchup.CurrentState = Matchup.State.Finished;
 
-            await _channel.SendMessageAsync("That would be it... hope you had fun!");
+            var shameList = new List<string>();
+
+            foreach (var pair in Matchup.MatchupPairs)
+            {
+                if (pair.FirstParticipantsChallengeCompletionDate == default && 
+                    pair.FirstParticipantsChallenge != null)
+                {
+                    shameList.Add($"**{pair.First.Name}**\n{pair.FirstParticipantsChallenge}\n\n");
+                }
+
+                if (pair.SecondParticipantsChallengeCompletionDate == default &&
+                    pair.SecondParticipantsChallenge != null)
+                {
+                    shameList.Add($"**{pair.Second.Name}**\n{pair.SecondParticipantsChallenge}\n\n");
+                }
+            }
+            if (shameList.Any())
+            {
+                await _channel.SendMessageAsync(
+                    $"It looks like some people didn't complete their challenges...\n:bell::bell::bell:\n\n{string.Concat(shameList)}".Trim());
+            }
+            else
+            {
+                await _channel.SendMessageAsync("That would be it... everybody completed their challenges! Splendid!");
+            }
+
         }
 
         public async Task TransitionToRunning()
@@ -125,6 +192,19 @@ namespace BobDono.Controllers
             var message = await _channel.GetMessageAsync((ulong)pair.DiscordMessageId);
 
             var embed = new DiscordEmbedBuilder(message.Embeds.First());
+
+            if (pair.FirstParticipantsChallengeCompletionDate != default)
+            {
+                if(!embed.Fields.First().Name.Contains(":white_check_mark:"))
+                    embed.Fields.First().Name += " :white_check_mark:";
+            }
+
+            if (pair.SecondParticipantsChallengeCompletionDate != default)
+            {
+                if (!embed.Fields.Last().Name.Contains(":white_check_mark:"))
+                    embed.Fields.Last().Name += " :white_check_mark:";
+            }
+
 
             embed.Fields.First().Value = pair.FirstParticipantsChallenge ?? "N/A";
             embed.Fields.Last().Value = pair.SecondParticipantsChallenge ?? "N/A";

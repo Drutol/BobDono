@@ -27,6 +27,7 @@ namespace BobDono.Contexts
         public const string ParticipantsKey = "Participants";
         public const string SubmissionsUntilKey = "Entry period";
         public const string ChallengeDurationPeriod = "Challenge duration";
+        public const string DescriptionKey = ":book: Matchup Description :book:";
 
         private readonly CustomDiscordClient _discordClient;
         private readonly IMatchupService _matchupService;
@@ -39,7 +40,7 @@ namespace BobDono.Contexts
 
         private readonly MatchupController _controller;
 
-        public MatchupContext(Matchup matchup, CustomDiscordClient discordClient, IMatchupService matchupService,
+        public MatchupContext(Matchup matchup, DiscordChannel channel, CustomDiscordClient discordClient, IMatchupService matchupService,
             IExceptionHandler exceptionHandler, IUserService userService) : base(
             (ulong) matchup.DiscordChannelId)
         {
@@ -48,14 +49,8 @@ namespace BobDono.Contexts
             _matchupService = matchupService;
             _exceptionHandler = exceptionHandler;
             _userService = userService;
-
-            var guild = ResourceLocator.DiscordClient.GetNullsGuild();
-            Channel = _discordClient.GetChannel(guild, (ulong) matchup.DiscordChannelId);
-
-            _controller = new MatchupController(matchup, Channel, _matchupService);
-
-            if (Channel == null)
-                throw new InvalidOperationException("Discord channel is invalid");
+            _controller = new MatchupController(matchup, channel, _matchupService, discordClient);
+            Channel = channel;
 
             TimerService.Instance.Register(new TimerService.TimerRegistration
             {
@@ -94,7 +89,7 @@ namespace BobDono.Contexts
 
                     matchupService.ConfigureIncludes().WithChain(query => query.Include(m => m.Participants).ThenInclude(um => um.User)).Commit();
                     _matchup = await matchupService.GetMatchup(_matchup.Id);
-                    _controller.Matchup = _matchup;
+
 
                     if (_matchup.Participants.Any(participant => participant.User.Equals(user)))
                     {
@@ -103,7 +98,7 @@ namespace BobDono.Contexts
                     }
 
                     _matchup.Participants.Add(new UserMatchup { Matchup = _matchup, User = user });
-
+                    _controller.Matchup = _matchup;
                     await _controller.UpdateOpeningMessage();
                 }
                 finally
@@ -151,7 +146,7 @@ namespace BobDono.Contexts
             }
         }
 
-        [CommandHandler(Regex = @"challenge .*", HumanReadableCommand = "challenge", HelpText = "Adds challenge for your pair.")]
+        [CommandHandler(Regex = @"challenge .*", HumanReadableCommand = "challenge <challengeContent>", HelpText = "Adds challenge for your pair.")]
         public async Task Challenge(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
@@ -196,13 +191,29 @@ namespace BobDono.Contexts
 
                     var isFirst = pair.First.Equals(user);
 
+                    ulong userToMessage = 0;
                     if (isFirst)
                     {
+                        if (pair.SecondParticipantsChallenge == null)
+                            userToMessage = pair.Second.DiscordId;
                         pair.SecondParticipantsChallenge = message;
                     }
                     else
                     {
+                        if (pair.FirstParticipantsChallenge == null)
+                            userToMessage = pair.First.DiscordId;
                         pair.FirstParticipantsChallenge = message;
+                    }
+
+
+                    //message user
+                    if (userToMessage > 0)
+                    {
+                        var channel =
+                            await _discordClient.CreateDmAsync(await _discordClient.GetNullsGuild()
+                                .GetMemberAsync(userToMessage));
+                        await channel.SendMessageAsync(
+                            $"Hey! There's a challenge waiting for you in <#{_matchup.DiscordChannelId}>!");
                     }
 
                     await _controller.UpdatePairMessage(pair);
@@ -215,7 +226,79 @@ namespace BobDono.Contexts
             }
         }
 
+        [CommandHandler(Regex = @"completed",HumanReadableCommand = "completed",HelpText = "Marks your challenge as completed.")]
+        public async Task CompleteChallenge(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+            using (var matchupService = _matchupService.ObtainLifetimeHandle(executionContext))
+            {
+                try
+                {
+                    matchupService.ConfigureIncludes()
+                        .WithChain(query =>
+                        {
+                            return query.Include(m => m.MatchupPairs)
+                                .ThenInclude(p => p.First)
+                                .Include(m => m.MatchupPairs)
+                                .ThenInclude(p => p.Second);
+                        }).Commit();
+                    _matchup = await matchupService.GetMatchup(_matchup.Id);
+                    _controller.Matchup = _matchup;
 
+                    if (_matchup.CurrentState != Matchup.State.Running)
+                        return;
+
+                    var user = await userService.GetOrCreateUser(args.Author);
+
+                    var pair = _matchup.MatchupPairs.FirstOrDefault(participant =>
+                        participant.First.Equals(user) || participant.Second.Equals(user));
+
+                    if (pair == null)
+                    {
+                        await Channel.SendTimedMessage("You didn't even sign up for this matchup!");
+                        return;
+                    }
+
+                    var isFirst = pair.First.Equals(user);
+
+                    if (isFirst)
+                    {
+                        if (pair.FirstParticipantsChallenge != null)
+                        {
+                            if (pair.FirstParticipantsChallengeCompletionDate == default)
+                                pair.FirstParticipantsChallengeCompletionDate = DateTime.UtcNow;
+                        }
+                        else
+                        {
+                            await Channel.SendTimedMessage(
+                                "Tell me more about it... what did you complete specifically?");
+                            return;
+                        }
+
+                    }
+                    else
+                    {
+                        if (pair.SecondParticipantsChallenge != null)
+                        {
+                            if (pair.SecondParticipantsChallengeCompletionDate == default)
+                                pair.SecondParticipantsChallengeCompletionDate = DateTime.UtcNow;
+                        }
+                        else
+                        {
+                            await Channel.SendTimedMessage(
+                                "Tell me more about it... what's did you complete specifically?");
+                            return;
+                        }
+                    }
+
+                    await _controller.UpdatePairMessage(pair);
+                }
+                finally
+                {
+                    await args.Message.DeleteAsync();
+                }
+            }
+        }
 
         [CommandHandler(Regex = @"start", Debug = true)]
         public async Task Start(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
@@ -242,6 +325,15 @@ namespace BobDono.Contexts
             using (var matchupService = _matchupService.ObtainLifetimeHandle(executionContext))
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             {
+                matchupService.ConfigureIncludes()
+                    .WithChain(query =>
+                    {
+                        return query.Include(m => m.MatchupPairs)
+                            .ThenInclude(p => p.First)
+                            .Include(m => m.MatchupPairs)
+                            .ThenInclude(p => p.Second)
+                            .Include(m => m.Participants).ThenInclude(p => p.User);
+                    }).Commit();
                 _controller.Matchup = await matchupService.GetMatchup(_matchup.Id);
                 await _controller.TransitionToClosed();
             }
@@ -269,13 +361,17 @@ namespace BobDono.Contexts
                 $"You can also stop participating:\n" +
                 $"`{CommandHandlerAttribute.CommandStarter}ormaybenot`\n\n" +
                 $"Once entance period has finished you can assign a challenge to your pair using command:\n" +
-                $"`{CommandHandlerAttribute.CommandStarter}challenge <challenge>`\n\n" +
+                $"`{CommandHandlerAttribute.CommandStarter}challenge <challenge>`\n\n" +    
+                $"You can mark your own challenge as completed using command:\n" +
+                $"`{CommandHandlerAttribute.CommandStarter}completed`\n\n" +
                 $"I'm assuming we are well behaved individuals so let's have fun with broadening eachothers' ~~sh^t~~ unripe tastes.";
 
             embed.Color = DiscordColor.Gray;
             embed.AddField(ParticipantsKey, "-");
             embed.AddField(SubmissionsUntilKey, $"{DateTime.UtcNow} - {matchup.SignupsEndDate}");
             embed.AddField(ChallengeDurationPeriod, $"{(matchup.ChallengesEndDate - matchup.SignupsEndDate).Days} days");
+
+            embed.AddField(DescriptionKey, matchup.Description);
 
             return (long)(await Channel.SendMessageAsync(null, false, embed.Build())).Id;
         }

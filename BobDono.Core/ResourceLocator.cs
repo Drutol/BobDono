@@ -56,10 +56,17 @@ namespace BobDono.Core
 
 
 
-            foreach (var type in types.Union(BL.BotBackbone.GetModules()))
-            {
+            foreach (var type in types)          
                 builder.RegisterType(type).SingleInstance();
+
+            foreach (var type in BL.BotBackbone.GetModules())
+            {
+                if (type.attr.IsChannelContextual)
+                    builder.RegisterType(type.type);
+                else
+                    builder.RegisterType(type.type).SingleInstance();
             }
+
 
             _container = builder.Build().BeginLifetimeScope();
         }

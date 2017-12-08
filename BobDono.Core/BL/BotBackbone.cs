@@ -96,7 +96,7 @@ namespace BobDono.Core.BL
             _botContext.Commands = dict;
         }
 
-        public static IEnumerable<Type> GetModules()
+        public static IEnumerable<(Type type, ModuleAttribute attr)> GetModules()
         {
             var assembly = Assembly.GetEntryAssembly();
             List<(ModuleAttribute attr, Type module)> modules =
@@ -105,7 +105,7 @@ namespace BobDono.Core.BL
             {
                 var attr = type.GetTypeInfo().GetCustomAttribute<ModuleAttribute>();
                 if (attr != null)
-                    yield return type;
+                    yield return (type,attr);
             }
         }
     }

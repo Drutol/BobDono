@@ -18,6 +18,7 @@ using BobDono.Models.Entities;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.Contexts
 {
@@ -37,16 +38,18 @@ namespace BobDono.Contexts
         private readonly IUserService _userService;
         private readonly IContenderService _contenderService;
         private readonly IExceptionHandler _exceptionHandler;
+        private readonly IHallOfFameMemberService _hallOfFameMemberService;
         private TimerService.TimerRegistration _timerRegistration;
 
         public ElectionContext(Election election,DiscordClient discordClient, IWaifuService waifuService, IElectionService electionService,
-            IUserService userService, IContenderService contenderService, IExceptionHandler exceptionHandler) : base(election.DiscordChannelId)
+            IUserService userService, IContenderService contenderService, IExceptionHandler exceptionHandler, IHallOfFameMemberService hallOfFameMemberService) : base(election.DiscordChannelId)
         {
             _waifuService = waifuService;
             _electionService = electionService;
             _userService = userService;
             _contenderService = contenderService;
             _exceptionHandler = exceptionHandler;
+            _hallOfFameMemberService = hallOfFameMemberService;
 
             _election = election;
             _discordClient = discordClient as CustomDiscordClient;
@@ -92,6 +95,7 @@ namespace BobDono.Contexts
                 using (var contenderService = _contenderService.ObtainLifetimeHandle(executionContext))
                 using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
                 using (var waifuService = _waifuService.ObtainLifetimeHandle(executionContext))
+                using (var hallOfFameMemberService = _hallOfFameMemberService.ObtainLifetimeHandle(executionContext))
                 {
                     _election = await electionService.GetElection(_election.Id);
                     if (_election.CurrentState == Election.State.Submission)
@@ -102,13 +106,19 @@ namespace BobDono.Contexts
                         var arguments = args.Message.Content.Split(' ');
 
                         var malId = arguments[2];
-
+                        hallOfFameMemberService.ConfigureIncludes().WithChain(query => query.Include(member => member.Contender.Waifu)).Commit();
+                        
                         //check if user didn't create more then he should be able to
                         if (count >= _election.EntrantsPerUser)
                         {
                             await args.Channel.SendTimedMessage($"You have already added {count} contestants.");
                         }
-                        else if (_election.Contenders.Any(contender => contender.Waifu.MalId == malId))
+                        else if(await hallOfFameMemberService.FirstAsync(member => member.Contender.Waifu.MalId == malId) != null)
+                        {
+                            await args.Channel.SendTimedMessage(
+                                "This contender has already won an election.");
+                        }
+                        else if (_election.Contenders?.Any(contender => contender.Waifu.MalId == malId) ?? false)
                         {
                             await args.Channel.SendTimedMessage(
                                 "This contender has been already proposed by someone else.");

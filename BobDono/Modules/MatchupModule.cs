@@ -16,6 +16,7 @@ using BobDono.Interfaces;
 using BobDono.Interfaces.Services;
 using BobDono.Models.Entities;
 using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
 namespace BobDono.Modules
@@ -24,15 +25,17 @@ namespace BobDono.Modules
     public class MatchupModule
     {
         private readonly IUserService _userService;
+        private readonly CustomDiscordClient _customDiscordClient;
         private readonly IMatchupService _matchupService;
         private readonly IBotContext _botContext;
         private readonly IExceptionHandler _exceptionHandler;
 
         public List<MatchupContext> MatchupContexts { get; set; } = new List<MatchupContext>();
 
-        public MatchupModule(IUserService userService, IMatchupService matchupService, IBotContext botContext, IExceptionHandler exceptionHandler)
+        public MatchupModule(IUserService userService, CustomDiscordClient customDiscordClient, IMatchupService matchupService, IBotContext botContext, IExceptionHandler exceptionHandler)
         {
             _userService = userService;
+            _customDiscordClient = customDiscordClient;
             _matchupService = matchupService;
             _botContext = botContext;
             _exceptionHandler = exceptionHandler;
@@ -48,17 +51,18 @@ namespace BobDono.Modules
                 foreach (var matchup in electionService.GetAll()
                     .Where(matchup => matchup.CurrentState < Matchup.State.Finished))
                 {
-                    try
+                    var guild = ResourceLocator.DiscordClient.GetNullsGuild();
+                    var channel = _customDiscordClient.GetChannel(guild, (ulong)matchup.DiscordChannelId);
+                    if (channel != null)
                     {
                         MatchupContexts.Add(
-                            dependencyScope.Resolve<MatchupContext>(new TypedParameter(typeof(Matchup),
-                                matchup)));
+                            dependencyScope.Resolve<MatchupContext>(new TypedParameter(typeof(Matchup), matchup),
+                                new TypedParameter(typeof(DiscordChannel), channel)));
                     }
-                    catch (Exception)
+                    else
                     {
-                        //we will mark it as closed
                         matchup.CurrentState = Matchup.State.ClosedForcibly;
-                    }
+                    }                
                 }
             }
         }
@@ -153,7 +157,7 @@ namespace BobDono.Modules
                         var electionChannel = await guild.CreateChannelAsync(matchup.Name, ChannelType.Text,
                             category);
                         matchup.DiscordChannelId = (long)electionChannel.Id;
-                        (ResourceLocator.DiscordClient as CustomDiscordClient).CreatedChannels.Add(electionChannel);
+                        _customDiscordClient.CreatedChannels.Add(electionChannel);
 
 
                         matchup.Author = user;
@@ -176,13 +180,18 @@ namespace BobDono.Modules
 
                 try
                 {
-                    using (var dependencyScope = ResourceLocator.ObtainScope())
+                    var ch = _customDiscordClient.GetChannel(guild, (ulong)matchup.DiscordChannelId);
+                    if (ch != null)
                     {
-                        var matchupContext = dependencyScope.Resolve<MatchupContext>(new TypedParameter(
-                            typeof(Matchup),matchup));
-                        matchup.OpeningMessageId = await matchupContext.OnCreate(matchup);
-                        MatchupContexts.Add(matchupContext);
+                        using (var dependencyScope = ResourceLocator.ObtainScope())
+                        {
+                            var matchupContext = dependencyScope.Resolve<MatchupContext>(new TypedParameter(
+                                typeof(Matchup), matchup), new TypedParameter(typeof(DiscordChannel), ch));
+                            matchup.OpeningMessageId = await matchupContext.OnCreate(matchup);
+                            MatchupContexts.Add(matchupContext);
+                        }
                     }
+
                 }
                 catch (Exception e)
                 {

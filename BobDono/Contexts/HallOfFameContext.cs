@@ -193,7 +193,15 @@ namespace BobDono.Contexts
                     loyalVoters.Add(voter);
                 }
             }
-
+            var percentages = new List<float>();
+            foreach (var bracket in bracketsWithWinner)
+            {
+                if (bracket.Votes.Any())
+                    percentages.Add(bracket.Votes.Count(vote => vote.Contender.Equals(member.Contender)) *
+                                           100.0f / bracket.Votes.Count);
+                else
+                    percentages.Add(0);
+            }
 
             var contenderEmbed = new DiscordEmbedBuilder
             {
@@ -222,6 +230,7 @@ namespace BobDono.Contexts
             desc += $"**Loyal Voters:** {(loyalVoters.Any() ? string.Join(", ", loyalVoters) : "None")}\n";
             desc += $"**All Voters:** {(voters.Any() ? string.Join(", ", voters) : "None")}\n";
             desc += $"**Tie Wins:** {tieWins}\n";
+            desc += $"**% of votes in brackets** {string.Join(", ",percentages.Select(i => $"{i:N2}%"))}\n";
 
             contenderEmbed.Description = desc;
 

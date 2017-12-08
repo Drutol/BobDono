@@ -51,6 +51,16 @@ namespace BobDono.Modules
             }
         }
 
+        [CommandHandler(Regex = "eva", Hidden = true)]
+        public async Task Eva(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            if (args.Author.Id == 299828924249014272)
+            {
+                await args.Channel.SendMessageAsync(
+                    "Oh no! My paint has spilled all over the place, but don't let our negative emotions get better of us! Try to make up with `E͟va͠Ȩ̵x͡c͏̴͠e͢͜pt̕i̴͞on̛͟`!");
+            }
+        }
+
         [CommandHandler(Regex = @"ocr($|\sen|\sjp)", HumanReadableCommand = "ocr [en/jp]", Awaitable = false,
             HelpText =
                 "Extracts text from first image in chat history and forwards it to Andrę for translation. You can call it once a minute. By default it will try to ocr moonrunes.")]
