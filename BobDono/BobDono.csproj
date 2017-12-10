@@ -59,6 +59,9 @@
     <None Update="Assets\lolicry.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\misaki.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\onegai.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

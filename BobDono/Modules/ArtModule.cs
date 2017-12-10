@@ -66,6 +66,12 @@ namespace BobDono.Modules
             await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/lolicry.png");
         }
 
+        [CommandHandler(Regex = "misaki", HumanReadableCommand = "misaki", HelpText = "Warm smile just for you :)")]
+        public async Task Misaki(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/misaki.png");
+        }
+
         [CommandHandler(Regex = "cry", HumanReadableCommand = "shrug", HelpText = "That's serious cry don't overuse it...")]
         public async Task Cry(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
