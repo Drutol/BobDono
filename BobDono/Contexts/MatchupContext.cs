@@ -226,7 +226,7 @@ namespace BobDono.Contexts
             }
         }
 
-        [CommandHandler(Regex = @"completed",HumanReadableCommand = "completed",HelpText = "Marks your challenge as completed.")]
+        [CommandHandler(Regex = @"(completed$|completed .*$)", HumanReadableCommand = "completed [notes/impressions]",HelpText = "Marks your challenge as completed. You can also add some notes about the completed challenge, your impressions for example.")]
         public async Task CompleteChallenge(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
@@ -234,6 +234,13 @@ namespace BobDono.Contexts
             {
                 try
                 {
+
+                    var notes = args.Message.Content.Contains(" ")
+                        ? args.Message.Content.Substring(args.Message.Content.IndexOf(" ", StringComparison.InvariantCulture) + 1)
+                        : null;
+                    if (notes?.Length > 500)
+                        notes = null;
+
                     matchupService.ConfigureIncludes()
                         .WithChain(query =>
                         {
@@ -267,6 +274,8 @@ namespace BobDono.Contexts
                         {
                             if (pair.FirstParticipantsChallengeCompletionDate == default)
                                 pair.FirstParticipantsChallengeCompletionDate = DateTime.UtcNow;
+
+                            pair.FirstNotes = notes;
                         }
                         else
                         {
@@ -274,7 +283,6 @@ namespace BobDono.Contexts
                                 "Tell me more about it... what did you complete specifically?");
                             return;
                         }
-
                     }
                     else
                     {
@@ -282,6 +290,8 @@ namespace BobDono.Contexts
                         {
                             if (pair.SecondParticipantsChallengeCompletionDate == default)
                                 pair.SecondParticipantsChallengeCompletionDate = DateTime.UtcNow;
+
+                            pair.SecondNotes = notes;
                         }
                         else
                         {
@@ -368,7 +378,7 @@ namespace BobDono.Contexts
 
             embed.Color = DiscordColor.Gray;
             embed.AddField(ParticipantsKey, "-");
-            embed.AddField(SubmissionsUntilKey, $"{DateTime.UtcNow} - {matchup.SignupsEndDate}");
+            embed.AddField(SubmissionsUntilKey, $"{DateTime.UtcNow} - {matchup.SignupsEndDate} (UTC)");
             embed.AddField(ChallengeDurationPeriod, $"{(matchup.ChallengesEndDate - matchup.SignupsEndDate).Days} days");
 
             embed.AddField(DescriptionKey, matchup.Description);

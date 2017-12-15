@@ -109,7 +109,7 @@ namespace BobDono.Controllers
             embed.Title = $":book: Election: {Election.Name}";
             embed.Author = new DiscordEmbedBuilder.EmbedAuthor {Name = Election.Author.Name};
             embed.AddField("Submission time:",
-                $"{Election.SubmissionsStartDate} - {Election.SubmissionsEndDate} - *({(Election.SubmissionsEndDate - Election.SubmissionsStartDate).Days} days)*");
+                $"{Election.SubmissionsStartDate} - {Election.SubmissionsEndDate} (UTC) - *({(Election.SubmissionsEndDate - Election.SubmissionsStartDate).Days} days)*");
             embed.AddField("Entrants per person:", Election.EntrantsPerUser.ToString());
             embed.AddField(ParticipantsCount, "0");
             embed.AddField(CurrentEntriesCount, "0");

@@ -21,5 +21,8 @@ namespace BobDono.Models.Entities
         public DateTime FirstParticipantsChallengeCompletionDate { get; set; }
         public DateTime SecondParticipantsChallengeCompletionDate { get; set; }
 
+        public string FirstNotes { get; set; }
+        public string SecondNotes { get; set; }
+
     }
 }

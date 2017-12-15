@@ -197,19 +197,35 @@ namespace BobDono.Controllers
             {
                 if(!embed.Fields.First().Name.Contains(":white_check_mark:"))
                     embed.Fields.First().Name += " :white_check_mark:";
+
+                if (pair.FirstNotes != null)
+                    embed.Fields.First().Value =
+                        $"{pair.FirstParticipantsChallenge}\n\n**{pair.First.Name}'s note:**\n{pair.FirstNotes}";
+                else
+                    embed.Fields.First().Value = pair.FirstParticipantsChallenge;
+            }
+            else
+            {
+                embed.Fields.First().Value = pair.FirstParticipantsChallenge ?? "N/A";
             }
 
             if (pair.SecondParticipantsChallengeCompletionDate != default)
             {
                 if (!embed.Fields.Last().Name.Contains(":white_check_mark:"))
                     embed.Fields.Last().Name += " :white_check_mark:";
+
+                if (pair.SecondNotes != null)
+                    embed.Fields.Last().Value =
+                        $"{pair.SecondParticipantsChallenge}\n\n**{pair.Second.Name}'s note:**\n{pair.SecondNotes}";
+                else
+                    embed.Fields.Last().Value = pair.SecondParticipantsChallenge;
+            }
+            else
+            {
+                embed.Fields.Last().Value = pair.SecondParticipantsChallenge ?? "N/A";
             }
 
-
-            embed.Fields.First().Value = pair.FirstParticipantsChallenge ?? "N/A";
-            embed.Fields.Last().Value = pair.SecondParticipantsChallenge ?? "N/A";
-
-            await message.ModifyAsync(default, embed);
+            await message.ModifyAsync(default, embed);        
         }
     }
 }

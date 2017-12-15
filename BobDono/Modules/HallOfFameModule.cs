@@ -82,7 +82,7 @@ namespace BobDono.Modules
                     embed.Footer = new DiscordEmbedBuilder.EmbedFooter
                     {
                         Text =
-                            $"{member.ElectionName} - {member.Contender.Proposer.Name} - *({member.Contender.Waifu.MalId})*"
+                            $"{member.ElectionName} - {member.Contender.Proposer.Name} - ({member.Contender.Waifu.MalId})"
                     };
                     await args.Channel.SendMessageAsync(null, false, embed);
                 }

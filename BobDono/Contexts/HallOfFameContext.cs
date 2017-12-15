@@ -130,6 +130,31 @@ namespace BobDono.Contexts
             }
         }
 
+        [CommandHandler(Regex = @"fixembedsplz", Debug = true)]
+        public async Task FixEmbeds(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            using (var hofMembersService = _hallOfFameMemberService.ObtainLifetimeHandle(executionContext))
+            {
+                try
+                {
+                    hofMembersService.ConfigureIncludes().WithChain(query =>
+                        query.Include(m => m.Contender.Waifu).Include(m => m.Contender.Proposer)).Commit();
+                    foreach (var hallOfFameMember in hofMembersService.GetAll())
+                    {
+                        await UpdateInfoEmbed(hallOfFameMember);
+                    }
+                }
+                catch
+                {
+                    
+                }
+                finally
+                {
+                    await args.Message.DeleteAsync();
+                }
+            }
+        }
+
         [CommandHandler(FallbackCommand = true)]
         public async Task FallbackCommand(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
@@ -244,7 +269,10 @@ namespace BobDono.Contexts
             var message = await _channel.GetMessageAsync((ulong)member.ContenderMessageId);
             var embed = new DiscordEmbedBuilder(message.Embeds.First());
 
-            embed.Fields.First(field => field.Name.Equals(CommandKey)).Value = member.CommandName;
+            embed.Fields.First(field => field.Name.Equals(CommandKey)).Value = member.CommandName ?? "-";
+
+            embed.ThumbnailUrl = member.Contender.CustomImageUrl ?? member.Contender.Waifu.ImageUrl;
+            embed.ImageUrl = member.ImageUrl;
 
             await message.ModifyAsync(default, new Optional<DiscordEmbed>(embed.Build()));
         }

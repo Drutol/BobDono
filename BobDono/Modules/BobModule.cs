@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using BobDono.Core;
 using BobDono.Core.Attributes;
@@ -38,7 +40,7 @@ namespace BobDono.Modules
 
             about += "\n\n" +
                      "So maybe now about me... I'm a bot... Bob The Bot... nice to meet you. I hope I won't crash on you.\n" +
-                     "I was written by @Drutol#5419 in C# using DSharpPlus library and my very own framework. You can find my insides on github!";
+                     $"I was written by @Drutol#5419 in C# using DSharpPlus library and my very own framework. You can find my insides on github!\n\n*Last build: {File.GetLastWriteTimeUtc(Assembly.GetExecutingAssembly().Location)}*";
 
             builder.AddField("About", about);
 

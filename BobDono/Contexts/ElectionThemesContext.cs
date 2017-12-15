@@ -349,7 +349,7 @@ namespace BobDono.Contexts
                 var embed = new DiscordEmbedBuilder(message.Embeds.First());
 
                 embed.Fields.First(field => field.Name.Equals(NextElectionKey)).Value =
-                    $"{_themesChannel.NextElection} *({(_themesChannel.NextElection - DateTime.UtcNow).Days} days)*";
+                    $"{_themesChannel.NextElection} (UTC) *({(_themesChannel.NextElection - DateTime.UtcNow).Days} days)*";
 
                 await message.ModifyAsync(default, new Optional<DiscordEmbed>(embed.Build()));
             }
@@ -373,7 +373,7 @@ namespace BobDono.Contexts
                 $"If theme doersn't get {ApprovalsCount} approvals it will be deleted after a week.";
                 
             embed.Color = DiscordColor.Gray;
-            embed.AddField(NextElectionKey, $"{channel.NextElection} *({(channel.NextElection - DateTime.UtcNow).Days} days)*");
+            embed.AddField(NextElectionKey, $"{channel.NextElection} (UTC) *({(channel.NextElection - DateTime.UtcNow).Days} days)*");
 
             return (long) (await _channel.SendMessageAsync(null, false, embed.Build())).Id;
         }

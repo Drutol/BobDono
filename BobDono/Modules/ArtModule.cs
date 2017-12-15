@@ -11,11 +11,16 @@ namespace BobDono.Modules
     [Module(Name = "Art",Description = "Shhh... art is here.")]
     public class ArtModule
     {
-
         [CommandHandler(Regex = "annak", HumanReadableCommand = "annak", HelpText = "Show annak in her full glory. Btw, it's Asuka from AoKana.")]
         public async Task Annak(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/annak.png");
+        }
+
+        [CommandHandler(IgnoreRegexWrap = true,Regex = "^b\\\\annak$", HumanReadableCommand = "b\\annak", HelpText = ".anaKoA morf akusA s'ti ,wtB .yrolg lluf reh ni kanna wohS")]
+        public async Task ReverseAnnak(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/akusa.png");
         }
 
         [CommandHandler(Regex = @":\)", HumanReadableCommand = ":)", HelpText = ":)")]
