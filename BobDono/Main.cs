@@ -20,6 +20,7 @@ using BobDono.Core.Utils;
 using BobDono.DataAccess.Database;
 using BobDono.Interfaces;
 using BobDono.Models;
+using BobDono.Utils;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -40,6 +41,8 @@ namespace BobDono
             //    File.ReadAllBytes("Assets/raphi.png") ,
                 
             //});
+            //GenuineCertificatesGenerator.Generate(new List<string>{"Holo is life","Holo is life"});
+            //return;
             var prog = new BobDono();
             await prog.RunBotAsync();
         }

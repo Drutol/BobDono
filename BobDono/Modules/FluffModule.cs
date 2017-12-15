@@ -8,8 +8,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BobDono.Core.Attributes;
+using BobDono.Core.Extensions;
 using BobDono.Core.Interfaces;
 using BobDono.Interfaces;
+using BobDono.Utils;
+using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Newtonsoft.Json;
 
@@ -19,6 +22,7 @@ namespace BobDono.Modules
     public class FluffModule
     {
         private SemaphoreSlim _ocrSemaphore = new SemaphoreSlim(1);
+        private SemaphoreSlim _certifySemaphore = new SemaphoreSlim(3);
 
         private List<string> _supportedExtensions = new List<string>
         {
@@ -165,6 +169,46 @@ namespace BobDono.Modules
             }
         }
 
+        [CommandHandler(Regex = "certify .*", HumanReadableCommand = "certify <what(36 characters)>",
+            HelpText = "Certifies the facts and truths.", Awaitable = false)]
+        public async Task Certify(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await _certifySemaphore.WaitAsync();
+            try
+            {
+                var certification = args.Message.Content.Substring(args.Message.Content.IndexOf(' ') + 1);
+
+                if (certification.Length > 36)
+                {
+                    await args.Channel.SendMessageAsync("Please be more brief in your certification.");
+                    return;
+                }
+
+                var lines = certification.WordWrap(18).Select(s => s.Trim()).ToList();
+
+                if (lines.Count == 3)
+                {
+                    lines[1] += $" {lines[2]}";
+                    lines.RemoveAt(2);
+                }
+                await args.Channel.TriggerTypingAsync();
+                using (var image =
+                    await Task.Run(() => GenuineCertificatesGenerator.Generate(lines)))
+                {
+                    image.Seek(0, SeekOrigin.Begin);
+
+                    await args.Channel.SendFileAsync(image, "genuineCertificate.png");
+                }
+            }
+            catch (Exception e)
+            {
+                await args.Channel.SendMessageAsync(_exceptionHandler.Handle(e, args));
+            }
+            finally
+            {
+                _certifySemaphore.Release();
+            }
+        }
 
         public class TextOverlay
         {
