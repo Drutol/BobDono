@@ -572,13 +572,10 @@ namespace BobDono.Controllers
             {
                 var thumbs = new List<byte[]>();
                 var httpClient = new HttpClient();
-                thumbs.Add(await httpClient.GetByteArrayAsync(
-                    bracket.FirstContender.CustomImageUrl ?? bracket.FirstContender.Waifu.ImageUrl));
-                thumbs.Add(await httpClient.GetByteArrayAsync(
-                    bracket.SecondContender.CustomImageUrl ?? bracket.SecondContender.Waifu.ImageUrl));
+                thumbs.Add(await ObtainImage(bracket.FirstContender));
+                thumbs.Add(await ObtainImage(bracket.SecondContender));
                 if (bracket.ThirdContender != null)
-                    thumbs.Add(await httpClient.GetByteArrayAsync(
-                        bracket.ThirdContender.CustomImageUrl ?? bracket.ThirdContender.Waifu.ImageUrl));
+                    thumbs.Add(await ObtainImage(bracket.ThirdContender));
                 httpClient.Dispose();
 
                 using (var image = await Task.Run(() => BracketImageGenerator.Generate(thumbs)))
@@ -601,7 +598,20 @@ namespace BobDono.Controllers
                     output.Add(msgHeader.Id);
                     output.Add(imgMessage.Id);
                     output.Add(msgFooter.Id);
-                }              
+                }
+
+                async Task<byte[]> ObtainImage(WaifuContender contender)
+                {
+                    try
+                    {
+                        return await httpClient.GetByteArrayAsync(contender.CustomImageUrl ?? contender.Waifu.ImageUrl);
+                    }
+                    catch (Exception e)
+                    {
+                        ResourceLocator.ExceptionHandler.Handle(e, contender.CustomImageUrl ?? contender.Waifu.ImageUrl);
+                        return await httpClient.GetByteArrayAsync(contender.Waifu.ImageUrl);
+                    }                   
+                }
             }
             return output;
         }

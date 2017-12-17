@@ -9,5 +9,6 @@ namespace BobDono.Interfaces
         List<Exception> CaughtThings { get; set; }
         string Handle(Exception e);
         string Handle(Exception e, MessageCreateEventArgs args);
+        void Handle(Exception e, string comment);
     }
 }

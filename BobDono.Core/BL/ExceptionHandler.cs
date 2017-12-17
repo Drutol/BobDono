@@ -56,5 +56,18 @@ namespace BobDono.Core.BL
             return
                 $"Oh no! My paint has spilled all over the place, but don't let our negative emotions get better of us! Try to make up with `{e.GetType().Name}`!";
         }
+
+        public void Handle(Exception e, string comment)
+        {
+            using (var reportsService = _exceptionReportsService.ObtainLifetimeHandle())
+            {
+                reportsService.Add(new ExceptionReport
+                {
+                    Type = e.GetType().Name,
+                    Content = $"{comment}\n\n{e}",
+                    DateTime = DateTime.UtcNow,                    
+                });
+            }
+        }
     }
 }
