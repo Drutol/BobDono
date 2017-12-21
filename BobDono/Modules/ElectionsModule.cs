@@ -29,15 +29,17 @@ namespace BobDono.Modules
     [Module(Name = "Elections", Description = "Allows to create new election, and view their overviews and such.")]
     public class ElectionsModule
     {
+        private readonly CustomDiscordClient _discordClient;
         private readonly IUserService _userService;
         private readonly IBotContext _botContext;
         private readonly IExceptionHandler _exceptionHandler;
         private readonly IElectionService _electionService;
         public List<ElectionContext> ElectionsContexts { get; } = new List<ElectionContext>();
 
-        public ElectionsModule(IUserService userService, IBotContext botContext, IExceptionHandler exceptionHandler,
+        public ElectionsModule(CustomDiscordClient discordClient,IUserService userService, IBotContext botContext, IExceptionHandler exceptionHandler,
             IElectionService electionService)
         {
+            _discordClient = discordClient;
             _userService = userService;
             _botContext = botContext;
             _exceptionHandler = exceptionHandler;
@@ -93,7 +95,7 @@ namespace BobDono.Modules
 
                 var cts = new CancellationTokenSource();
                 var timeout = TimeSpan.FromMinutes(3);
-                var guild = ResourceLocator.DiscordClient.GetNullsGuild();
+                var guild = _discordClient.GetNullsGuild();
                 var member = await guild.GetMemberAsync(args.Author.Id);
                 var channel = await member.CreateDmChannelAsync();
                 await channel.SendMessageAsync(
@@ -182,11 +184,11 @@ namespace BobDono.Modules
                                 null, null, null,
                                 election.Description);
                             election.DiscordChannelId = electionChannel.Id;
-                            (ResourceLocator.DiscordClient as CustomDiscordClient).CreatedChannels.Add(electionChannel);
+                            _discordClient.CreatedChannels.Add(electionChannel);
                         }
                         catch (Exception e)
                         {
-
+                            _exceptionHandler.Handle(e, "Creating election channel");
                         }
 
 
@@ -207,20 +209,6 @@ namespace BobDono.Modules
                     _botContext.NewPrivateMessage -= HandleQuit;
                 }
 
-
-                int retries = 0;
-                while (true)
-                {
-                    var ch = ResourceLocator.DiscordClient.GetNullsGuild().GetChannel(election.DiscordChannelId);
-                    if (ch != null)
-                        break;
-                    await Task.Delay(3000);
-                    if (retries++ > 4)
-                    {
-                        await channel.SendMessageAsync("Something went wrong while obtaining discord channel.");
-                        return;
-                    }
-                }
                 try
                 {
                     using (var dependencyScope = ResourceLocator.ObtainScope())

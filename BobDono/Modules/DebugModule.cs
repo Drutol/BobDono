@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BobDono.Core;
 using BobDono.Core.Attributes;
+using BobDono.Core.Extensions;
 using BobDono.Core.Utils;
 using BobDono.Interfaces;
 using BobDono.Interfaces.Queries;
@@ -14,12 +15,15 @@ namespace BobDono.Modules
     [Module(Hidden = true,Name = "Debug",Authorize = true)]
     public class DebugModule
     {
+        private readonly CustomDiscordClient _discordClient;
         private readonly IExceptionHandler _exceptionHandler;
         private readonly IWaifuService _waifuService;
         private readonly ICharacterDetailsQuery _characterDetailsQuery;
 
-        public DebugModule(IExceptionHandler exceptionHandler, IWaifuService waifuService, ICharacterDetailsQuery characterDetailsQuery)
+        public DebugModule(CustomDiscordClient discordClient, IExceptionHandler exceptionHandler,
+            IWaifuService waifuService, ICharacterDetailsQuery characterDetailsQuery)
         {
+            _discordClient = discordClient;
             _exceptionHandler = exceptionHandler;
             _waifuService = waifuService;
             _characterDetailsQuery = characterDetailsQuery;
@@ -68,7 +72,48 @@ namespace BobDono.Modules
             }
         }
 
-        [CommandHandler(Regex = "proudlyproclaim .*",Authorize = true)]
+        [CommandHandler(Regex = @"chrem \d+",Authorize = true)]
+        public async Task RemoveChannel(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            try
+            {
+                var param = args.Message.Content.Split(' ');
+                var id = long.Parse(param[1]);
+
+                await (await _discordClient.GetNullsGuild().GetChannelsAsync()).FirstOrDefault(channel => channel.Id == (ulong)id)?.DeleteAsync();
+            }
+            catch (Exception e)
+            {
+
+            }
+            finally
+            {
+                await args.Message.DeleteAsync();
+            }
+        }
+
+        [CommandHandler(Regex = @"msgrem \d+", Debug = true)]
+        public async Task RemoveMessage(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            try
+            {
+                var param = args.Message.Content.Split(' ');
+                var id = long.Parse(param[1]);
+
+                await (await args.Channel.GetMessageAsync((ulong)id)).DeleteAsync();
+            }
+            catch (Exception e)
+            {
+
+            }
+            finally
+            {
+                await args.Message.DeleteAsync();
+            }
+
+        }
+
+        [CommandHandler(Regex = "proudlyproclaim .*", Authorize = true)]
         public async Task SaySomething(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             await args.Channel.SendMessageAsync(args.Message.Content.Replace("b/proudlyproclaim ", ""));

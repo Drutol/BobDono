@@ -417,27 +417,6 @@ namespace BobDono.Contexts
             }
         }
 
-        [CommandHandler(Regex = @"msgrem \d+", Debug = true)]
-        public async Task RemoveMessage(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
-        {
-            try
-            {
-                var param = args.Message.Content.Split(' ');
-                var id = long.Parse(param[1]);
-
-                await (await args.Channel.GetMessageAsync((ulong) id)).DeleteAsync();
-            }
-            catch (Exception e)
-            {
-
-            }
-            finally
-            {
-                await args.Message.DeleteAsync();
-            }
-
-        }
-
         [CommandHandler(Regex = @"init", Debug = true)]
         public async Task ReinitializeElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
