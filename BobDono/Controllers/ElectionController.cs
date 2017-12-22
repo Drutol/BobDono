@@ -604,6 +604,8 @@ namespace BobDono.Controllers
                 {
                     try
                     {
+                        if (contender.CustomImageUrl != null && !await contender.CustomImageUrl.IsValidImageLink())
+                            throw new Exception();
                         return await httpClient.GetByteArrayAsync(contender.CustomImageUrl ?? contender.Waifu.ImageUrl);
                     }
                     catch (Exception e)

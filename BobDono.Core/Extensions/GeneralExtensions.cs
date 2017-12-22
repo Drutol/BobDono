@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace BobDono.Core.Extensions
 {
@@ -26,6 +29,23 @@ namespace BobDono.Core.Extensions
         {
             return Regex.IsMatch(s,
                 @"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)");
+        }
+
+        public static async Task<bool> IsValidImageLink(this string url)
+        {
+            var req = WebRequest.Create(url);
+            req.Method = "HEAD";
+            using (var resp = await req.GetResponseAsync())
+            {
+                if (resp.ContentType.ToLower(CultureInfo.InvariantCulture)
+                    .StartsWith("image/"))
+                {
+                    if (resp.ContentLength < 5e+6) //5MB
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         public static DateTime GetNextElectionDate(this DateTime from)

@@ -178,13 +178,16 @@ namespace BobDono.Modules
             {
                 var certification = args.Message.Content.Substring(args.Message.Content.IndexOf(' ') + 1);
 
-                if (certification.Length > 36)
+                if (certification.Length > 38)
                 {
                     await args.Channel.SendMessageAsync("Please be more brief in your certification.");
                     return;
                 }
-
-                var lines = certification.WordWrap(18).Select(s => s.Trim()).ToList();
+                List<string> lines;
+                if (certification.Length >= 13 && certification.Length <= 19)
+                    lines = certification.WordWrap(13).Select(s => s.Trim()).ToList();
+                else
+                    lines = certification.WordWrap(19).Select(s => s.Trim()).ToList();
 
                 if (lines.Count == 3)
                 {
@@ -207,6 +210,18 @@ namespace BobDono.Modules
             finally
             {
                 _certifySemaphore.Release();
+            }
+        }
+
+        private bool HasMoonrunes(string s)
+        {
+            return GetCharsInRange(s, 0x3040, 0x309F).Any() || //h
+                   GetCharsInRange(s, 0x30A0, 0x30FF).Any() || //k
+                   GetCharsInRange(s, 0x4E00, 0x9FBF).Any(); //kanji
+
+            IEnumerable<char> GetCharsInRange(string text, int min, int max)
+            {
+                return text.Where(e => e >= min && e <= max);
             }
         }
 

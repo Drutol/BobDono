@@ -133,19 +133,38 @@ namespace BobDono.Contexts
                             if (arguments.Length >= 4)
                             {
                                 if (arguments[3] != "none" && arguments[3].IsLink())
-                                    thumb = arguments[3];
+                                {
+                                    if(await arguments[3].IsValidImageLink())
+                                        thumb = arguments[3];
+                                    else
+                                    {
+                                        await args.Channel.SendTimedMessage(
+                                            "Your thumbnail image is invalid. Either it's not an image or it's larger than 5Mb.");
+                                        return;
+                                    }
+                                }
                             }
 
                             if (arguments.Length == 5)
                             {
                                 if (arguments[4].IsLink())
-                                    feature = arguments[4];
+                                {
+
+                                    if (await arguments[4].IsValidImageLink())
+                                        feature = arguments[4];
+                                    else
+                                    {
+                                        await args.Channel.SendTimedMessage(
+                                            "Your feature image is invalid. Either it's not an image or it's larger than 5Mb.");
+                                        return;
+                                    }
+                                }
                             }
                             else if (_election.FeatureImageRequired)
                             {
                                 await args.Channel.SendTimedMessage(
-                                    "This election requires you to provide feature image for your contender... put some heart into it...\nThis message will self destruct in 10 seconds so copy your previous command.",TimeSpan.FromSeconds(10));
-                                await args.Message.DeleteAsync();
+                                    "This election requires you to provide feature image for your contender... put some heart into it...\nThis message will self destruct in 10 seconds so copy your previous command.",
+                                    TimeSpan.FromSeconds(10));
                                 return;
                             }
 
@@ -167,15 +186,14 @@ namespace BobDono.Contexts
                                 //shouldn't happen but
                                 _exceptionHandler.Handle(e, args);
                             }
-
                         }
                     }
-                    await args.Message.DeleteAsync();
                 }
 
             }
             finally
             {
+                await args.Message.DeleteAsync();
                 _addContenderSemaphore.Release();
             }
         }

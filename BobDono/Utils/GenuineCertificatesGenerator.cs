@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 using SixLabors.Fonts;
@@ -16,49 +17,60 @@ namespace BobDono.Utils
 {
     public class GenuineCertificatesGenerator
     {
-        private const int FontSize = 34;
-        private const int SmallerFontSize = 30;
+        private const int FontSize = 17;
+        private const int SmallerFontSize = 15;
+        private const int KanjiFontSize = 13;
+        private const int CharactersPerLine = 15;
 
         private static Font _font;
         private static Font _smallerFont;
+        private static Font _kanjiFont;
 
         static GenuineCertificatesGenerator()
         {
             var coll = new FontCollection();
-            coll.Install("Fonts/rounded-mgenplus-1cp-regular.ttf");
-            _font = coll.CreateFont("Rounded Mgen+ 1cp regular", FontSize * 2);
-            _smallerFont = coll.CreateFont("Rounded Mgen+ 1cp regular", SmallerFontSize * 2);
+            coll.Install("Fonts/togoshi-mono.ttf");
+            _font = coll.CreateFont("Togoshi Mono", FontSize * 2);
+            _smallerFont = coll.CreateFont("Togoshi Mono", SmallerFontSize * 2);
+            _kanjiFont = coll.CreateFont("Togoshi Mono", KanjiFontSize * 2);
+
         }
 
         public static Stream Generate(List<string> lines)
         {
             var img = Image.Load($"{AppContext.BaseDirectory}/Assets/certificate.png");
 
-            var txt = new Image<Rgba32>(342 * 2, 93 * 2);
+            var txt = new Image<Rgba32>(342, 93);
 
             if (lines.Count == 2)
             {
                 for (int i = 0; i < 2; i++)
                 {
+
                     Font font = _font;
-                    if (lines[i].Length < 18)
+                    if (lines[i].Length < CharactersPerLine - CharactersPerLine / 4)
                         lines[i] = PadString(lines[i]);
                     else
-                        font = _smallerFont;
+                    {
+                        font = HasMoonrunes(lines[i]) ? _kanjiFont : _smallerFont;
+                    }
 
                     txt.Mutate(c =>
                     {
-                        c.DrawText(lines[i], font, Rgba32.Black, new Point(342, i * 83),
+                        c.DrawText(lines[i], font, Rgba32.Black, new Point(171, i * 83/2),
                             new TextGraphicsOptions(true) {HorizontalAlignment = HorizontalAlignment.Center});
                     });
                 }
             }
             else if (lines.Count == 1)
             {
+                var font = lines[0].Length >= CharactersPerLine / 1.5
+                    ? (HasMoonrunes(lines[0]) ? _kanjiFont : _font)
+                    : _font;
                 lines[0] = PadString(lines[0]);
                 txt.Mutate(c =>
                 {
-                    c.DrawText(lines[0], _font, Rgba32.Black, new Point(342, 93 / 2),
+                    c.DrawText(lines[0], font, Rgba32.Black, new Point(171, 93 / 4),
                         new TextGraphicsOptions(true) {HorizontalAlignment = HorizontalAlignment.Center});
                 });
             }
@@ -66,9 +78,21 @@ namespace BobDono.Utils
             string PadString(string s)
             {
                 var len = s.Length;
-                var pad = (int) Math.Ceiling((18 - len) / 2f);
+                var pad = (int) Math.Ceiling((CharactersPerLine - len) / 2f);
                 s = s.Trim().PadLeft(len + pad, ' ');
-                return s.PadRight(18, ' ');
+                return s.PadRight(CharactersPerLine, ' ');
+            }
+
+            bool HasMoonrunes(string s)
+            {
+                return GetCharsInRange(s, 0x3040, 0x309F).Any() || //h
+                       GetCharsInRange(s, 0x30A0, 0x30FF).Any() || //k
+                       GetCharsInRange(s, 0x4E00, 0x9FBF).Any(); //kanji
+
+                IEnumerable<char> GetCharsInRange(string text, int min, int max)
+                {
+                    return text.Where(e => e >= min && e <= max);
+                }
             }
 
             txt.Mutate(c =>
@@ -77,7 +101,7 @@ namespace BobDono.Utils
                 c.Resize(txt.Size() / 2);
             });
 
-            img.Mutate(context => context.DrawImage(txt, PixelBlenderMode.Normal, 1, txt.Size(), new Point(484, 34)));
+            img.Mutate(context => context.DrawImage(txt, PixelBlenderMode.Normal, 1, txt.Size(), new Point(250, 18)));
             //img.Save("test.png");
 
             var ms = new MemoryStream();
