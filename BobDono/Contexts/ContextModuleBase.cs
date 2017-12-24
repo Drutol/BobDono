@@ -38,9 +38,8 @@ namespace BobDono.Contexts
                 }
                 catch
                 {
-
+                    //already deleted
                 }
-
             }
         }
     }

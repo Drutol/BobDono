@@ -34,10 +34,5 @@ namespace BobDono.DataAccess.Services
 
             return contender;
         }
-
-        public override IContenderService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
-        {
-            return new ContenderService(executionContext.Context as BobDatabaseContext, saveOnDispose);
-        }
     }
 }

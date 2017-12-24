@@ -30,9 +30,10 @@ namespace BobDono.Contexts
         public const string DescriptionKey = ":book: Matchup Description :book:";
 
         private readonly CustomDiscordClient _discordClient;
-        private readonly IMatchupService _matchupService;
+
         private readonly IExceptionHandler _exceptionHandler;
-        private readonly IUserService _userService;
+        private readonly IServiceFactory<IUserService> _userService;
+        private readonly IServiceFactory<IMatchupService> _matchupService;
 
         private Matchup _matchup;
 
@@ -40,8 +41,9 @@ namespace BobDono.Contexts
 
         private readonly MatchupController _controller;
 
-        public MatchupContext(Matchup matchup, DiscordChannel channel, CustomDiscordClient discordClient, IMatchupService matchupService,
-            IExceptionHandler exceptionHandler, IUserService userService) : base(
+        public MatchupContext(Matchup matchup, DiscordChannel channel, CustomDiscordClient discordClient,
+            IServiceFactory<IMatchupService> matchupService,
+            IExceptionHandler exceptionHandler, IServiceFactory<IUserService> userService) : base(
             (ulong) matchup.DiscordChannelId)
         {
             _matchup = matchup;

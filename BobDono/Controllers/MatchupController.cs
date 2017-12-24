@@ -17,12 +17,12 @@ namespace BobDono.Controllers
     public class MatchupController
     {
         private readonly DiscordChannel _channel;
-        private readonly IMatchupService _matchupService;
+        private readonly IServiceFactory<IMatchupService> _matchupService;
         private readonly DiscordClient _discordClient;
 
         public Matchup Matchup { get; set; }
 
-        public MatchupController(Matchup matchup, DiscordChannel channel, IMatchupService  matchupService, DiscordClient discordClient)
+        public MatchupController(Matchup matchup, DiscordChannel channel, IServiceFactory<IMatchupService> matchupService, DiscordClient discordClient)
         {
             Matchup = matchup;
 

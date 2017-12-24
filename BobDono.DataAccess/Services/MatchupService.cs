@@ -21,11 +21,6 @@ namespace BobDono.DataAccess.Services
 
         }
 
-        public override IMatchupService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
-        {
-            return new MatchupService(executionContext.Context as BobDatabaseContext, saveOnDispose);
-        }
-
         public Task<Matchup> GetMatchup(long matchupId)
         {
             return FirstAsync(matchup => matchup.Id == matchupId);

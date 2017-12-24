@@ -33,21 +33,23 @@ namespace BobDono.Core
             builder.RegisterType<BotBackbone>().As<IBotBackbone>().SingleInstance();
             builder.RegisterType<ExceptionHandler>().As<IExceptionHandler>().SingleInstance();
             builder.RegisterType<HttpClientProvider>().As<IHttpClientProvider>().SingleInstance();
-            builder.RegisterType<ElectionService>().As<IElectionService>().SingleInstance();
-            builder.RegisterType<WaifuService>().As<IWaifuService>().SingleInstance();
-            builder.RegisterType<UserService>().As<IUserService>().SingleInstance();
-            builder.RegisterType<TrueWaifuService>().As<ITrueWaifuService>().SingleInstance();
-            builder.RegisterType<ContenderService>().As<IContenderService>().SingleInstance();
-            builder.RegisterType<HallOfFameMemberService>().As<IHallOfFameMemberService>().SingleInstance();
-            builder.RegisterType<HallOfFameChannelService>().As<IHallOfFameChannelService>().SingleInstance();
-            builder.RegisterType<ElectionThemeService>().As<IElectionThemeService>().SingleInstance();
-            builder.RegisterType<MatchupService>().As<IMatchupService>().SingleInstance();
-            builder.RegisterType<ElectionThemesChannelService>().As<IElectionThemesChannelService>().SingleInstance();
             builder.RegisterType<ExceptionReportsService>().As<IExceptionReportsService>().SingleInstance();
             builder.RegisterType<CharacterDetailsQuery>().As<ICharacterDetailsQuery>().SingleInstance();
             builder.RegisterType<ProfileQuery>().As<IProfileQuery>().SingleInstance();
             builder.RegisterType<CharactersSearchQuery>().As<ICharactersSearchQuery>().SingleInstance();
             builder.RegisterType<StaffDetailsQuery>().As<IStaffDetailsQuery>().SingleInstance();
+
+            builder.RegisterType<ElectionService>().AsFactory().WithProduct<IElectionService>().SingleInstance();
+            builder.RegisterType<WaifuService>().AsFactory().WithProduct<IWaifuService>().SingleInstance();
+            builder.RegisterType<UserService>().AsFactory().WithProduct<IUserService>().SingleInstance();
+            builder.RegisterType<TrueWaifuService>().AsFactory().WithProduct<ITrueWaifuService>().SingleInstance();
+            builder.RegisterType<ContenderService>().AsFactory().WithProduct<IContenderService>().SingleInstance();
+            builder.RegisterType<HallOfFameMemberService>().AsFactory().WithProduct<IHallOfFameMemberService>().SingleInstance();
+            builder.RegisterType<HallOfFameChannelService>().AsFactory().WithProduct<IHallOfFameChannelService>().SingleInstance();
+            builder.RegisterType<ElectionThemeService>().AsFactory().WithProduct<IElectionThemeService>().SingleInstance();
+            builder.RegisterType<MatchupService>().AsFactory().WithProduct<IMatchupService>().SingleInstance();
+            builder.RegisterType<ElectionThemesChannelService>().AsFactory().WithProduct<IElectionThemesChannelService>().SingleInstance();
+            builder.RegisterType<MerchService>().AsFactory().WithProduct<IMerchService>().SingleInstance();
 
 
             builder.RegisterType<CommandExecutionContext>().As<ICommandExecutionContext>();

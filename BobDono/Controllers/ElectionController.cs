@@ -31,15 +31,14 @@ namespace BobDono.Controllers
         private const long MentionGroupId = 381412270481342465;
 #endif
 
-
         public Election Election { get; set; }
         private readonly DiscordChannel _channel;
-        private readonly IElectionService _electionService;
         private readonly ElectionContext _context;
+        private readonly IServiceFactory<IElectionService> _electionService;
 
         private Random _random = new Random();
 
-        public ElectionController(ElectionContext context, Election election, DiscordChannel channel, IElectionService electionService)
+        public ElectionController(ElectionContext context, Election election, DiscordChannel channel, IServiceFactory<IElectionService> electionService)
         {
             Election = election;
             _context = context;

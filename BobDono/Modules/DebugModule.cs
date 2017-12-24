@@ -17,11 +17,11 @@ namespace BobDono.Modules
     {
         private readonly CustomDiscordClient _discordClient;
         private readonly IExceptionHandler _exceptionHandler;
-        private readonly IWaifuService _waifuService;
+        private readonly IServiceFactory<IWaifuService> _waifuService;
         private readonly ICharacterDetailsQuery _characterDetailsQuery;
 
         public DebugModule(CustomDiscordClient discordClient, IExceptionHandler exceptionHandler,
-            IWaifuService waifuService, ICharacterDetailsQuery characterDetailsQuery)
+            IServiceFactory<IWaifuService> waifuService, ICharacterDetailsQuery characterDetailsQuery)
         {
             _discordClient = discordClient;
             _exceptionHandler = exceptionHandler;
@@ -59,7 +59,7 @@ namespace BobDono.Modules
 
                 foreach (var waifu in all)
                 {
-                    var details = await _waifuService.GetOrCreateWaifu(waifu.MalId,true);
+                    var details = await ws.GetOrCreateWaifu(waifu.MalId,true);
                     waifu.Animeography = details.Animeography;
                     waifu.Mangaography = details.Mangaography;
                     waifu.Voiceactors = details.Voiceactors;

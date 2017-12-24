@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 using BobDono.DataAccess.Database;
 using BobDono.Interfaces;
@@ -15,6 +16,8 @@ namespace BobDono.DataAccess.Services
         where TService : class, IServiceBase<TEntity, TService>
         where TEntity : class
     {
+        private ConstructorInfo _constructor;
+
         public class IncludeConfigurator<TEntity,TService> : IIncludeConfigurator<TEntity, TService>
             where TService : class, IServiceBase<TEntity, TService>
             where TEntity : class
@@ -62,10 +65,17 @@ namespace BobDono.DataAccess.Services
 
         internal ServiceBase()
         {
+            var flags = BindingFlags.Public |
+                        BindingFlags.NonPublic |
+                        BindingFlags.Static |
+                        BindingFlags.Instance |
+                        BindingFlags.DeclaredOnly;
 
+            var c = this.GetType().GetConstructors(flags);
+            _constructor = c.First(info => info.GetParameters().Any());
         }
 
-        internal ServiceBase(BobDatabaseContext dbContext, bool saveOnDispose)
+        internal ServiceBase(BobDatabaseContext dbContext, bool saveOnDispose) : base()
         {
             Context = dbContext;
             _saveOnDispose = saveOnDispose;
@@ -130,8 +140,8 @@ namespace BobDono.DataAccess.Services
             await Context.SaveChangesAsync();
         }
 
-        public abstract TService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext,
-            bool saveOnDispose = true);
+        //public abstract TService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext,
+        //    bool saveOnDispose = true);
 
 
         public TService ObtainLifetimeHandle(bool saveOnDispose = true)
@@ -162,6 +172,11 @@ namespace BobDono.DataAccess.Services
         public IIncludeConfigurator<TEntity,TService> ConfigureIncludes()
         {
             return new IncludeConfigurator<TEntity,TService>(this);
+        }
+
+        public TService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
+        {
+            return (TService)_constructor.Invoke(new object[] { (BobDatabaseContext)executionContext.Context, saveOnDispose });
         }
     }
 }

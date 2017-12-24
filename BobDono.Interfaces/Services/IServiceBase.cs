@@ -6,7 +6,7 @@ using BobDono.DataAccess.Services;
 
 namespace BobDono.Interfaces.Services
 {
-    public interface IServiceBase<TEntity,TService> : IDisposable 
+    public interface IServiceBase<TEntity,TService> : IDisposable , IServiceFactory<TService>
         where TEntity : class 
         where TService : class , IServiceBase<TEntity,TService>
     {

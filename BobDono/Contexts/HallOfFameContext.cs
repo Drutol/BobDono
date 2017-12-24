@@ -30,13 +30,15 @@ namespace BobDono.Contexts
         private readonly CustomDiscordClient _discordClient;
         private readonly DiscordChannel _channel;
         private readonly HallOfFameChannel _hofChannel;
-        private readonly IElectionService _electionService;
-        private readonly IUserService _userService;
-        private readonly IHallOfFameMemberService _hallOfFameMemberService;
+        private readonly IServiceFactory<IElectionService> _electionService;
+        private readonly IServiceFactory<IUserService> _userService;
+        private readonly IServiceFactory<IHallOfFameMemberService> _hallOfFameMemberService;
 
         public override DiscordChannel Channel => _channel;
 
-        public HallOfFameContext(HallOfFameChannel channel, DiscordClient discordClient,IElectionService electionService, IUserService userService, IHallOfFameMemberService hallOfFameMemberService) : base((ulong)channel.DiscordChannelId)
+        public HallOfFameContext(HallOfFameChannel channel, DiscordClient discordClient,
+            IServiceFactory<IElectionService> electionService, IServiceFactory<IUserService> userService,
+            IServiceFactory<IHallOfFameMemberService> hallOfFameMemberService) : base((ulong) channel.DiscordChannelId)
         {
             _hofChannel = channel;
             _electionService = electionService;
@@ -46,7 +48,7 @@ namespace BobDono.Contexts
             ChannelIdContext = (ulong) channel.DiscordChannelId;
 
             var guild = ResourceLocator.DiscordClient.GetNullsGuild();
-            _channel = _discordClient.GetChannel(guild, (ulong)channel.DiscordChannelId);
+            _channel = _discordClient.GetChannel(guild, (ulong) channel.DiscordChannelId);
 
             if (_channel == null)
                 throw new InvalidOperationException("Discord channel is invalid");

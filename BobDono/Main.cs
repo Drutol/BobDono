@@ -31,18 +31,12 @@ namespace BobDono
     {
         private DiscordClient _client;
         private IBotBackbone _botBackbone;
+        private Stopwatch _stopwatch = new Stopwatch();
+        private bool _ready;
 
         public static async Task Main(string[] args)
         {
-            //BracketImageGenerator.Generate(new List<byte[]>
-            //{
-            //    File.ReadAllBytes("Assets/annak.png") ,
-            //    File.ReadAllBytes("Assets/vigne.png") ,
-            //    File.ReadAllBytes("Assets/raphi.png") ,
-                
-            //});
-            //GenuineCertificatesGenerator.Generate(new List<string>{"Holo is life","Holo is life"});
-            //return;
+            Console.WriteLine("BootingBob!");
             var prog = new BobDono();
             await prog.RunBotAsync();
         }
@@ -56,19 +50,40 @@ namespace BobDono
                 TokenType = TokenType.Bot,
 
                 AutoReconnect = true,
+#if DEBUG
                 LogLevel = LogLevel.Debug,
+#else
+                LogLevel = LogLevel.Info,
+#endif
                 UseInternalLogHandler = true
             });
+
+
+
+            Console.WriteLine("Starting dependency registration.");
+            _stopwatch.Start();
             ResourceLocator.RegisterDependencies(_client);
-            BobDatabaseContext.Initialize();
+            _stopwatch.Stop();
+            Console.WriteLine($"Finished dependency registration, took {_stopwatch.ElapsedMilliseconds}ms.");
+
+
+            Console.WriteLine("Connecting to Discord.");
+            _stopwatch.Restart();
             await _client.ConnectAsync();
+            _stopwatch.Stop();
+            Console.WriteLine($"Connected, took {_stopwatch.ElapsedMilliseconds}ms.");
+
 
             _client.MessageCreated += ClientOnMessageCreated;
 
             await Task.Delay(1000);
-            _botBackbone = ResourceLocator.BotBackbone;
-            _botBackbone.Initialize();
 
+            _botBackbone = ResourceLocator.BotBackbone;
+            Console.WriteLine("Initializing framework.");
+            _stopwatch.Restart();
+            _botBackbone.Initialize();
+            _stopwatch.Stop();
+            Console.WriteLine($"Finished framework initialization, took {_stopwatch.ElapsedMilliseconds}ms.");
 
 
             await _client.UpdateStatusAsync(new DiscordGame("b/help for no help"), UserStatus.Online);
@@ -86,11 +101,14 @@ namespace BobDono
                 }
             }
 
+            _ready = true;
             await Task.Delay(-1);
         }
 #pragma warning disable 4014
         private async Task ClientOnMessageCreated(MessageCreateEventArgs messageCreateEventArgs)
         {
+            if(!_ready)
+                return;
 
             //Console.WriteLine(messageCreateEventArgs.Message.Content);
             if (messageCreateEventArgs.Author.IsBot)

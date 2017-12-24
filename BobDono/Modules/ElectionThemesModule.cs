@@ -21,13 +21,13 @@ namespace BobDono.Modules
     [Module(Hidden = true)]
     public class ElectionThemesModule
     {
-        private readonly IElectionThemesChannelService _electionThemesChannelService;
+        private readonly IServiceFactory<IElectionThemesChannelService> _electionThemesChannelService;
         private readonly CustomDiscordClient _discordClient;
 
 
         public List<ElectionThemesContext> ElectionThemesContexts { get; } = new List<ElectionThemesContext>();
 
-        public ElectionThemesModule(IElectionThemesChannelService electionThemesChannelService, DiscordClient discordClient)
+        public ElectionThemesModule(IServiceFactory<IElectionThemesChannelService> electionThemesChannelService, DiscordClient discordClient)
         {
             _electionThemesChannelService = electionThemesChannelService;
             _discordClient = discordClient as CustomDiscordClient;

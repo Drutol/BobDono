@@ -8,14 +8,14 @@ using BobDono.Models.Entities;
 
 namespace BobDono.DataAccess.Services
 {
-    public class ExceptionReportsService : ServiceBase<ExceptionReport,IExceptionReportsService> , IExceptionReportsService
+    public class MerchService : ServiceBase<MerchandiseItem,IMerchService>, IMerchService
     {
-        public ExceptionReportsService()
+        public MerchService()
         {
 
         }
 
-        private ExceptionReportsService(BobDatabaseContext dbContext, bool saveOnDispose) : base(dbContext,saveOnDispose)
+        private MerchService(BobDatabaseContext dbContext, bool saveOnDispose) : base(dbContext, saveOnDispose)
         {
 
         }

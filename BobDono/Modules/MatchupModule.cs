@@ -24,15 +24,18 @@ namespace BobDono.Modules
     [Module(Name = "Matchups",Description = "Allows to create matchups.")]
     public class MatchupModule
     {
-        private readonly IUserService _userService;
         private readonly CustomDiscordClient _customDiscordClient;
-        private readonly IMatchupService _matchupService;
+
+        private readonly IServiceFactory<IMatchupService> _matchupService;
+        private readonly IServiceFactory<IUserService> _userService;
+
         private readonly IBotContext _botContext;
         private readonly IExceptionHandler _exceptionHandler;
 
         public List<MatchupContext> MatchupContexts { get; set; } = new List<MatchupContext>();
 
-        public MatchupModule(IUserService userService, CustomDiscordClient customDiscordClient, IMatchupService matchupService, IBotContext botContext, IExceptionHandler exceptionHandler)
+        public MatchupModule(IServiceFactory<IUserService> userService, CustomDiscordClient customDiscordClient,
+            IServiceFactory<IMatchupService> matchupService, IBotContext botContext, IExceptionHandler exceptionHandler)
         {
             _userService = userService;
             _customDiscordClient = customDiscordClient;

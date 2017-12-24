@@ -17,19 +17,14 @@ namespace BobDono.DataAccess.Services
 
         }
 
-        protected override IQueryable<TrueWaifu> Include(IQueryable<TrueWaifu> query)
-        {
-            return query.Include(w => w.Waifu);
-        }
-
         private TrueWaifuService(BobDatabaseContext dbContext, bool saveOnDispose) : base(dbContext, saveOnDispose)
         {
             
         }
 
-        public override ITrueWaifuService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
+        protected override IQueryable<TrueWaifu> Include(IQueryable<TrueWaifu> query)
         {
-            return new TrueWaifuService(executionContext.Context as BobDatabaseContext, saveOnDispose);
+            return query.Include(w => w.Waifu);
         }
     }
 }

@@ -28,8 +28,6 @@ namespace BobDono.DataAccess.Services
             return query.IncludeAll();
         }
 
-
-
         public async Task<Election> GetElection(long id)
         {
             return await Context.Elections.IncludeAll().FirstOrDefaultAsync(election => election.Id == id);           
@@ -41,11 +39,6 @@ namespace BobDono.DataAccess.Services
             user.Elections.Add(election);
 
             return election;
-        }
-
-        public override IElectionService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
-        {
-            return new ElectionService(executionContext.Context as BobDatabaseContext, saveOnDispose);
         }
     }
 }

@@ -33,16 +33,21 @@ namespace BobDono.Contexts
 
         private readonly ElectionController _controller;
 
-        private readonly IWaifuService _waifuService;
-        private readonly IElectionService _electionService;
-        private readonly IUserService _userService;
-        private readonly IContenderService _contenderService;
+        private readonly IServiceFactory<IWaifuService> _waifuService;
+        private readonly IServiceFactory<IElectionService> _electionService;
+        private readonly IServiceFactory<IUserService> _userService;
+        private readonly IServiceFactory<IContenderService> _contenderService;
+        private readonly IServiceFactory<IHallOfFameMemberService> _hallOfFameMemberService;
+
         private readonly IExceptionHandler _exceptionHandler;
-        private readonly IHallOfFameMemberService _hallOfFameMemberService;
+
         private TimerService.TimerRegistration _timerRegistration;
 
-        public ElectionContext(Election election,DiscordClient discordClient, IWaifuService waifuService, IElectionService electionService,
-            IUserService userService, IContenderService contenderService, IExceptionHandler exceptionHandler, IHallOfFameMemberService hallOfFameMemberService) : base(election.DiscordChannelId)
+        public ElectionContext(Election election, DiscordClient discordClient,
+            IServiceFactory<IWaifuService> waifuService, IServiceFactory<IElectionService> electionService,
+            IServiceFactory<IUserService> userService, IServiceFactory<IContenderService> contenderService,
+            IExceptionHandler exceptionHandler, IServiceFactory<IHallOfFameMemberService> hallOfFameMemberService) :
+            base(election.DiscordChannelId)
         {
             _waifuService = waifuService;
             _electionService = electionService;
@@ -62,7 +67,7 @@ namespace BobDono.Contexts
 
             ChannelIdContext = election.DiscordChannelId;
 
-            _controller = new ElectionController(this,_election, _channel, _electionService);
+            _controller = new ElectionController(this, _election, _channel, _electionService);
 
             _timerRegistration = new TimerService.TimerRegistration
             {

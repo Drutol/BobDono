@@ -53,10 +53,5 @@ namespace BobDono.DataAccess.Services
 
             return waifu;
         }
-
-        public override IWaifuService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
-        {
-            return new WaifuService(_characterDetailsQuery, executionContext.Context as BobDatabaseContext, saveOnDispose);
-        }
     }
 }

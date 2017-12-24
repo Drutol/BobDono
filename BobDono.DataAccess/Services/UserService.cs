@@ -66,10 +66,5 @@ namespace BobDono.DataAccess.Services
 
             return user;
         }
-
-        public override IUserService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
-        {
-            return new UserService(executionContext.Context as BobDatabaseContext, saveOnDispose);
-        }
     }
 }

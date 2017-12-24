@@ -12,11 +12,6 @@ namespace BobDono.DataAccess.Database
 {
     public class BobDatabaseContext : DbContext
     {
-        public static void Initialize()
-        {
-
-        }
-
         public BobDatabaseContext()
         {
 
@@ -33,6 +28,7 @@ namespace BobDono.DataAccess.Database
         public DbSet<ExceptionReport> ExceptionReports { get; set; }
         public DbSet<ElectionTheme> ElectionThemes { get; set; }
         public DbSet<HallOfFameMember> HallOfFameMembers { get; set; }
+        //public DbSet<MerchandiseItem> MerchandiseItems { get; set; }
 
         public DbSet<HallOfFameChannel> HallOfFameChannels { get; set; }
         public DbSet<ElectionThemeChannel> ElectionThemeChannels { get; set; }

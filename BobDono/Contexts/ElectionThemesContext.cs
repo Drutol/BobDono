@@ -35,10 +35,10 @@ namespace BobDono.Contexts
 
         private readonly CustomDiscordClient _discordClient;
         private readonly IExceptionHandler _exceptionHandler;
-        private readonly IUserService _userService;
-        private readonly IElectionThemeService _electionThemeService;
-        private readonly IElectionThemesChannelService _electionThemesChannelService;
-        private readonly IElectionService _electionService;
+        private readonly IServiceFactory<IUserService> _userService;
+        private readonly IServiceFactory<IElectionThemeService> _electionThemeService;
+        private readonly IServiceFactory<IElectionThemesChannelService> _electionThemesChannelService;
+        private readonly IServiceFactory<IElectionService> _electionService;
 
 
         private Random _random = new Random();
@@ -46,8 +46,10 @@ namespace BobDono.Contexts
         private ElectionThemeChannel _themesChannel;
 
         public ElectionThemesContext(ElectionThemeChannel channel, DiscordClient discordClient,
-            IExceptionHandler exceptionHandler, IUserService userService, IElectionThemeService electionThemeService,
-            IElectionThemesChannelService electionThemesChannelService, IElectionService electionService) : base((ulong)channel.DiscordChannelId)
+            IExceptionHandler exceptionHandler, IServiceFactory<IUserService> userService,
+            IServiceFactory<IElectionThemeService> electionThemeService,
+            IServiceFactory<IElectionThemesChannelService> electionThemesChannelService,
+            IServiceFactory<IElectionService> electionService) : base((ulong) channel.DiscordChannelId)
         {
             _discordClient = discordClient as CustomDiscordClient;
             _themesChannel = channel;

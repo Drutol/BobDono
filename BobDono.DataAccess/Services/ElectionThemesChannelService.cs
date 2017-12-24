@@ -20,10 +20,5 @@ namespace BobDono.DataAccess.Services
         {
 
         }
-
-        public override IElectionThemesChannelService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
-        {
-            return new ElectionThemesChannelService(executionContext.Context as BobDatabaseContext, saveOnDispose);
-        }
     }
 }

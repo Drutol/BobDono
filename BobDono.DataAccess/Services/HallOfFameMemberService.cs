@@ -19,10 +19,5 @@ namespace BobDono.DataAccess.Services
         {
 
         }
-
-        public override IHallOfFameMemberService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
-        {
-            return new HallOfFameMemberService(executionContext.Context as BobDatabaseContext, saveOnDispose);
-        }
     }
 }

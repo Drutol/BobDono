@@ -24,14 +24,17 @@ namespace BobDono.Modules
     [Module(Name = "HallOfFame",Description = "Commands to interact with hall of fame, like using winners commands.")]
     public class HallOfFameModule
     {
-        private readonly IHallOfFameChannelService _hallOfFameChannelService;
-        private readonly IHallOfFameMemberService _hallOfFameMemberService;
-        private readonly IElectionService _electionService;
+        private readonly IServiceFactory<IHallOfFameChannelService> _hallOfFameChannelService;
+        private readonly IServiceFactory<IHallOfFameMemberService> _hallOfFameMemberService;
+        private readonly IServiceFactory<IElectionService> _electionService;
+
         private readonly CustomDiscordClient _discordClient;
 
         public List<HallOfFameContext> HallOfFameContexts { get; } = new List<HallOfFameContext>();
 
-        public HallOfFameModule(IHallOfFameChannelService hallOfFameChannelService, DiscordClient discordClient, IHallOfFameMemberService hallOfFameMemberService, IElectionService electionService)
+        public HallOfFameModule(IServiceFactory<IHallOfFameChannelService> hallOfFameChannelService,
+            DiscordClient discordClient, IServiceFactory<IHallOfFameMemberService> hallOfFameMemberService,
+            IServiceFactory<IElectionService> electionService)
         {
             _hallOfFameChannelService = hallOfFameChannelService;
             _hallOfFameMemberService = hallOfFameMemberService;

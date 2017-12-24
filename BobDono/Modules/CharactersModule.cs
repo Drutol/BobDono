@@ -23,11 +23,11 @@ namespace BobDono.Modules
         private readonly List<CharacterDetailsData> _charactersCache = new List<CharacterDetailsData>();
 
         private readonly ICharactersSearchQuery _charactersSearchQuery;
-        private readonly ITrueWaifuService _trueWaifuService;
+        private readonly IServiceFactory<ITrueWaifuService> _trueWaifuService;
         private readonly IProfileQuery _profileQuery;
         private readonly ICharacterDetailsQuery _characterDetailsQuery;
 
-        public CharactersModule(ICharactersSearchQuery charactersSearchQuery,ITrueWaifuService trueWaifuService, IProfileQuery profileQuery, ICharacterDetailsQuery characterDetailsQuery)
+        public CharactersModule(ICharactersSearchQuery charactersSearchQuery,IServiceFactory<ITrueWaifuService> trueWaifuService, IProfileQuery profileQuery, ICharacterDetailsQuery characterDetailsQuery)
         {
             _charactersSearchQuery = charactersSearchQuery;
             _trueWaifuService = trueWaifuService;

@@ -30,14 +30,18 @@ namespace BobDono.Modules
     public class ElectionsModule
     {
         private readonly CustomDiscordClient _discordClient;
-        private readonly IUserService _userService;
+
         private readonly IBotContext _botContext;
         private readonly IExceptionHandler _exceptionHandler;
-        private readonly IElectionService _electionService;
+
+        private readonly IServiceFactory<IElectionService> _electionService;
+        private readonly IServiceFactory<IUserService> _userService;
+
         public List<ElectionContext> ElectionsContexts { get; } = new List<ElectionContext>();
 
-        public ElectionsModule(CustomDiscordClient discordClient,IUserService userService, IBotContext botContext, IExceptionHandler exceptionHandler,
-            IElectionService electionService)
+        public ElectionsModule(CustomDiscordClient discordClient, IServiceFactory<IUserService> userService, IBotContext botContext,
+            IExceptionHandler exceptionHandler,
+            IServiceFactory<IElectionService> electionService)
         {
             _discordClient = discordClient;
             _userService = userService;
