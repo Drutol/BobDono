@@ -6,6 +6,7 @@ using BobDono.Interfaces;
 using BobDono.Models;
 using BobDono.Models.Entities;
 using BobDono.Models.Entities.Simple;
+using BobDono.Models.Entities.Stats;
 using Microsoft.EntityFrameworkCore;
 
 namespace BobDono.DataAccess.Database
@@ -28,8 +29,12 @@ namespace BobDono.DataAccess.Database
         public DbSet<ExceptionReport> ExceptionReports { get; set; }
         public DbSet<ElectionTheme> ElectionThemes { get; set; }
         public DbSet<HallOfFameMember> HallOfFameMembers { get; set; }
-        //public DbSet<MerchandiseItem> MerchandiseItems { get; set; }
+        public DbSet<MerchandiseItem> MerchandiseItems { get; set; }
 
+        //stats
+        public DbSet<ExecutedCommand> ExecutedCommands { get; set; }
+
+        //channels
         public DbSet<HallOfFameChannel> HallOfFameChannels { get; set; }
         public DbSet<ElectionThemeChannel> ElectionThemeChannels { get; set; }
 
@@ -54,7 +59,7 @@ namespace BobDono.DataAccess.Database
             var @interface = typeof(IModelWithRelation);
             var namespaces = new[]
             {
-                "BobDono.Models.Entities", "BobDono.Models.MalHell", "BobDono.Models.Entities.JoinEntities"
+                "BobDono.Models.Entities", "BobDono.Models.MalHell", "BobDono.Models.Entities.JoinEntities", "BobDono.Models.Entities.Stats"
             };
 
             return Assembly.GetAssembly(typeof(UserWaifu))

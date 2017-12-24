@@ -169,7 +169,7 @@ namespace BobDono.Modules
             }
         }
 
-        [CommandHandler(Regex = "certify .*", HumanReadableCommand = "certify <what(36 characters)>",
+        [CommandHandler(Regex = "certify .*", HumanReadableCommand = "certify <what>",
             HelpText = "Certifies the facts and truths.", Awaitable = false)]
         public async Task Certify(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {

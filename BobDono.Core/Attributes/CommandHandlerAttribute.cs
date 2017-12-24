@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using BobDono.Core.Utils;
 
 namespace BobDono.Core.Attributes
@@ -11,6 +12,12 @@ namespace BobDono.Core.Attributes
         public const string CommandStarter = "b/";
 #endif
 
+        public string HandlerMethodName { get; }
+
+        public CommandHandlerAttribute([CallerMemberName] string handlerMethodName = null)
+        {
+            HandlerMethodName = handlerMethodName;
+        }
 
         private string _regex;
         private string _humanReadableCommand;

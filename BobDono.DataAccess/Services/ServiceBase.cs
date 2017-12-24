@@ -125,6 +125,11 @@ namespace BobDono.DataAccess.Services
             return Context.Add(entity).Entity;
         }
 
+        public void AddRange(IEnumerable<TEntity> items)
+        {
+            Context.AddRange(items);
+        }
+
         public void Remove(TEntity entity)
         {
             Context.Set<TEntity>().Remove(entity);
@@ -133,6 +138,11 @@ namespace BobDono.DataAccess.Services
         public void Update(TEntity entity)
         {
             Context.Set<TEntity>().Update(entity);
+        }
+
+        public int Count()
+        {
+            return Context.Set<TEntity>().Count();
         }
 
         public async Task SaveChangesAsync()

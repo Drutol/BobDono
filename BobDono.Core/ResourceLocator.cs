@@ -33,7 +33,6 @@ namespace BobDono.Core
             builder.RegisterType<BotBackbone>().As<IBotBackbone>().SingleInstance();
             builder.RegisterType<ExceptionHandler>().As<IExceptionHandler>().SingleInstance();
             builder.RegisterType<HttpClientProvider>().As<IHttpClientProvider>().SingleInstance();
-            builder.RegisterType<ExceptionReportsService>().As<IExceptionReportsService>().SingleInstance();
             builder.RegisterType<CharacterDetailsQuery>().As<ICharacterDetailsQuery>().SingleInstance();
             builder.RegisterType<ProfileQuery>().As<IProfileQuery>().SingleInstance();
             builder.RegisterType<CharactersSearchQuery>().As<ICharactersSearchQuery>().SingleInstance();
@@ -50,7 +49,9 @@ namespace BobDono.Core
             builder.RegisterType<MatchupService>().AsFactory().WithProduct<IMatchupService>().SingleInstance();
             builder.RegisterType<ElectionThemesChannelService>().AsFactory().WithProduct<IElectionThemesChannelService>().SingleInstance();
             builder.RegisterType<MerchService>().AsFactory().WithProduct<IMerchService>().SingleInstance();
-
+            builder.RegisterType<ExecutedCommandsService>().AsFactory().WithProduct<IExecutedCommandsService>().SingleInstance();
+            builder.RegisterType<VoteService>().AsFactory().WithProduct<IVoteService>().SingleInstance();
+            builder.RegisterType<ExceptionReportsService>().AsFactory().WithProduct<IExceptionReportsService>().SingleInstance();
 
             builder.RegisterType<CommandExecutionContext>().As<ICommandExecutionContext>();
 

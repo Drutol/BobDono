@@ -20,6 +20,7 @@ using BobDono.Core.Utils;
 using BobDono.DataAccess.Database;
 using BobDono.Interfaces;
 using BobDono.Models;
+using BobDono.Models.Entities.Stats;
 using BobDono.Utils;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -37,8 +38,16 @@ namespace BobDono
         public static async Task Main(string[] args)
         {
             Console.WriteLine("BootingBob!");
-            var prog = new BobDono();
-            await prog.RunBotAsync();
+            try
+            {
+                var prog = new BobDono();
+                await prog.RunBotAsync();
+            }
+            catch (Exception e)
+            {
+                Debugger.Break();
+            }
+
         }
 
         private async Task RunBotAsync()
@@ -110,6 +119,7 @@ namespace BobDono
             if(!_ready)
                 return;
 
+            HandlerEntry invokedhandler = null;
             //Console.WriteLine(messageCreateEventArgs.Message.Content);
             if (messageCreateEventArgs.Author.IsBot)
             {
@@ -141,6 +151,8 @@ namespace BobDono
                                 ctx.AuthenticatedCaller = messageCreateEventArgs.Author.IsAuthenticated();
                                 await InvokeContextual(context, handlerEntry, ctx);
 
+                                invokedhandler = handlerEntry;
+
                                 if(!invokedModules.ContainsKey(handlerEntry.Attribute.ParentModuleAttribute))
                                     invokedModules[handlerEntry.Attribute.ParentModuleAttribute] = new HashSet<IModule>();
 
@@ -164,6 +176,8 @@ namespace BobDono
                         if (handlerEntry.Predicates.All(predicate =>
                             predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs)))
                         {
+                            invokedhandler = handlerEntry;
+
                             var ctx = ResourceLocator.ExecutionContext;
                             ctx.AuthenticatedCaller = messageCreateEventArgs.Author.IsAuthenticated();
                             if (handlerEntry.Attribute.Awaitable)
@@ -210,6 +224,41 @@ namespace BobDono
                 ResourceLocator.ExceptionHandler.Handle(e,messageCreateEventArgs);
             }
 
+            if (invokedhandler != null)
+            {
+                Messenger.Instance.Send(new ExecutedCommand()
+                {
+                    CallerName = messageCreateEventArgs.Author.Username,
+                    CallerHash = messageCreateEventArgs.Author.Username.GetHashCode(),
+
+                    CommandName = invokedhandler.Attribute.HumanReadableCommand,
+                    CommandHash = invokedhandler.Attribute.HandlerMethodName.GetHashCode(),
+
+                    Contextual = invokedhandler.Attribute.ParentModuleAttribute.IsChannelContextual,
+                    Existed = true,
+                    Time = DateTime.UtcNow
+                });
+            }
+            else
+            {
+                if (messageCreateEventArgs.Message.Content.StartsWith(CommandHandlerAttribute.CommandStarter,
+                        StringComparison.InvariantCultureIgnoreCase) &&
+                    messageCreateEventArgs.Message.Content.Length < 100)
+                {
+                    Messenger.Instance.Send(new ExecutedCommand()
+                    {
+                        CallerName = messageCreateEventArgs.Author.Username,
+                        CallerHash = messageCreateEventArgs.Author.Username.GetHashCode(),
+
+                        CommandName = messageCreateEventArgs.Message.Content,
+                        CommandHash = messageCreateEventArgs.Message.GetHashCode(),
+
+                        Existed = false,
+                        Time = DateTime.UtcNow
+                    });
+                }
+            }
+
 
             async Task InvokeContextual(IModule context, HandlerEntry handlerEntry, ICommandExecutionContext executionContext)
             {
@@ -217,7 +266,6 @@ namespace BobDono
                     await handlerEntry.ContextualDelegateAsync.Invoke(messageCreateEventArgs, context, executionContext);
                 else
                     handlerEntry.ContextualDelegateAsync.Invoke(messageCreateEventArgs, context, executionContext);
-
             }
         }
 #pragma warning restore 4014

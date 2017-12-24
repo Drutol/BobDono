@@ -17,8 +17,10 @@ namespace BobDono.Interfaces.Services
         Task<TEntity> FirstAsync(Expression<Func<TEntity, bool>> predicate);
 
         TEntity Add(TEntity client);
+        void AddRange(IEnumerable<TEntity> items);
         void Remove(TEntity client);
         void Update(TEntity client);
+        int Count();
 
         Task SaveChangesAsync();
         

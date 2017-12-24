@@ -10,7 +10,6 @@ namespace BobDono.DataAccess.Services
 {
     public class ElectionThemesChannelService : ServiceBase<ElectionThemeChannel,IElectionThemesChannelService> , IElectionThemesChannelService
     {
-
         public ElectionThemesChannelService()
         {
             

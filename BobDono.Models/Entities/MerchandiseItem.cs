@@ -7,6 +7,7 @@ namespace BobDono.Models.Entities
     public class MerchandiseItem
     {
         public long Id { get; set; }
+        public User Owner { get; set; }
 
         public string ImageLink { get; set; }
         public string Notes { get; set; }

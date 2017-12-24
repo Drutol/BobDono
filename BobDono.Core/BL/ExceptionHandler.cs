@@ -9,9 +9,9 @@ namespace BobDono.Core.BL
 {
     public class ExceptionHandler : IExceptionHandler
     {
-        private readonly IExceptionReportsService _exceptionReportsService;
+        private readonly IServiceFactory<IExceptionReportsService> _exceptionReportsService;
 
-        public ExceptionHandler(IExceptionReportsService exceptionReportsService)
+        public ExceptionHandler(IServiceFactory<IExceptionReportsService> exceptionReportsService)
         {
             _exceptionReportsService = exceptionReportsService;
         }

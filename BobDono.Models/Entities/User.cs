@@ -30,6 +30,7 @@ namespace BobDono.Models.Entities
         public virtual ICollection<UserTheme> ElectionThemes { get; set; }
         public virtual ICollection<UserMatchup> MatchupsParticipatingIn { get; set; }
         public virtual ICollection<Matchup> CreatedMatchups { get; set; }
+        public virtual ICollection<MerchandiseItem> OwnedMerchandiseItems { get; set; }
 
         public TrueWaifu TrueWaifu { get; set; }
 
@@ -51,6 +52,10 @@ namespace BobDono.Models.Entities
             modelBuilder.Entity<User>()
                 .HasMany(u => u.CreatedMatchups)
                 .WithOne(m => m.Author);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.OwnedMerchandiseItems)
+                .WithOne(m => m.Owner);
         }
     }
 }
