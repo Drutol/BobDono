@@ -248,10 +248,7 @@ namespace BobDono
                     Messenger.Instance.Send(new ExecutedCommand()
                     {
                         CallerName = messageCreateEventArgs.Author.Username,
-                        CallerHash = messageCreateEventArgs.Author.Username.GetHashCode(),
-
                         CommandName = messageCreateEventArgs.Message.Content,
-                        CommandHash = messageCreateEventArgs.Message.GetHashCode(),
 
                         Existed = false,
                         Time = DateTime.UtcNow

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using BobDono.Core.Attributes;
@@ -30,6 +31,7 @@ namespace BobDono.Modules
         private DiscordEmbed _cachedEmbed;
 
         private List<ExecutedCommand> _commandBacklog;
+        private MD5 _md5Hasher;
 
         public StatsModule(IServiceFactory<IExceptionReportsService> exceptionService,
             IServiceFactory<IExecutedCommandsService> executedCommandsService,
@@ -53,11 +55,17 @@ namespace BobDono.Modules
             Messenger.Instance.Register<ExecutedCommand>(c => OnNewCommands(c));
             
             _commandBacklog = new List<ExecutedCommand>();
+            _md5Hasher = MD5.Create();
         }
 
         private void OnNewCommands(ExecutedCommand executedCommand)
         {
-            _commandBacklog.Add(executedCommand);
+            if (executedCommand.CommandName != null && executedCommand.CallerName != null)
+            {             
+                executedCommand.CommandHash = BitConverter.ToInt32(_md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(executedCommand.CommandName)), 0);
+                executedCommand.CallerHash = BitConverter.ToInt32(_md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(executedCommand.CallerName)), 0);
+                _commandBacklog.Add(executedCommand);
+            }
         }
 
 
@@ -152,5 +160,30 @@ namespace BobDono.Modules
             await args.Channel.SendMessageAsync(null, false, _cachedEmbed);
         }
 
+        [CommandHandler(Regex = "plzfixhashes",Debug = true)]
+        public async Task FixHashes(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            try
+            {
+                using (var ec = _executedCommandsService.ObtainLifetimeHandle(executionContext))
+                {
+                    foreach (var executedCommand in ec.GetAll())
+                    {
+                        executedCommand.CommandHash = BitConverter.ToInt32(_md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(executedCommand.CommandName)), 0);
+                        executedCommand.CallerHash = BitConverter.ToInt32(_md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(executedCommand.CallerName)), 0);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
+            finally
+            {
+
+            }
+        }
+
     }
+
 }
