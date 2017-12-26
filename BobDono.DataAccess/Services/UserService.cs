@@ -56,6 +56,9 @@ namespace BobDono.DataAccess.Services
         {
             var user = await FirstAsync(u => u.DiscordId == MyId);
 
+            if (user != null)
+                return user;
+
             user = new User
             {
                 DiscordId = MyId,

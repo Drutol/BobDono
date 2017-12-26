@@ -129,7 +129,7 @@ namespace BobDono.Modules
                 groups = es.GetGrouping(command => command.CommandHash,false);
                 foreach (var cmds in groups.OrderByDescending(commands => commands.Count()).Take(5))
                 {
-                    topImaginedCommands.AppendLine($"`{i++}`. **{cmds.First().CommandName}** - *{cmds.Count()}*");
+                    topImaginedCommands.AppendLine($"`{i++}`. **{cmds.First().CommandName}** - *{cmds.Count()}* - *({cmds.GroupBy(command => command.CallerHash).OrderByDescending(commands => commands.Count()).FirstOrDefault()?.FirstOrDefault()?.CallerName})*");
                 }
 
 
