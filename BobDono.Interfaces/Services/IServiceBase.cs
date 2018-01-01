@@ -24,8 +24,8 @@ namespace BobDono.Interfaces.Services
 
         Task SaveChangesAsync();
         
-        TService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true);
-        TService ObtainLifetimeHandle(bool saveOnDispose = true);
+        TService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true, params object[] additions);
+        TService ObtainLifetimeHandle(bool saveOnDispose = true, params object[] additions);
 
         IIncludeConfigurator<TEntity, TService> ConfigureIncludes();
     }

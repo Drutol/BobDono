@@ -25,6 +25,7 @@ namespace BobDono.Controllers
         private const string CurrentEntriesCount = "Current Entries:";
         private const string ParticipantsCount = "Participants:";
         private const string TotalVotes = "Total Votes:";
+        private const string EntrantsCount = "Entrants per person:";
 #if DEBUG
         private const long MentionGroupId = 382597879497490444;
 #else
@@ -109,7 +110,7 @@ namespace BobDono.Controllers
             embed.Author = new DiscordEmbedBuilder.EmbedAuthor {Name = Election.Author.Name};
             embed.AddField("Submission time:",
                 $"{Election.SubmissionsStartDate} - {Election.SubmissionsEndDate} (UTC) - *({(Election.SubmissionsEndDate - Election.SubmissionsStartDate).Days} days)*");
-            embed.AddField("Entrants per person:", Election.EntrantsPerUser.ToString());
+            embed.AddField(EntrantsCount, Election.EntrantsPerUser.ToString());
             embed.AddField(ParticipantsCount, "0");
             embed.AddField(CurrentEntriesCount, "0");
             embed.AddField(TotalVotes, "0");
@@ -129,6 +130,9 @@ namespace BobDono.Controllers
 
             var embed = new DiscordEmbedBuilder(message.Embeds.First());
 
+
+            embed.Fields.First(field => field.Name.Equals(EntrantsCount)).Value = Election.EntrantsPerUser.ToString();  
+            
             embed.Fields.First(field => field.Name.Equals(ParticipantsCount)).Value = Election.Contenders
                 .Select(contender => contender.Proposer.Id).Distinct().Count().ToString();
             embed.Fields.First(field => field.Name.Equals(CurrentEntriesCount)).Value = Election.Contenders.Count.ToString();

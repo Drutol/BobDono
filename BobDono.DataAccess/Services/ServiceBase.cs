@@ -72,7 +72,8 @@ namespace BobDono.DataAccess.Services
                         BindingFlags.DeclaredOnly;
 
             var c = this.GetType().GetConstructors(flags);
-            _constructor = c.First(info => info.GetParameters().Any());
+            _constructor = c.Where(info => info.GetParameters().Any())
+                .OrderByDescending(info => info.GetParameters().Length).First();
         }
 
         internal ServiceBase(BobDatabaseContext dbContext, bool saveOnDispose) : base()
@@ -154,7 +155,7 @@ namespace BobDono.DataAccess.Services
         //    bool saveOnDispose = true);
 
 
-        public TService ObtainLifetimeHandle(bool saveOnDispose = true)
+        public TService ObtainLifetimeHandle(bool saveOnDispose = true, params object[] additions)
         {
             return ObtainLifetimeHandle(new CommandExecutionContext(),saveOnDispose);
         }
@@ -184,9 +185,9 @@ namespace BobDono.DataAccess.Services
             return new IncludeConfigurator<TEntity,TService>(this);
         }
 
-        public TService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true)
+        public virtual TService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true, params object[] additions)
         {
-            return (TService)_constructor.Invoke(new object[] { (BobDatabaseContext)executionContext.Context, saveOnDispose });
+            return (TService)_constructor.Invoke(new object[] { (BobDatabaseContext)executionContext.Context, saveOnDispose }.Concat(additions).ToArray());
         }
     }
 }

@@ -18,9 +18,16 @@ namespace BobDono.DataAccess.Services
             _characterDetailsQuery = characterDetailsQuery;
         }
 
-        private WaifuService(ICharacterDetailsQuery characterDetailsQuery, BobDatabaseContext dbContext, bool saveOnDispose) : base(dbContext,saveOnDispose)
+        private WaifuService(BobDatabaseContext dbContext, bool saveOnDispose, ICharacterDetailsQuery characterDetailsQuery) : base(dbContext,saveOnDispose)
         {
             _characterDetailsQuery = characterDetailsQuery;
+        }
+
+        public override IWaifuService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true, params object[] additions)
+        {
+            var list = additions.ToList();
+            list.Add(_characterDetailsQuery);
+            return base.ObtainLifetimeHandle(executionContext, saveOnDispose, list.ToArray());
         }
 
 

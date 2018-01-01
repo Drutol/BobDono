@@ -89,6 +89,18 @@ namespace BobDono.Modules
             await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/rgj.png");
         }
 
+        [CommandHandler(Regex = "nono", HumanReadableCommand = "nono", HelpText = "No please! Nooooooooooo.com")]
+        public async Task NoNo(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/nono.png");
+        }
+
+        [CommandHandler(Regex = "stop", HumanReadableCommand = "stop", HelpText = "Hehe.")]
+        public async Task Stop(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/stop.png");
+        }
+
         [CommandHandler(Regex = "cry", HumanReadableCommand = "shrug", HelpText = "That's serious cry don't overuse it...")]
         public async Task Cry(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
