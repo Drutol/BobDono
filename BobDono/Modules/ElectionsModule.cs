@@ -325,7 +325,9 @@ namespace BobDono.Modules
                             .ThenInclude(b => b.Election)
                         .Include(u => u.Votes)
                             .ThenInclude(u => u.Contender)
-                            .ThenInclude(c => c.Waifu);
+                            .ThenInclude(c => c.Waifu)
+                        .Include(u => u.Votes).ThenInclude(v => v.Bracket.Loser.Waifu)
+                        .Include(u => u.Votes).ThenInclude(v => v.Bracket.Winner.Waifu);
                 }).Commit();
                 var user = await userService.GetOrCreateUser(args.Message.Author);
                 if (user.Votes.Any())
@@ -337,25 +339,75 @@ namespace BobDono.Modules
                         var votesInStage = user.Votes.Where(vote => vote.Bracket.BracketStage == lastStage);
                         output = $"**Votes in stage #{lastStage.Number} of {lastStage.Election.Name}**\n\n";
                         foreach (var vote in votesInStage)
-                            output += $"{vote.Contender.Waifu.Name} *({vote.Contender.Waifu.MalId})* {(vote.Bracket.Winner != null && vote.Contender.Equals(vote.Bracket.Winner) ? ":trophy:" : "")}\n";
+                        {
+                            var others = new[]
+                            {
+                                vote.Bracket.FirstContender,
+                                vote.Bracket.SecondContender,
+                                vote.Bracket.ThirdContender
+                            };
+                            others = others.Where(contender => contender != null).Except(new[] {vote.Contender})
+                                .ToArray();
+
+                            output += $"*Bracket #{vote.Bracket.Number}*\t" +
+                                      $"**{vote.Contender.Waifu.Name}**" +
+                                      $" {(vote.Bracket.Winner != null && vote.Contender.Equals(vote.Bracket.Winner) ? " :trophy:" : "")}";
+
+                            output += "\t";
+
+                            output += string.Join(", ",
+                                    others.Select(waifuContender =>
+                                        $"{waifuContender.Waifu.Name}" +
+                                        $"{(vote.Bracket.Winner != null && vote.Bracket.Winner.Equals(waifuContender) ? " :trophy:" : "")}"));
+
+
+                            output += "\n";
+                        }
                     }
                     else //given amount
                     {
-                        var votesToDisplay = int.Parse(param[2]);
+                        var votesToDisplay = Math.Min(15,int.Parse(param[2]));
                         var votesPerElection = user.Votes.TakeLast(votesToDisplay).GroupBy(vote => vote.Bracket.BracketStage.Election);
                         output = "";
 
                         foreach (var electionVotes in votesPerElection)
                         {
+
                             output += $"**Votes in {electionVotes.Key.Name} election:**\n\n";
                             foreach (var vote in electionVotes)
-                                output += $"{vote.Contender.Waifu.Name} *({vote.Contender.Waifu.MalId})*  Stage #{vote.Bracket.BracketStage.Number} {(vote.Bracket.Winner != null && vote.Contender.Equals(vote.Bracket.Winner) ? ":trophy:" : "")}\n";
+                            {
+                                var others = new[]
+                                {
+                                    vote.Bracket.FirstContender,
+                                    vote.Bracket.SecondContender,
+                                    vote.Bracket.ThirdContender
+                                };
+                                others = others.Where(contender => contender != null).Except(new[] {vote.Contender})
+                                    .ToArray();
+
+                                output +=
+                                    $"*St. #{vote.Bracket.BracketStage.Number} Br. #{vote.Bracket.Number}*\t" +
+                                    $"**{vote.Contender.Waifu.Name}**" +
+                                    $"  {(vote.Bracket.Winner != null && vote.Contender.Equals(vote.Bracket.Winner) ? " :trophy: " : "")}";
+
+                                output += "\t";
+
+                                output += string.Join(", ",
+                                        others.Select(waifuContender =>
+                                            $"{waifuContender.Waifu.Name}" +
+                                            $"{(vote.Bracket.Winner != null && vote.Bracket.Winner.Equals(waifuContender) ? " :trophy:" : "")}"));
+
+                                output += "\n";
+                            }
+
                             output += "\n";
                         }
-                        
-                    }
 
-                    await args.Channel.SendMessageAsync(output);
+                    }
+                    if(output.Length < 2000)
+                        await args.Channel.SendMessageAsync(output);
+                    else
+                        await args.Channel.SendMessageAsync("Your vote batch is bigger than 2000 characters. Try less votes.");
                 }
                 else
                 {

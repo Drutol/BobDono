@@ -101,6 +101,24 @@ namespace BobDono.Modules
             await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/stop.png");
         }
 
+        [CommandHandler(Regex = "eeee", HumanReadableCommand = "eeee", HelpText = "EEEEEEE....EEE?")]
+        public async Task Eeee(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/eeee.png");
+        }
+
+        [CommandHandler(Regex = "drool", HumanReadableCommand = "drool", HelpText = "I waaant...!")]
+        public async Task Drool(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/drool.png");
+        }
+
+        [CommandHandler(Regex = "sigh", HumanReadableCommand = "sigh", HelpText = "*sighs*")]
+        public async Task Sigh(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/sigh.png");
+        }
+
         [CommandHandler(Regex = "cry", HumanReadableCommand = "shrug", HelpText = "That's serious cry don't overuse it...")]
         public async Task Cry(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
@@ -112,7 +130,6 @@ namespace BobDono.Modules
             {
                 await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/cry.png");
             }
-
         }
     }
 }

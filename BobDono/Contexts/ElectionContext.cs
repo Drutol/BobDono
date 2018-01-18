@@ -203,7 +203,7 @@ namespace BobDono.Contexts
             }
         }
 
-        [CommandHandler(Regex = @"vote \d+ [1,2,3]",
+        [CommandHandler(Regex = @"vote \d{1,2} [1,2,3]",
             HelpText = "Submit your vote in given bracket. Can be used once per bracket. Cannot be undone.",
             HumanReadableCommand = "vote <bracketNumber> <contestantNumber>")]
         public async Task Vote(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
@@ -473,8 +473,9 @@ namespace BobDono.Contexts
         {
             try
             {
-                using (var electionService = _electionService.ObtainLifetimeHandle(ResourceLocator.ExecutionContext))
-                using (var userService = _userService.ObtainLifetimeHandle(ResourceLocator.ExecutionContext))
+                var ctx = ResourceLocator.ExecutionContext;
+                using (var electionService = _electionService.ObtainLifetimeHandle(ctx))
+                using (var userService = _userService.ObtainLifetimeHandle(ctx))
                 {
                     _election = await electionService.GetElection(_election.Id);
                     _controller.Election = _election;

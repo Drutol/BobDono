@@ -15,6 +15,13 @@ namespace BobDono.Modules
     [Module(Hidden = true)]
     public class BobModule
     {
+        private readonly CustomDiscordClient _customDiscordClient;
+
+        public BobModule(CustomDiscordClient customDiscordClient)
+        {
+            _customDiscordClient = customDiscordClient;
+        }
+
         [CommandHandler(Regex = @"bob")]
         public Task GeneralCommand(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
@@ -74,6 +81,14 @@ namespace BobDono.Modules
             {
                 await args.Channel.SendMessageAsync("No such command found.");
             }
+        }
+
+        [CommandHandler(Regex = "setstatus .*", Authorize = true)]
+        public async Task SetGame(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            var pos = args.Message.Content.IndexOf(' ');
+            var status = args.Message.Content.Substring(pos + 1);
+            await _customDiscordClient.UpdateStatusAsync(new DiscordGame(status), UserStatus.Online);
         }
 
         [CommandHandler(Regex = "help", HumanReadableCommand = "help", HelpText = "Guides you to help?")]
