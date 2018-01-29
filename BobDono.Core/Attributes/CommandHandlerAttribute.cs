@@ -42,6 +42,7 @@ namespace BobDono.Core.Attributes
         public bool Debug { get; set; }
         public bool IgnoreRegexWrap { get; set; }
         public bool Hidden { get; set; }
+        public bool AcceptsBotCalls { get; set; }
 
         public ModuleAttribute ParentModuleAttribute { get; set; }
 

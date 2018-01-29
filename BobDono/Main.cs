@@ -123,17 +123,25 @@ namespace BobDono
             //Console.WriteLine(messageCreateEventArgs.Message.Content);
             if (messageCreateEventArgs.Author.IsBot)
             {
-                if (!messageCreateEventArgs.Author.IsMe() && ContextModuleBase.ContextChannels.Any(arg => arg == messageCreateEventArgs.Channel.Id))
+                if (!messageCreateEventArgs.Author.IsMe() &&
+                    ContextModuleBase.ContextChannels.Any(arg => arg == messageCreateEventArgs.Channel.Id))
                 {
                     await messageCreateEventArgs.Message.DeleteAsync();
+                    return;
                 }
-                return;
             }
 
             Dictionary<ModuleAttribute, HashSet<IModule>> invokedModules 
                 = new Dictionary<ModuleAttribute, HashSet<IModule>>();
 
-            foreach (var handlerEntry in _botBackbone.Handlers)
+            List<HandlerEntry> entries;
+
+            if (messageCreateEventArgs.Author.IsBot)
+                entries = _botBackbone.Handlers.Where(entry => entry.Attribute.AcceptsBotCalls).ToList();
+            else
+                entries = _botBackbone.Handlers;
+
+            foreach (var handlerEntry in entries)
             {
                 if (!handlerEntry.AreTypesEqual(typeof(MessageCreateEventArgs),typeof(ICommandExecutionContext)))
                     continue;
@@ -199,7 +207,7 @@ namespace BobDono
             try
             {
                 //all handlers that are contextual fallback commands and their parent modules weren't invoked
-                foreach (var handlerEntry in _botBackbone.Handlers
+                foreach (var handlerEntry in entries
                     .Where(entry =>
                         entry.Attribute.FallbackCommand && 
                         entry.Attribute.ParentModuleAttribute.IsChannelContextual))

@@ -62,16 +62,18 @@ namespace BobDono.Modules
             await args.Channel.SendMessageAsync(response);
         }
 
-        [CommandHandler(Regex = "character \"([^\"]*)\"", HumanReadableCommand = "character <\"name\">", HelpText = "Gets character info from MAL, you can type in multiple words into quotes.")]
+        [CommandHandler(Regex = "character \"([^\"]*)\"", HumanReadableCommand = "character <\"name\">",
+            HelpText = "Gets character info from MAL, you can type in multiple words into quotes.")]
         public async Task CharacterWithQuotes(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
-            var groups = Regex.Matches(args.Message.Content,@"character ""([^""]*)""");
+            var groups = Regex.Matches(args.Message.Content, @"character ""([^""]*)""");
 
             await SearchForCharacter(groups[0].Groups[1].Value, null, null, args.Channel,
                 executionContext);
         }
 
-        [CommandHandler(Regex = @"character (\w+|\s)+", HumanReadableCommand = "character <name>/<id> [show]",HelpText = "Gets character info, one word per parameter.")]
+        [CommandHandler(Regex = @"character (\w+|\s)+", HumanReadableCommand = "character <name>/<id> [show]",
+            HelpText = "Gets character info, one word per parameter.", AcceptsBotCalls = true)]
         public async Task GetCharacterInfo(MessageCreateEventArgs args, ICommandExecutionContext context)
         {
             var messageArgs = args.Message.Content.Split(' ');
