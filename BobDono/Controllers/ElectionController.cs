@@ -581,6 +581,7 @@ namespace BobDono.Controllers
 
                 using (var image = await Task.Run(() => BracketImageGenerator.Generate(thumbs)))
                 {
+                    var reactions = new List<string> {":one:", ":two:"};
                     image.Seek(0, SeekOrigin.Begin);
                     var msgHeader = await _channel.SendMessageAsync(null, false, new DiscordEmbedBuilder
                     {
@@ -590,12 +591,20 @@ namespace BobDono.Controllers
                     var imgMessage = await _channel.SendFileAsync(image, $"Bracket {bracket.Number}.png");
                     var footerString = $"**1**: {bracket.FirstContender.Waifu.Name}\n";
                     footerString += $"**2**: {bracket.SecondContender.Waifu.Name}";
-                    if(bracket.ThirdContender != null)
+                    if (bracket.ThirdContender != null)
+                    {
                         footerString += $"\n**3**: {bracket.ThirdContender.Waifu.Name}";
+                        reactions.Add(":three:");
+                    }
+
                     var msgFooter = await _channel.SendMessageAsync(null, false, new DiscordEmbedBuilder
                     {
                         Description = footerString,
                     });
+                    foreach (var reaction in reactions)
+                        await msgFooter.CreateReactionAsync(DiscordEmoji.FromName(ResourceLocator.DiscordClient,
+                            reaction));
+
                     output.Add(msgHeader.Id);
                     output.Add(imgMessage.Id);
                     output.Add(msgFooter.Id);

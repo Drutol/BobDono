@@ -69,6 +69,9 @@ namespace BobDono.Contexts
 
             _controller = new ElectionController(this, _election, _channel, _electionService);
 
+            _discordClient.MessageReactionAdded += DiscordClientOnMessageReactionAdded;
+
+
             _timerRegistration = new TimerService.TimerRegistration
             {
                 Interval = TimeSpan.FromHours(1),
@@ -78,6 +81,104 @@ namespace BobDono.Contexts
             TimerService.Instance.Register(_timerRegistration);
 
             ClearChannel();
+        }
+
+        private async Task DiscordClientOnMessageReactionAdded(MessageReactionAddEventArgs e)
+        {
+            if(e.User.IsMe())
+                return;
+
+
+            bool remove = true;
+            var executionContext = ResourceLocator.ExecutionContext;
+            try
+            {
+                using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+                using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
+                {
+                    _election = await electionService.GetElection(_election.Id);
+                    var messages = new List<ulong>();
+                    var allMessages = _election.BracketMessagesIds;
+                    //get every third message beacuse I'm not storing them individualy
+                    for (int i = 2; i < allMessages.Count; i+=3)
+                        messages.Add(allMessages[i]);
+
+                    if (!messages.Contains(e.Message.Id))
+                    {
+                        remove = false;
+                        return;
+                    }
+
+                    if (e.User.IsBot)
+                        return;
+
+                    //obtain entities
+                    
+                    int contenderId;
+                    switch (e.Emoji.Name)
+                    {
+                        case "1⃣":
+                            contenderId = 1;
+                            break;
+                        case "2⃣":
+                            contenderId = 1;
+                            break;
+                        case "3⃣":
+                            contenderId = 1;
+                            break;
+                        default:
+                            return;
+                    }
+
+                    //prepare parameters
+                    var bracketId = messages.IndexOf(e.Message.Id);
+
+
+                    if (_election.CurrentState == Election.State.Voting)
+                    {
+
+                        var user = await userService.GetOrCreateUser(e.User);
+                        var bracket = _election.BracketStages.Last().Brackets
+                            .FirstOrDefault(b => b.Number == bracketId);
+
+                        if (bracket == null)
+                            return;
+                        else if (bracket.Votes.Any(vote => vote.User.Id == user.Id)) //if user has already voted let's return
+                            return;
+                        else
+                        {
+                            WaifuContender contender;
+                            if (contenderId == 1)
+                                contender = bracket.FirstContender;
+                            else if (contenderId == 2)
+                                contender = bracket.SecondContender;
+                            else
+                                contender = bracket.ThirdContender;
+
+                            bracket.Votes.Add(new Vote
+                            {
+                                Bracket = bracket,
+                                Contender = contender,
+                                CreateDate = DateTime.UtcNow,
+                                User = user
+                            });
+
+                            _controller.Election = _election;
+                            _controller.UpdateOpeningMessage();
+                        }
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                _exceptionHandler.Handle(exc);
+            }
+            finally
+            {
+                if (remove)
+                    await e.Message.DeleteReactionAsync(e.Emoji, e.User, "Removing vote message.")
+                        .ConfigureAwait(false);
+            }
         }
 
         #region Commands
