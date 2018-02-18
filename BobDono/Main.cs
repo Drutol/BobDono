@@ -171,15 +171,14 @@ namespace BobDono
                     }
                     else
                     {
-                        //TODO
-                        if(ResourceLocator.BotBackbone.Modules[typeof(ElectionContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
-                            continue;
-                        if (ResourceLocator.BotBackbone.Modules[typeof(ElectionThemesContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
-                            continue;
-                        if (ResourceLocator.BotBackbone.Modules[typeof(HallOfFameContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
-                            continue;
-                        if (ResourceLocator.BotBackbone.Modules[typeof(MatchupContext)].Contexts.Any(module => module.ChannelIdContext == messageCreateEventArgs.Channel.Id))
-                            continue;
+                        if (!handlerEntry.Attribute.AllowInContextChannels)
+                        {
+                            if (ResourceLocator.BotBackbone.Modules.Any(pair =>
+                                pair.Value.Contexts.Any(module =>
+                                    module.ChannelIdContext == messageCreateEventArgs.Channel.Id)))
+                                continue;
+                        }
+
 
                         if (handlerEntry.Predicates.All(predicate =>
                             predicate.MeetsCriteria(handlerEntry.Attribute, messageCreateEventArgs)))

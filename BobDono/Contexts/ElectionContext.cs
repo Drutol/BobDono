@@ -328,8 +328,8 @@ namespace BobDono.Contexts
             {
                 await args.Message.DeleteAsync();
             }
-
         }
+
         
         #region Debug
 
@@ -352,7 +352,12 @@ namespace BobDono.Contexts
                 _controller.Election = await electionService.GetElection(_election.Id);
                 await _controller.CloseCurrentStage(userService);
             }
+        }
 
+        [CommandHandler(Regex = @"faketimepass",Debug = true)]
+        public async Task FakeTimePass(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            OnHourPassed();
         }
 
         [CommandHandler(Regex = @"random",Debug = true)]
@@ -479,12 +484,31 @@ namespace BobDono.Contexts
                 {
                     _election = await electionService.GetElection(_election.Id);
                     _controller.Election = _election;
-                    if(_election.CurrentState != Election.State.Closed && _election.CurrentState != Election.State.ClosedForcibly)
-                        await _controller.ProcessTimePass(userService);
+                    if(_election.CurrentState < Election.State.Closed)
+                        await _controller.ProcessTimePass(userService,electionService);
                 }
             }
             catch (Exception e)
             {
+                var ctx = ResourceLocator.ExecutionContext;
+                using (var electionService = _electionService.ObtainLifetimeHandle(ctx))
+                {
+                    foreach (var electionBracketMessagesId in _election.BracketMessagesIds)
+                    {
+                        try
+                        {
+                            await _channel.DeleteMessageAsync(await _channel.GetMessageAsync(electionBracketMessagesId));
+                        }
+                        catch (Exception)
+                        {
+                            //
+                        }                        
+                    }
+                    _election = await electionService.GetElection(_election.Id);
+                    _controller.Election = _election;
+                    _election.BracketMessagesIds = new List<ulong>();
+                    _election.CurrentState = Election.State.Errored;
+                }
                 _exceptionHandler.Handle(e);
             }
 

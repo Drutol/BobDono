@@ -338,7 +338,7 @@ namespace BobDono.Modules
                         var lastStage = user.Votes.Last().Bracket.BracketStage;
                         var votesInStage = user.Votes.Where(vote => vote.Bracket.BracketStage == lastStage);
                         output = $"**Votes in stage #{lastStage.Number} of {lastStage.Election.Name}**\n\n";
-                        foreach (var vote in votesInStage)
+                        foreach (var vote in votesInStage.OrderByDescending(vote => vote.Bracket.Number))
                         {
                             var others = new[]
                             {
@@ -346,8 +346,7 @@ namespace BobDono.Modules
                                 vote.Bracket.SecondContender,
                                 vote.Bracket.ThirdContender
                             };
-                            others = others.Where(contender => contender != null).Except(new[] {vote.Contender})
-                                .ToArray();
+                            others = others.Where(contender => contender != null && !contender.Equals(vote.Contender)).ToArray();
 
                             output += $"*Bracket #{vote.Bracket.Number}*\t" +
                                       $"**{vote.Contender.Waifu.Name}**" +
@@ -374,7 +373,7 @@ namespace BobDono.Modules
                         {
 
                             output += $"**Votes in {electionVotes.Key.Name} election:**\n\n";
-                            foreach (var vote in electionVotes)
+                            foreach (var vote in electionVotes.OrderByDescending(vote => vote.Bracket.Number))
                             {
                                 var others = new[]
                                 {

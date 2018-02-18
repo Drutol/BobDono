@@ -14,7 +14,8 @@ namespace BobDono.Models.Entities
             PedningVotingStart,
             Voting,
             Closed,
-            ClosedForcibly
+            ClosedForcibly,
+            Errored
         }
 
 

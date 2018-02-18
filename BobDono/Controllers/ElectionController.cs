@@ -48,39 +48,37 @@ namespace BobDono.Controllers
         }
 
 
-        public async Task ProcessTimePass(IUserService userService)
+        public async Task ProcessTimePass(IUserService userService, IElectionService electionService)
         {
-            using (var electionService = _electionService.ObtainLifetimeHandle())
+            Election = await electionService.GetElection(Election.Id);
+
+            bool transitioned = false;
+            switch (Election.CurrentState)
             {
-
-                Election = await electionService.GetElection(Election.Id);
-
-                bool transitioned = false;
-                switch (Election.CurrentState)
-                {
-                    case Election.State.Submission:
-                        if (DateTime.UtcNow > Election.SubmissionsEndDate)
-                        {
-                            await TransitionToPendingVoting();
-                            transitioned = true;
-                        }
-                        break;
-                    case Election.State.PedningVotingStart:
-                        if (DateTime.UtcNow > Election.VotingStartDate)
-                        {
-                            await TransitionToVoting();
-                            transitioned = true;
-                        }
-                        break;
-                }
-
-                if (!transitioned && Election.CurrentState == Election.State.Voting)
-                {
-                    var currentStage = Election.BracketStages.Last();
-                    if (DateTime.UtcNow > currentStage.EndDate)
+                case Election.State.Submission:
+                    if (DateTime.UtcNow > Election.SubmissionsEndDate)
                     {
-                        await CloseCurrentStage(userService);
+                        await TransitionToPendingVoting();
+                        transitioned = true;
                     }
+
+                    break;
+                case Election.State.PedningVotingStart:
+                    if (DateTime.UtcNow > Election.VotingStartDate)
+                    {
+                        await TransitionToVoting();
+                        transitioned = true;
+                    }
+
+                    break;
+            }
+
+            if (!transitioned && Election.CurrentState == Election.State.Voting)
+            {
+                var currentStage = Election.BracketStages.Last();
+                if (DateTime.UtcNow > currentStage.EndDate)
+                {
+                    await CloseCurrentStage(userService);
                 }
             }
         }

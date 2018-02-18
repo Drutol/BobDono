@@ -42,6 +42,7 @@ namespace BobDono.DataAccess.Database
         {
             optionsBuilder.UseNpgsql(
                 Secrets.ConncetionString, builder => builder.MigrationsAssembly("BobDono"));
+            optionsBuilder.EnableSensitiveDataLogging();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

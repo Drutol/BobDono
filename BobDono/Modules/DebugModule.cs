@@ -110,7 +110,29 @@ namespace BobDono.Modules
             {
                 await args.Message.DeleteAsync();
             }
+        }
 
+        [CommandHandler(Regex = @"remlastmsgs \d+", Debug = true, AllowInContextChannels = true)]
+        public async Task RemoveLastNMessages(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            try
+            {
+                var count = int.Parse(args.Message.Content.Split(' ').Last());
+                var messages = await args.Channel.GetMessagesAsync(count, args.Message.Id);
+
+                foreach (var message in messages)
+                {
+                    await message.DeleteAsync();
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
+            finally
+            {
+                await args.Message.DeleteAsync();
+            }
         }
 
         [CommandHandler(Regex = "proudlyproclaim .*", Authorize = true)]
