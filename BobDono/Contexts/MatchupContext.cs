@@ -375,7 +375,7 @@ namespace BobDono.Contexts
                 $"Once entance period has finished you can assign a challenge to your pair using command:\n" +
                 $"`{CommandHandlerAttribute.CommandStarter}challenge <challenge>`\n\n" +    
                 $"You can mark your own challenge as completed using command:\n" +
-                $"`{CommandHandlerAttribute.CommandStarter}completed`\n\n" +
+                $"`{CommandHandlerAttribute.CommandStarter}completed [yourNotesAboutChallenge]`\n\n" +
                 $"I'm assuming we are well behaved individuals so let's have fun with broadening eachothers' ~~sh^t~~ unripe tastes.";
 
             embed.Color = DiscordColor.Gray;

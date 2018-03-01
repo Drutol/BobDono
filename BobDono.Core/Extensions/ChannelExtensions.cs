@@ -36,10 +36,18 @@ namespace BobDono.Core.Extensions
 
         public static async Task SendTimedMessage(this DiscordChannel channel,string text,TimeSpan? delay = null)
         {
-            delay = delay ?? TimeSpan.FromSeconds(2);
-            var msg = await channel.SendMessageAsync(text);
-            await Task.Delay(delay.Value);
-            await msg.DeleteAsync();
+            try
+            {
+                delay = delay ?? TimeSpan.FromSeconds(2);
+                var msg = await channel.SendMessageAsync(text);
+                await Task.Delay(delay.Value);
+                await msg.DeleteAsync();
+            }
+            catch (Exception e)
+            {
+                //message deleted
+            }
+
         }
 
         public static async Task<T> GetNextValidResponse<T>(this DiscordChannel channel,string question, Func<string,Task<T>> converter, TimeSpan timeout, CancellationToken? token = null)
