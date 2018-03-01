@@ -121,10 +121,10 @@ namespace BobDono.Contexts
                             contenderId = 1;
                             break;
                         case "2⃣":
-                            contenderId = 1;
+                            contenderId = 2;
                             break;
                         case "3⃣":
-                            contenderId = 1;
+                            contenderId = 3;
                             break;
                         default:
                             return;
