@@ -119,6 +119,18 @@ namespace BobDono.Modules
             await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/sigh.png");
         }
 
+        [CommandHandler(Regex = "jdrool", HumanReadableCommand = "jdrool", HelpText = "Drooooool")]
+        public async Task JDrool(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/jdrool2.jpg");
+        }
+
+        [CommandHandler(Regex = "jdroool", HumanReadableCommand = "jdroool", HelpText = "Drooooooooooooool")]
+        public async Task JDroool(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/jdrool.jpg");
+        }
+
         [CommandHandler(Regex = "cry", HumanReadableCommand = "shrug", HelpText = "That's serious cry don't overuse it...")]
         public async Task Cry(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {

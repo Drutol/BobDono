@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -14,6 +15,7 @@ using BobDono.Utils;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace BobDono.Modules
 {
@@ -51,22 +53,6 @@ namespace BobDono.Modules
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             using (var quizQuestionService = _quizQuestionService.ObtainLifetimeHandle(executionContext))
             {
-                //for (int i = 0; i < 10; i++)
-                //{
-                //    quizQuestionService.Add(new QuizQuestion
-                //    {
-                //        Answers = new[] {i.ToString()},
-                //        Author = "d",
-                //        CreatedDate = DateTime.UtcNow,
-                //        Hint = "nope",
-                //        Points = _random.Next(0, 4),
-                //        Question = i.ToString(),
-                //        Set = QuizSession.QuizQuestionSet.Trivia,
-                //        QuestionBatch = 1,
-                //    });
-                //}
-                //return;
-
                 userService.ConfigureIncludes().WithChain(query =>
                     query.Include(u => u.QuizSessions).ThenInclude(sessions => sessions.Answers)).Commit();
                 var user = await userService.GetOrCreateUser(args.Author);
@@ -91,7 +77,7 @@ namespace BobDono.Modules
                 {
                     if (await channel.GetNextValidResponse("Type 'start' when you are ready!",
                         s => Task.FromResult(s == "start"),
-                        timeout,
+                        TimeSpan.FromMinutes(4),
                         cts.Token))
                     {
                         while (session.QuestionWorkSet.Any())
@@ -134,6 +120,7 @@ namespace BobDono.Modules
 
                             if (questionAnswer.IsCorrect)
                             {
+                                await HandleCorrectResponse(questionSet[selection],channel);
                                 session.QuestionWorkSet.Remove(questionSet[selection]);
                                 session.Score += questionSet[selection].Points;
                                 if (session.QuestionWorkSet.Count == 0)
@@ -161,6 +148,7 @@ namespace BobDono.Modules
                 }
                 catch (OperationCanceledException)
                 {
+                    await channel.SendMessageAsync("Well, I'll be going then...");
                     session.Status = QuizSession.QuizStatus.TimedOut;
                 }
                 catch (Exception e)
@@ -175,6 +163,45 @@ namespace BobDono.Modules
             _runningQuzies.Remove(args.Author.Id);
         }
 
+        private async Task HandleCorrectResponse(QuizQuestion question, DiscordDmChannel channel)
+        {
+            if(question.ReactionSuccess == "drool")
+                await channel.SendFileAsync($"{AppContext.BaseDirectory}/Assets/jdrool.jpg");
+        }
+
+        [CommandHandler(Regex = "quiz leaderboards", HumanReadableCommand = "quiz leaderboards", HelpText = "Displays current leaderboards for trivia quiz.")]
+        public async Task Leaderboards(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            using (var quizService = _quizService.ObtainLifetimeHandle(executionContext))
+            {
+                quizService.ConfigureIncludes().WithChain(query =>
+                    query.Include(session => session.Answers).ThenInclude(answer => answer.Question)
+                        .Include(session => session.User)).Commit();
+                var quizes = await quizService.GetAllWhereAsync(session => session.Status == QuizSession.QuizStatus.Finished);
+                var groups = quizes.GroupBy(session => session.User)
+                    .OrderByDescending(sessions => sessions.Max(session => session.Score)).ToList();
+                string content = "";
+                int i = 1;
+                foreach (var personQuizGroup in groups.Take(6))
+                {
+                    var bestSession = personQuizGroup.OrderByDescending(session => session.Score).First();
+                    content += $"**{i++}.** {personQuizGroup.Key.Name}\n" +
+                               $"        Score: {bestSession.Score}\n" +
+                               $"        Answered questions: {bestSession.Answers.Count(answer => answer.IsCorrect)}\n" +
+                               $"        When: {bestSession.Finished:f}\n\n";
+                }
+
+                var embed = new DiscordEmbedBuilder
+                {
+                    Title = "Quiz leaderboards",
+                    Description = string.IsNullOrEmpty(content)? "None yet..." : content,
+                    Color = DiscordColor.Gold,
+                    Footer = new DiscordEmbedBuilder.EmbedFooter {Text = $"As of {DateTime.UtcNow:d}"}
+                };
+
+                await args.Channel.SendMessageAsync(null, false, embed);
+            }
+        }
 
         private DiscordEmbed GetWelcomeEmbed(User user, QuizSession session)
         {
@@ -215,7 +242,7 @@ namespace BobDono.Modules
             var embed = new DiscordEmbedBuilder
             {
                 Color = DiscordColor.Orange,
-                Title = $"Select category. ({session.Answers.Count}/{session.QuestionsCount}",
+                Title = $"Select category. ({session.Answers.Count(answer => answer.IsCorrect)}/{session.QuestionsCount})",
                 Description = "",
             };
 
@@ -333,7 +360,6 @@ namespace BobDono.Modules
             session.SessionBatch = highestSession?.CompletedBatch + 1 ?? 1;
             session.QuestionWorkSet = await
                 questionService.GetAllWhereAsync(question => question.QuestionBatch == session.SessionBatch);
-            session.QuestionWorkSet = session.QuestionWorkSet.Take(5).ToList();
             session.QuestionsCount = session.QuestionWorkSet.Count;
 
             if (session.SessionBatch != 1)
@@ -344,6 +370,43 @@ namespace BobDono.Modules
             }
 
             return session;
+        }
+
+
+
+
+
+
+
+
+        [CommandHandler(Regex = "quiz seed",Debug = true)]
+        public async Task SeedQuestions(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            var data = JsonConvert.DeserializeObject<List<QuestionDTO>>(File.ReadAllText("questionsBatch1.json"));
+
+            using (var questionsService = _quizQuestionService.ObtainLifetimeHandle(executionContext))
+            {
+                foreach (var questionDto in data)
+                {
+                    questionsService.Add(new QuizQuestion
+                    {
+                        Question = questionDto.Question,
+                        Author = "Drutol",
+                        Answers = questionDto.Answers.Split(';').ToArray(),
+                        CreatedDate = DateTime.UtcNow,
+                        QuestionBatch = 1,
+                        Set = QuizSession.QuizQuestionSet.Trivia,
+                        Points = questionDto.Points,
+                    });
+                }
+            }
+        }
+
+        class QuestionDTO
+        {
+            public string Question { get; set; }
+            public string Answers { get; set; }
+            public int Points { get; set; }
         }
     }
 }

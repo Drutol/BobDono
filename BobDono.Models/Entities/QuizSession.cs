@@ -8,6 +8,7 @@ namespace BobDono.Models.Entities
 {
     public class QuizSession : IModelWithRelation
     {
+
         public enum QuizQuestionSet
         {
             Trivia
@@ -46,8 +47,7 @@ namespace BobDono.Models.Entities
         [NotMapped]
         public List<QuizQuestion> QuestionWorkSet { get; set; }
 
-     
-
+    
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<QuizSession>()
@@ -58,5 +58,24 @@ namespace BobDono.Models.Entities
                 .HasOne(s => s.User)
                 .WithMany(a => a.QuizSessions);
         }
+
+        protected bool Equals(QuizSession other)
+        {
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((QuizSession)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+
     }
 }
