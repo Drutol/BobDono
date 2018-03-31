@@ -31,6 +31,7 @@ namespace BobDono.Models.Entities
         public virtual ICollection<UserMatchup> MatchupsParticipatingIn { get; set; }
         public virtual ICollection<Matchup> CreatedMatchups { get; set; }
         public virtual ICollection<MerchandiseItem> OwnedMerchandiseItems { get; set; }
+        public virtual ICollection<QuizSession> QuizSessions { get; set; }
 
         public TrueWaifu TrueWaifu { get; set; }
 

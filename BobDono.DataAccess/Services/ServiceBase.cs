@@ -146,6 +146,11 @@ namespace BobDono.DataAccess.Services
             return Context.Set<TEntity>().Count();
         }
 
+        public int Count(Expression<Func<TEntity, bool>> predicate)
+        {
+            return Context.Set<TEntity>().Count(predicate);
+        }
+
         public async Task SaveChangesAsync()
         {
             await Context.SaveChangesAsync();

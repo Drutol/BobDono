@@ -52,6 +52,8 @@ namespace BobDono.Core
             builder.RegisterType<ExecutedCommandsService>().AsFactory().WithProduct<IExecutedCommandsService>().SingleInstance();
             builder.RegisterType<VoteService>().AsFactory().WithProduct<IVoteService>().SingleInstance();
             builder.RegisterType<ExceptionReportsService>().AsFactory().WithProduct<IExceptionReportsService>().SingleInstance();
+            builder.RegisterType<QuizService>().AsFactory().WithProduct<IQuizService>().SingleInstance();
+            builder.RegisterType<QuizQuestionsService>().AsFactory().WithProduct<IQuizQuestionService>().SingleInstance();
 
             builder.RegisterType<CommandExecutionContext>().As<ICommandExecutionContext>();
 

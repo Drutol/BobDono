@@ -21,11 +21,10 @@ namespace BobDono.Interfaces.Services
         void Remove(TEntity client);
         void Update(TEntity client);
         int Count();
+        int Count(Expression<Func<TEntity, bool>> predicate);
 
         Task SaveChangesAsync();
-        
-        TService ObtainLifetimeHandle(IDatabaseCommandExecutionContext executionContext, bool saveOnDispose = true, params object[] additions);
-        TService ObtainLifetimeHandle(bool saveOnDispose = true, params object[] additions);
+       
 
         IIncludeConfigurator<TEntity, TService> ConfigureIncludes();
     }
