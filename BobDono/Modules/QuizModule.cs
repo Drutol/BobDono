@@ -82,17 +82,17 @@ namespace BobDono.Modules
                     {
                         while (session.QuestionWorkSet.Any())
                         {
-                            var questionSet = PickQuestionsFromSet(session.QuestionWorkSet);
-                            var categoryEmbed = GetSelectCategoryEmbed(session, questionSet);
-                            await channel.SendMessageAsync(null, false, categoryEmbed);
-
-                            var selection = await channel.GetNextValidResponse("Which question do you choose?",
-                                s =>
-                                {
-                                    if (int.TryParse(s, out var index) && index < questionSet.Count)
-                                        return Task.FromResult(index);
-                                    throw new ArgumentOutOfRangeException();
-                                }, timeout, cts.Token);
+                            var questionSet = session.QuestionWorkSet;
+                            //var categoryEmbed = GetSelectCategoryEmbed(session, questionSet);
+                            //await channel.SendMessageAsync(null, false, categoryEmbed);
+                            //var selection = await channel.GetNextValidResponse("Which question do you choose?",
+                            //    s =>
+                            //    {
+                            //        if (int.TryParse(s, out var index) && index < questionSet.Count)
+                            //            return Task.FromResult(index);
+                            //        throw new ArgumentOutOfRangeException();
+                            //    }, timeout, cts.Token);
+                            var selection = _random.Next(0, questionSet.Count);
 
                             var questionEmbed = GetQuestionEmbed(questionSet[selection]);
                             await channel.SendMessageAsync(null, false, questionEmbed);
@@ -110,12 +110,13 @@ namespace BobDono.Modules
                                 Session = session,
                                 Question = questionSet[selection],
                                 Answer = answer,
-                                IsCorrect = distances.Any(i => i <= 10)
+                                IsCorrect = distances.Any(i => i <= 25)
                             };
+                            session.Answers.Add(questionAnswer);
 
-                            await Task.Delay(500);
+                            await Task.Delay(300);
 
-                            var resultEmbed = GetResultEmbed(questionAnswer);
+                            var resultEmbed = GetResultEmbed(session, questionAnswer);
                             await channel.SendMessageAsync(null, false, resultEmbed);
 
                             if (questionAnswer.IsCorrect)
@@ -142,7 +143,7 @@ namespace BobDono.Modules
                                 }
                             }
 
-                            session.Answers.Add(questionAnswer);
+                            
                         }
                     }
                 }
@@ -182,19 +183,69 @@ namespace BobDono.Modules
                     .OrderByDescending(sessions => sessions.Max(session => session.Score)).ToList();
                 string content = "";
                 int i = 1;
-                foreach (var personQuizGroup in groups.Take(6))
+                foreach (var personQuizGroup in groups.Take(5))
                 {
                     var bestSession = personQuizGroup.OrderByDescending(session => session.Score).First();
-                    content += $"**{i++}.** {personQuizGroup.Key.Name}\n" +
-                               $"        Score: {bestSession.Score}\n" +
-                               $"        Answered questions: {bestSession.Answers.Count(answer => answer.IsCorrect)}\n" +
-                               $"        When: {bestSession.Finished:f}\n\n";
+                    var answers = personQuizGroup.SelectMany(session => session.Answers).ToList();
+                    content += $"**{i++}. {personQuizGroup.Key.Name}**\n" +
+                               $"        Score: **{bestSession.Score}** with **{bestSession.Answers.Count(answer => answer.IsCorrect)}** correct answers and **{bestSession.RemainingChances}** remaining chances.\n" +
+                               $"        When: {bestSession.Finished:f}\n" +
+                               $"        Total {answers.Count} answers over **{personQuizGroup.Count()}** sessions.\n" +
+                               $"        Accuracy: **{100*answers.Count(answer => answer.IsCorrect)/answers.Count}%**\n" +
+                               $"        Total playtime: **{personQuizGroup.Aggregate(TimeSpan.Zero,(span, session) => span.Add(session.Finished-session.Started)):hh\\:mm}**\n\n";
+                }
+
+                foreach (var personQuizGroup in groups.Skip(5).Take(5))
+                {
+                    var bestSession = personQuizGroup.OrderByDescending(session => session.Score).First();
+                    content += $"**{i++}.** {personQuizGroup.Key.Name}'s score: **{bestSession.Score}**.\n";
                 }
 
                 var embed = new DiscordEmbedBuilder
                 {
                     Title = "Quiz leaderboards",
                     Description = string.IsNullOrEmpty(content)? "None yet..." : content,
+                    Color = DiscordColor.Gold,
+                    Footer = new DiscordEmbedBuilder.EmbedFooter {Text = $"As of {DateTime.UtcNow:d}"}
+                };
+
+                await args.Channel.SendMessageAsync(null, false, embed);
+            }
+        }
+
+        [CommandHandler(Regex = "quiz stats", HumanReadableCommand = "quiz stats", HelpText = "Displays your current stats.")]
+        public async Task QuizStats(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            using (var userService = _userService.ObtainLifetimeHandle(executionContext))
+            {
+                userService.ConfigureIncludes().WithChain(query =>
+                    query.Include(u => u.QuizSessions).ThenInclude(sessions => sessions.Answers)
+                        .ThenInclude(a => a.Question)).Commit();
+                var user = await userService.GetOrCreateUser(args.Author);
+                var quizes = user.QuizSessions.Where(session => session.Status == QuizSession.QuizStatus.Finished)
+                    .ToList();
+                string content;
+                if (quizes.Any())
+                {
+                    var bestSession = quizes.OrderByDescending(session => session.Score).First();
+                    var answers = quizes.SelectMany(session => session.Answers).ToList();
+                    content =
+                        $"        Score: **{bestSession.Score}** with **{bestSession.Answers.Count(answer => answer.IsCorrect)}** correct answers and **{bestSession.RemainingChances}** remaining chances.\n" +
+                        $"        When: {bestSession.Finished:f}\n" +
+                        $"        Total {answers.Count} answers over **{quizes.Count()}** sessions.\n" +
+                        $"        Accuracy: **{100 * answers.Count(answer => answer.IsCorrect) / answers.Count}%**\n" +
+                        $"        Total playtime: **{quizes.Aggregate(TimeSpan.Zero, (span, session) => span.Add(session.Finished - session.Started)):hh\\:mm}**\n\n";
+                }
+                else
+                {
+                    content = "None yet...";
+                }
+
+                var embed = new DiscordEmbedBuilder
+                {
+                    Author = new DiscordEmbedBuilder.EmbedAuthor {IconUrl = user.AvatarUrl, Name = user.Name},
+                    Title = "Quiz stats:",
+                    Description = content,
                     Color = DiscordColor.Gold,
                     Footer = new DiscordEmbedBuilder.EmbedFooter {Text = $"As of {DateTime.UtcNow:d}"}
                 };
@@ -265,10 +316,11 @@ namespace BobDono.Modules
             var embed = new DiscordEmbedBuilder
             {
                 Color = DiscordColor.Orange,
-                Author = new DiscordEmbedBuilder.EmbedAuthor { Name = $"Author: {question.Author}"},
-                Title = $"Question for {question.Points} points. (Id: {question.Id})",
-                Description = question.Question,
-                Footer = new DiscordEmbedBuilder.EmbedFooter { Text = $"Added on: {question.CreatedDate:d}"}
+                Title = question.Question,
+                Footer = new DiscordEmbedBuilder.EmbedFooter
+                {
+                    Text = $"Id: {question.Id}, Points: {question.Points}, Author: {question.Author}"
+                }
             };
 
             if (!string.IsNullOrEmpty(question.Hint))
@@ -277,7 +329,7 @@ namespace BobDono.Modules
             return embed;
         }
 
-        private DiscordEmbed GetResultEmbed(QuizAnswer answer)
+        private DiscordEmbed GetResultEmbed(QuizSession session, QuizAnswer answer)
         {
             if (answer.IsCorrect)
             {
@@ -285,7 +337,7 @@ namespace BobDono.Modules
                 {
                     Color = DiscordColor.SpringGreen,
                     Title = "Correct!",
-                    Description = "Good job! Let's move onto the next one :)"
+                    Description = $"Good job!\n Your total score is now: **{session.Score + answer.Question.Points}**.\nLet's move onto the next one :)"
                 };
             }
 
