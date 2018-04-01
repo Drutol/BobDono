@@ -94,7 +94,7 @@ namespace BobDono.Modules
                             //    }, timeout, cts.Token);
                             var selection = _random.Next(0, questionSet.Count);
 
-                            var questionEmbed = GetQuestionEmbed(questionSet[selection]);
+                            var questionEmbed = GetQuestionEmbed(session, questionSet[selection]);
                             await channel.SendMessageAsync(null, false, questionEmbed);
 
                             var answer = await channel.GetNextValidResponse("Your answer?", Task.FromResult,
@@ -121,8 +121,7 @@ namespace BobDono.Modules
 
                             if (questionAnswer.IsCorrect)
                             {
-                                await HandleCorrectResponse(questionSet[selection],channel);
-                                session.QuestionWorkSet.Remove(questionSet[selection]);
+                                await HandleCorrectResponse(questionSet[selection],channel);                               
                                 session.Score += questionSet[selection].Points;
                                 if (session.QuestionWorkSet.Count == 0)
                                 {
@@ -131,6 +130,7 @@ namespace BobDono.Modules
                                     await channel.SendMessageAsync(null, false, GetSuccessFinishEmbed(session));
                                     break;
                                 }
+                                session.QuestionWorkSet.Remove(questionSet[selection]);
                             }
                             else
                             {
@@ -265,9 +265,9 @@ namespace BobDono.Modules
                     " Getting high scores will grant you badges and OneDrive link for @Drutol's anime music :D" +
                     " Rules are simple:\n\n" +
                     "**1.** You are presented with one question at the time, you have 1 minute to answer.\n" +
-                    "**2.** Questions require 90% of answer accuracy, levenshtein distance is used for this calculation.\n" +
+                    "**2.** Questions require 75% of answer accuracy, levenshtein distance is used for this calculation.\n" +
                     "**3.** Question may have several answers.\n" +
-                    "**4.** After answering correctly you will be presented with 3 points categories to choose from. The more points the harder the question.\n" +
+                    "**4.** The more points the harder the question.\n" +
                     "**5.** Questions are divided in batches, depending on when they were added.\n" +
                     " Completing one batch will finish the game and starting new session will grant you all points from previous batches\n" +
                     "**6.** You can answer incorrectly 3 times. Session ends on 4th incorrent answer.\n" +
@@ -311,12 +311,17 @@ namespace BobDono.Modules
             return embed;
         }
 
-        private DiscordEmbed GetQuestionEmbed(QuizQuestion question)
+        private DiscordEmbed GetQuestionEmbed(QuizSession session, QuizQuestion question)
         {
+            var lives = "";
+            for (int i = 0; i < session.RemainingChances; i++)
+                lives += ":green_heart:";
+
             var embed = new DiscordEmbedBuilder
             {
                 Color = DiscordColor.Orange,
                 Title = question.Question,
+                Description = lives,
                 Footer = new DiscordEmbedBuilder.EmbedFooter
                 {
                     Text = $"Id: {question.Id}, Points: {question.Points}, Author: {question.Author}"

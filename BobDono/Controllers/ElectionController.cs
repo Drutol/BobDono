@@ -29,7 +29,7 @@ namespace BobDono.Controllers
 #if DEBUG
         private const long MentionGroupId = 382597879497490444;
 #else
-        private const long MentionGroupId = 381412270481342465;
+        private const long MentionGroupId = 430059016144551947;
 #endif
 
         public Election Election { get; set; }
@@ -113,6 +113,7 @@ namespace BobDono.Controllers
             embed.AddField(CurrentEntriesCount, "0");
             embed.AddField(TotalVotes, "0");
 
+            await _channel.SendMessageAsync($"<@&{MentionGroupId}>");
             var message = await _channel.SendMessageAsync(null, false, embed.Build());
             await message.PinAsync();
             using (var electionService = _electionService.ObtainLifetimeHandle())

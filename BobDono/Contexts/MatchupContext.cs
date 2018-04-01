@@ -28,6 +28,7 @@ namespace BobDono.Contexts
         public const string SubmissionsUntilKey = "Entry period";
         public const string ChallengeDurationPeriod = "Challenge duration";
         public const string DescriptionKey = ":book: Matchup Description :book:";
+        public const long MentionGroupId = 430059016144551947;
 
         private readonly CustomDiscordClient _discordClient;
 
@@ -381,10 +382,11 @@ namespace BobDono.Contexts
             embed.Color = DiscordColor.Gray;
             embed.AddField(ParticipantsKey, "-");
             embed.AddField(SubmissionsUntilKey, $"{DateTime.UtcNow} - {matchup.SignupsEndDate} (UTC)");
-            embed.AddField(ChallengeDurationPeriod, $"{(matchup.ChallengesEndDate - matchup.SignupsEndDate).Days} days");
+            embed.AddField(ChallengeDurationPeriod, $"{(matchup.ChallengesEndDate - matchup.SignupsEndDate).Days} days ({matchup.ChallengesEndDate:D})");
 
             embed.AddField(DescriptionKey, matchup.Description);
 
+            await Channel.SendMessageAsync($"<@&{MentionGroupId}>");
             return (long)(await Channel.SendMessageAsync(null, false, embed.Build())).Id;
         }
 
