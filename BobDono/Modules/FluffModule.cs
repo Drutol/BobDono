@@ -43,7 +43,8 @@ namespace BobDono.Modules
         }
 
        
-        [CommandHandler(IgnoreRegexWrap = true, Regex = ".*java.*", HumanReadableCommand = "..java..",
+       /*
+       [CommandHandler(IgnoreRegexWrap = true, Regex = ".*java.*", HumanReadableCommand = "..java..",
             HelpText = "Oh sorry, I have allergy for **this** word.")]
         public async Task CoughCough(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
@@ -54,7 +55,7 @@ namespace BobDono.Modules
                     await args.Channel.SendMessageAsync("*cough cough*");
             }
         }
-
+        */
         [CommandHandler(Regex = "eva", Hidden = true)]
         public async Task Eva(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
