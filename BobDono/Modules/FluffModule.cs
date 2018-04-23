@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,6 +25,8 @@ namespace BobDono.Modules
         private SemaphoreSlim _ocrSemaphore = new SemaphoreSlim(1);
         private SemaphoreSlim _certifySemaphore = new SemaphoreSlim(3);
 
+        private readonly ConcurrentDictionary<ulong, DateTime> _coughCoughCooldowns = new ConcurrentDictionary<ulong, DateTime>();
+
         private List<string> _supportedExtensions = new List<string>
         {
             ".png",
@@ -47,8 +50,16 @@ namespace BobDono.Modules
             HelpText = "Oh sorry, I have allergy for **this** word.")]
         public async Task CoughCough(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
+            if (_coughCoughCooldowns.ContainsKey(args.Author.Id))
+            {
+                if (DateTime.UtcNow - _coughCoughCooldowns[args.Author.Id] < TimeSpan.FromMinutes(5))
+                    return;              
+            }
+
+            _coughCoughCooldowns[args.Author.Id] = DateTime.UtcNow;
+
             if (!(_botBackbone.ModuleInstances[typeof(ElectionsModule)] as ElectionsModule).ElectionsContexts.Any(
-                context => context.ChannelIdContext == args.Channel.Id))
+                context => context.ChannelIdContext == args.Channel.Id) && args.Channel.Id != 341874607651029003) //exclude #suggestions
             {
                 if(!args.Message.Content.ToLower().Contains("javascript"))
                     await args.Channel.SendMessageAsync("*cough cough*");

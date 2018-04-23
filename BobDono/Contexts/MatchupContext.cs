@@ -28,7 +28,7 @@ namespace BobDono.Contexts
         public const string SubmissionsUntilKey = "Entry period";
         public const string ChallengeDurationPeriod = "Challenge duration";
         public const string DescriptionKey = ":book: Matchup Description :book:";
-        public const long MentionGroupId = 430059016144551947;
+        public const long MentionGroupId = 381412270481342465;
 
         private readonly CustomDiscordClient _discordClient;
 

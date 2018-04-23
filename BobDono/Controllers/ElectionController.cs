@@ -27,7 +27,7 @@ namespace BobDono.Controllers
         private const string TotalVotes = "Total Votes:";
         private const string EntrantsCount = "Entrants per person:";
 #if DEBUG
-        private const long MentionGroupId = 382597879497490444;
+        private const long MentionGroupId = 381412270481342465;
 #else
         private const long MentionGroupId = 430059016144551947;
 #endif

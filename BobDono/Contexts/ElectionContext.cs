@@ -304,7 +304,7 @@ namespace BobDono.Contexts
             }
         }
 
-        [CommandHandler(Regex = @"vote \d{1,2} [1,2,3]",
+        [CommandHandler(Regex = @"vote \d{1,2} [123]",
             HelpText = "Submit your vote in given bracket. Can be used once per bracket. Cannot be undone.",
             HumanReadableCommand = "vote <bracketNumber> <contestantNumber>")]
         public async Task Vote(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
