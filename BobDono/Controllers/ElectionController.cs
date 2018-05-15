@@ -26,11 +26,6 @@ namespace BobDono.Controllers
         private const string ParticipantsCount = "Participants:";
         private const string TotalVotes = "Total Votes:";
         private const string EntrantsCount = "Entrants per person:";
-#if DEBUG
-        private const long MentionGroupId = 381412270481342465;
-#else
-        private const long MentionGroupId = 430059016144551947;
-#endif
 
         public Election Election { get; set; }
         private readonly DiscordChannel _channel;
@@ -113,7 +108,7 @@ namespace BobDono.Controllers
             embed.AddField(CurrentEntriesCount, "0");
             embed.AddField(TotalVotes, "0");
 
-            await _channel.SendMessageAsync($"<@&{MentionGroupId}>");
+            await _channel.SendMessageAsync(string.Format(Constants.RoleMentionTemplate, Constants.MentionGroupId));
             var message = await _channel.SendMessageAsync(null, false, embed.Build());
             await message.PinAsync();
             using (var electionService = _electionService.ObtainLifetimeHandle())
@@ -146,7 +141,7 @@ namespace BobDono.Controllers
         {
             Election.CurrentState = Election.State.PedningVotingStart;
 
-            var msg = await _channel.SendMessageAsync($"<@&{MentionGroupId}> Voting will start at {Election.VotingStartDate}");
+            var msg = await _channel.SendMessageAsync($"{string.Format(Constants.RoleMentionTemplate, Constants.MentionGroupId)} Voting will start at {Election.VotingStartDate}");
 
             Election.PendingVotingStartMessageId = msg.Id;
         }
@@ -344,7 +339,7 @@ namespace BobDono.Controllers
                 bool FilterVoteForCurrentBracket(Vote v) => v.Bracket.BracketStage.Equals(bracket.BracketStage);
             }
 
-            await _channel.SendMessageAsync($"<@&{MentionGroupId}>");
+            await _channel.SendMessageAsync(string.Format(Constants.RoleMentionTemplate, Constants.MentionGroupId));
             if (lastBrackets.Count == 1) //this was last bracket so we cannot create new one
             {
                 await TransitionToClosed();

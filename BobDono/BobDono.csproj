@@ -110,6 +110,9 @@
     <None Update="Assets\tasts.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\trannak.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\vigne.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

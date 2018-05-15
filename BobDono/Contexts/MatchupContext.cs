@@ -14,6 +14,7 @@ using BobDono.Interfaces.Services;
 using BobDono.Models.Entities;
 using BobDono.Models.Entities.JoinEntities;
 using BobDono.Models.Entities.Simple;
+using BobDono.Utils;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -28,7 +29,6 @@ namespace BobDono.Contexts
         public const string SubmissionsUntilKey = "Entry period";
         public const string ChallengeDurationPeriod = "Challenge duration";
         public const string DescriptionKey = ":book: Matchup Description :book:";
-        public const long MentionGroupId = 381412270481342465;
 
         private readonly CustomDiscordClient _discordClient;
 
@@ -386,7 +386,7 @@ namespace BobDono.Contexts
 
             embed.AddField(DescriptionKey, matchup.Description);
 
-            await Channel.SendMessageAsync($"<@&{MentionGroupId}>");
+            await Channel.SendMessageAsync(string.Format(Constants.RoleMentionTemplate,Constants.MentionGroupId));
             return (long)(await Channel.SendMessageAsync(null, false, embed.Build())).Id;
         }
 

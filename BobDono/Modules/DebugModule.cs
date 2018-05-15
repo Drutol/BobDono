@@ -8,6 +8,7 @@ using BobDono.Core.Utils;
 using BobDono.Interfaces;
 using BobDono.Interfaces.Queries;
 using BobDono.Interfaces.Services;
+using BobDono.Utils;
 using DSharpPlus.EventArgs;
 
 namespace BobDono.Modules
@@ -139,6 +140,12 @@ namespace BobDono.Modules
         public async Task SaySomething(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             await args.Channel.SendMessageAsync(args.Message.Content.Replace("b/proudlyproclaim ", ""));
+        }
+
+        [CommandHandler(Regex = "testping .*", Authorize = true)]
+        public async Task TestEventPing(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
+        {
+            await args.Channel.SendMessageAsync(string.Format(Constants.RoleMentionTemplate,Constants.MentionGroupId));
         }
 
         [CommandHandler(Regex = @"crash",HumanReadableCommand = "crash")]
