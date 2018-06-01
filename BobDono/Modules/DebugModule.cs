@@ -142,7 +142,7 @@ namespace BobDono.Modules
             await args.Channel.SendMessageAsync(args.Message.Content.Replace("b/proudlyproclaim ", ""));
         }
 
-        [CommandHandler(Regex = "testping .*", Authorize = true)]
+        [CommandHandler(Regex = "testping", Authorize = true, AllowInContextChannels = true)]
         public async Task TestEventPing(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
             await args.Channel.SendMessageAsync(string.Format(Constants.RoleMentionTemplate,Constants.MentionGroupId));
