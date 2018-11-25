@@ -213,7 +213,7 @@ namespace BobDono.Contexts
                     if (userToMessage > 0)
                     {
                         var channel =
-                            await _discordClient.CreateDmAsync(await _discordClient.GetNullsGuild()
+                            await _discordClient.CreateDmAsync(await _discordClient.GetCurrentGuild()
                                 .GetMemberAsync(userToMessage));
                         await channel.SendMessageAsync(
                             $"Hey! There's a challenge waiting for you in <#{_matchup.DiscordChannelId}>!");

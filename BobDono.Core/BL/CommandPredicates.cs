@@ -4,16 +4,14 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using BobDono.Core.Attributes;
 using BobDono.Interfaces;
+using BobDono.Models;
 using DSharpPlus.EventArgs;
 
 namespace BobDono.Core.BL
 {
     public static class CommandPredicates
     {
-        private static HashSet<ulong> _authorizedUsers = new HashSet<ulong>
-        {
-            74458088760934400,
-        };
+        private static HashSet<ulong> _authorizedUsers = new HashSet<ulong>(Config.AuthUsers);
 
         public static AuthorizedFilter Authorize { get; } = new AuthorizedFilter();
         public static ChannelFilter Channel { get; } = new ChannelFilter();

@@ -25,8 +25,7 @@ namespace BobDono.Contexts
     {
         private const string CommandKey = "Command";
         private const string ElectionName = "Election";
-        
-
+            
         private readonly CustomDiscordClient _discordClient;
         private readonly DiscordChannel _channel;
         private readonly HallOfFameChannel _hofChannel;
@@ -47,7 +46,7 @@ namespace BobDono.Contexts
             _discordClient = discordClient as CustomDiscordClient;
             ChannelIdContext = (ulong) channel.DiscordChannelId;
 
-            var guild = ResourceLocator.DiscordClient.GetNullsGuild();
+            var guild = ResourceLocator.DiscordClient.GetCurrentGuild();
             _channel = _discordClient.GetChannel(guild, (ulong) channel.DiscordChannelId);
 
             if (_channel == null)

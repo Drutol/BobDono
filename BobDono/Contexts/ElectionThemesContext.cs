@@ -60,7 +60,7 @@ namespace BobDono.Contexts
             _electionService = electionService;
             ChannelIdContext = (ulong) channel.DiscordChannelId;
 
-            var guild = ResourceLocator.DiscordClient.GetNullsGuild();
+            var guild = ResourceLocator.DiscordClient.GetCurrentGuild();
             _channel = _discordClient.GetChannel(guild, (ulong) channel.DiscordChannelId);
 
             if (_channel == null)
@@ -142,7 +142,7 @@ namespace BobDono.Contexts
                 };
                 election.VotingStartDate = election.SubmissionsEndDate.AddHours(2);
 
-                var guild = _discordClient.GetNullsGuild();
+                var guild = _discordClient.GetCurrentGuild();
                 var category = await guild.GetCategoryChannel(DiscordClientExtensions.ChannelCategory.Elections);
                 var electionChannel = await guild.CreateChannelAsync(election.Name, ChannelType.Text,
                     category,

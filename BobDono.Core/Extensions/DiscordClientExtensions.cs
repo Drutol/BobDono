@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BobDono.Models;
 using DSharpPlus;
 using DSharpPlus.Entities;
 
@@ -20,19 +21,19 @@ namespace BobDono.Core.Extensions
         public const string ElectionsMetaCategoryName = "ElectionsMeta";
         public const string MatchupsCategoryName = "Matchups";
 
-        private static DiscordGuild _nullsGuild;
+        private static DiscordGuild _currentGuild;
 
         private static Dictionary<ChannelCategory, DiscordChannel> _categoryChannels =
             new Dictionary<ChannelCategory, DiscordChannel>();
 
-        public static DiscordGuild GetNullsGuild(this DiscordClient client)
+        public static DiscordGuild GetCurrentGuild(this DiscordClient client)
         {
 #if DEBUG
-            return _nullsGuild ??
-                   (_nullsGuild = client.Guilds.First(pair => pair.Value.Id == 343060137164144642).Value);
+            return _currentGuild ??
+                   (_currentGuild = client.Guilds.First(pair => pair.Value.Id == Config.ServerId).Value);
 #else
-            return _nullsGuild ??
-                   (_nullsGuild = client.Guilds.First(pair => pair.Value.Id == 343060137164144642).Value);
+            return _currentGuild ??
+                   (_currentGuild = client.Guilds.First(pair => pair.Value.Id == 343060137164144642).Value);
 #endif
 
         }
@@ -76,16 +77,12 @@ namespace BobDono.Core.Extensions
 
         public static bool IsMe(this DiscordUser user)
         {
-#if DEBUG
-            return user.Id == 377859054464401408; // 343050467879813140; //ranko
-#else
-            return user.Id == 377859054464401408; //bob
-#endif
+            return user.Id == Config.BotId;
         }
 
         public static bool IsAuthenticated(this DiscordUser user)
         {
-            return user.Id == 74458088760934400;
+            return Config.AuthUsers.Contains(user.Id);
         }
     }
 }

@@ -86,7 +86,7 @@ namespace BobDono.Controllers
             async Task NotifyUser(ulong id)
             {
                 var channel =
-                    await _discordClient.CreateDmAsync(await _discordClient.GetNullsGuild()
+                    await _discordClient.CreateDmAsync(await _discordClient.GetCurrentGuild()
                         .GetMemberAsync(id));
                 await channel.SendMessageAsync(
                     $"Hey! Be sure to mark your challenge as completed in <#{Matchup.DiscordChannelId}>!");

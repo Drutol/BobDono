@@ -6,6 +6,7 @@ using Autofac;
 using BobDono.Core.Attributes;
 using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
+using BobDono.Models;
 
 namespace BobDono.Core.BL
 {
@@ -30,7 +31,7 @@ namespace BobDono.Core.BL
             foreach (var type in assembly.GetTypes())
             {
                 var attr = type.GetTypeInfo().GetCustomAttribute<ModuleAttribute>();
-                if (attr != null)
+                if (attr != null && !Config.ExcludedModules.Contains(type.Name))
                     modules.Add((attr, type));
             }
 

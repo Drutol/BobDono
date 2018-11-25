@@ -55,7 +55,7 @@ namespace BobDono
             CultureInfo.CurrentCulture = new CultureInfo("en-GB");
             _client = new CustomDiscordClient(new DiscordConfiguration
             {
-                Token = Secrets.BotKey,
+                Token = Config.BotKey,
                 TokenType = TokenType.Bot,
 
                 AutoReconnect = true,

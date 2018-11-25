@@ -59,7 +59,7 @@ namespace BobDono.Contexts
             _election = election;
             _discordClient = discordClient as CustomDiscordClient;
 
-            var guild = _discordClient.GetNullsGuild();
+            var guild = _discordClient.GetCurrentGuild();
             _channel = _discordClient.GetChannel(guild, election.DiscordChannelId);
 
             if (_channel == null)

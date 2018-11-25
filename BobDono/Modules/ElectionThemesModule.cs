@@ -65,7 +65,7 @@ namespace BobDono.Modules
             using (var dependencyScope = ResourceLocator.ObtainScope())
             using (var channelService = _electionThemesChannelService.ObtainLifetimeHandle(executionContext))
             {
-                var guild = _discordClient.GetNullsGuild();
+                var guild = _discordClient.GetCurrentGuild();
                 var category = await guild.GetCategoryChannel(DiscordClientExtensions.ChannelCategory.ElectionsMeta);
                 var electionChannel = await guild.CreateChannelAsync("Election-Themes", ChannelType.Text,
                     category);

@@ -81,7 +81,7 @@ namespace BobDono.Modules
                 var param = args.Message.Content.Split(' ');
                 var id = long.Parse(param[1]);
 
-                await (await _discordClient.GetNullsGuild().GetChannelsAsync()).FirstOrDefault(channel => channel.Id == (ulong)id)?.DeleteAsync();
+                await (await _discordClient.GetCurrentGuild().GetChannelsAsync()).FirstOrDefault(channel => channel.Id == (ulong)id)?.DeleteAsync();
             }
             catch (Exception e)
             {

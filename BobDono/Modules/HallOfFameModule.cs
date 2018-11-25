@@ -162,7 +162,7 @@ namespace BobDono.Modules
             using (var dependencyScope = ResourceLocator.ObtainScope())
             using (var channelService = _hallOfFameChannelService.ObtainLifetimeHandle(executionContext))
             {
-                var guild = _discordClient.GetNullsGuild();
+                var guild = _discordClient.GetCurrentGuild();
                 var category = await guild.GetCategoryChannel(DiscordClientExtensions.ChannelCategory.ElectionsMeta);
                 var hallOfFameChannel = await guild.CreateChannelAsync("Hall-Of-Fame", ChannelType.Text,
                     category);

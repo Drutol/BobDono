@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using BobDono.Core.Utils;
+using BobDono.Models;
 
 namespace BobDono.Core.Attributes
 {
     public class CommandHandlerAttribute : Attribute
     {
-#if DEBUG
-        public const string CommandStarter = "b/";
-#else
-        public const string CommandStarter = "b/";
-#endif
+        public static string CommandStarter = Config.Prefix;
 
         public string HandlerMethodName { get; }
 

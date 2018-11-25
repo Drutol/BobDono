@@ -18,6 +18,7 @@ using BobDono.DataAccess.Database;
 using BobDono.DataAccess.Services;
 using BobDono.Interfaces;
 using BobDono.Interfaces.Services;
+using BobDono.Models;
 using BobDono.Models.Entities;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -83,6 +84,9 @@ namespace BobDono.Modules
             Awaitable = false)]
         public async Task CreateElection(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
+            if(!executionContext.AuthenticatedCaller && !Config.AllowCreateElection)
+                return;
+
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             using (var electionService = _electionService.ObtainLifetimeHandle(executionContext))
             {
@@ -99,7 +103,7 @@ namespace BobDono.Modules
 
                 var cts = new CancellationTokenSource();
                 var timeout = TimeSpan.FromMinutes(3);
-                var guild = _discordClient.GetNullsGuild();
+                var guild = _discordClient.GetCurrentGuild();
                 var member = await guild.GetMemberAsync(args.Author.Id);
                 var channel = await member.CreateDmChannelAsync();
                 await channel.SendMessageAsync(

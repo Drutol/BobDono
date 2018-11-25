@@ -14,6 +14,7 @@ using BobDono.Core.Interfaces;
 using BobDono.Core.Utils;
 using BobDono.Interfaces;
 using BobDono.Interfaces.Services;
+using BobDono.Models;
 using BobDono.Models.Entities;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -54,7 +55,7 @@ namespace BobDono.Modules
                 foreach (var matchup in electionService.GetAll()
                     .Where(matchup => matchup.CurrentState < Matchup.State.Finished))
                 {
-                    var guild = ResourceLocator.DiscordClient.GetNullsGuild();
+                    var guild = ResourceLocator.DiscordClient.GetCurrentGuild();
                     var channel = _customDiscordClient.GetChannel(guild, (ulong)matchup.DiscordChannelId);
                     if (channel != null)
                     {
@@ -73,6 +74,9 @@ namespace BobDono.Modules
         [CommandHandler(Regex = "matchup create",Awaitable = false,HumanReadableCommand = "matchup create",HelpText = "Creates new matchup.")]
         public async Task CreateNewMatchup(MessageCreateEventArgs args, ICommandExecutionContext executionContext)
         {
+            if (!executionContext.AuthenticatedCaller && !Config.AllowCreateMatchup)
+                return;
+
             using (var userService = _userService.ObtainLifetimeHandle(executionContext))
             using (var matchupService = _matchupService.ObtainLifetimeHandle(executionContext))
             {
@@ -88,7 +92,7 @@ namespace BobDono.Modules
 
                 var cts = new CancellationTokenSource();
                 var timeout = TimeSpan.FromMinutes(3);
-                var guild = ResourceLocator.DiscordClient.GetNullsGuild();
+                var guild = ResourceLocator.DiscordClient.GetCurrentGuild();
                 var member = await guild.GetMemberAsync(args.Author.Id);
                 var channel = await member.CreateDmChannelAsync();
                 await channel.SendMessageAsync(

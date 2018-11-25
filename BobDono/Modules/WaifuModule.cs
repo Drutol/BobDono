@@ -55,7 +55,7 @@ namespace BobDono.Modules
 
                 var cts = new CancellationTokenSource();
                 var timeout = TimeSpan.FromMinutes(2);
-                var guild = ResourceLocator.DiscordClient.GetNullsGuild();
+                var guild = ResourceLocator.DiscordClient.GetCurrentGuild();
                 var member = await guild.GetMemberAsync(args.Author.Id);
                 var channel = await member.CreateDmChannelAsync();
 

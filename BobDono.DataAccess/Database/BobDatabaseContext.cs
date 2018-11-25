@@ -41,7 +41,7 @@ namespace BobDono.DataAccess.Database
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseNpgsql(
-                Secrets.ConncetionString, builder => builder.MigrationsAssembly("BobDono"));
+                Config.DatabaseConnectionString, builder => builder.MigrationsAssembly("BobDono"));
             optionsBuilder.EnableSensitiveDataLogging();
         }
 
