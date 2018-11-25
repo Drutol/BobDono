@@ -105,7 +105,7 @@ namespace BobDono
             {
                 foreach (var guild in _client.Guilds)
                 {
-                    if (/*guild.Key != 317924870950223872 &&*/ guild.Key != 343060137164144642)
+                    if (/*guild.Key != 317924870950223872 &&*/ guild.Key != Config.BotId)
                         await guild.Value.LeaveAsync();
                 }
             }
