@@ -1,14 +1,24 @@
 {
-  "ServerId": "",
-  "BotID": "",
-  "Prefix": "b/",
-  "AuthUsers": [
-    74458088760934400
-  ],
-  "AllowCreateElection": true,
-  "AllowCreateMatchup": true,
-  "ExcludedModules": [
-  ],
-  "BotKey": "",
-  "DatabaseConnectionString": "" 
+  "Debug": {
+    "ServerId": "",
+    "BotId": "",
+    "Prefix": "b/",
+    "AuthUsers": [],
+    "AllowCreateElection": true,
+    "AllowCreateMatchup": true,
+    "ExcludedModules": [],
+    "BotKey": "",
+    "DatabaseConnectionString": ""
+  },
+  "Release": {
+    "ServerId": "",
+    "BotId": "",
+    "Prefix": "b/",
+    "AuthUsers": [],
+    "AllowCreateElection": true,
+    "AllowCreateMatchup": true,
+    "ExcludedModules": [],
+    "BotKey": "",
+    "DatabaseConnectionString": ""
+  } 
 }
