@@ -15,13 +15,11 @@ namespace BobDono.Core.BL
             74458088760934400,
         };
 
-
         public static AuthorizedFilter Authorize { get; } = new AuthorizedFilter();
         public static ChannelFilter Channel { get; } = new ChannelFilter();
         public static RegexFilter Regex { get; } = new RegexFilter();
         public static ChannelContextFilter ChannelContext { get; } = new ChannelContextFilter();
         public static AlwaysFailFilter AlwaysFail { get; } = new AlwaysFailFilter();
-
 
         public abstract class ArgumentPredicate<TArg> : ICommandPredicate where TArg : class
         {

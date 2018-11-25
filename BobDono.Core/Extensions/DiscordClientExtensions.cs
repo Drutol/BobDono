@@ -21,7 +21,9 @@ namespace BobDono.Core.Extensions
         public const string MatchupsCategoryName = "Matchups";
 
         private static DiscordGuild _nullsGuild;
-        private static Dictionary<ChannelCategory, DiscordChannel> _categoryChannels = new Dictionary<ChannelCategory, DiscordChannel>();
+
+        private static Dictionary<ChannelCategory, DiscordChannel> _categoryChannels =
+            new Dictionary<ChannelCategory, DiscordChannel>();
 
         public static DiscordGuild GetNullsGuild(this DiscordClient client)
         {
@@ -30,7 +32,7 @@ namespace BobDono.Core.Extensions
                    (_nullsGuild = client.Guilds.First(pair => pair.Value.Id == 343060137164144642).Value);
 #else
             return _nullsGuild ??
-                   (_nullsGuild = client.Guilds.First(pair => pair.Value.Id == 317924870950223872).Value);
+                   (_nullsGuild = client.Guilds.First(pair => pair.Value.Id == 343060137164144642).Value);
 #endif
 
         }
@@ -75,7 +77,7 @@ namespace BobDono.Core.Extensions
         public static bool IsMe(this DiscordUser user)
         {
 #if DEBUG
-            return user.Id == 343050467879813140; //ranko
+            return user.Id == 377859054464401408; // 343050467879813140; //ranko
 #else
             return user.Id == 377859054464401408; //bob
 #endif

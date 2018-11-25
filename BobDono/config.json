@@ -1,0 +1,14 @@
+{
+  "ServerId": "",
+  "BotID": "",
+  "Prefix": "b/",
+  "AuthUsers": [
+    74458088760934400
+  ],
+  "AllowCreateElection": true,
+  "AllowCreateMatchup": true,
+  "ExcludedModules": [
+  ],
+  "BotKey": "",
+  "DatabaseConnectionString": "" 
+}

@@ -101,11 +101,11 @@ namespace BobDono
                 await _client.UpdateStatusAsync(new DiscordGame("b/help for no help"), UserStatus.Online);
             };
          
-            if (_client.Guilds.Count > 2)
+            if (_client.Guilds.Count >= 2)
             {
                 foreach (var guild in _client.Guilds)
                 {
-                    if (guild.Key != 317924870950223872 && guild.Key != 343060137164144642)
+                    if (/*guild.Key != 317924870950223872 &&*/ guild.Key != 343060137164144642)
                         await guild.Value.LeaveAsync();
                 }
             }
