@@ -6,10 +6,9 @@ using System.Numerics;
 using System.Text;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing;
-using SixLabors.ImageSharp.Helpers;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using SixLabors.Primitives;
 using SixLabors.Shapes;
 
@@ -57,8 +56,12 @@ namespace BobDono.Utils
 
                     txt.Mutate(c =>
                     {
-                        c.DrawText(lines[i], font, Rgba32.Black, new Point(171, i * 83/2),
-                            new TextGraphicsOptions(true) {HorizontalAlignment = HorizontalAlignment.Center});
+                        c.DrawText(
+                            new TextGraphicsOptions(true) { HorizontalAlignment = HorizontalAlignment.Center },
+                            lines[i],
+                            font,
+                            Rgba32.Black,
+                            new Point(171, i * 83/2));
                     });
                 }
             }
@@ -69,10 +72,10 @@ namespace BobDono.Utils
                     : _font;
                 lines[0] = PadString(lines[0]);
                 txt.Mutate(c =>
-                {
-                    c.DrawText(lines[0], font, Rgba32.Black, new Point(171, 93 / 4),
-                        new TextGraphicsOptions(true) {HorizontalAlignment = HorizontalAlignment.Center});
-                });
+                    {
+                        c.DrawText(new TextGraphicsOptions(true) {HorizontalAlignment = HorizontalAlignment.Center},
+                            lines[0], font, Rgba32.Black, new Point(171, 93 / 4));
+                    });
             }
 
             string PadString(string s)
@@ -97,12 +100,11 @@ namespace BobDono.Utils
 
             txt.Mutate(c =>
             {
-                c.Rotate(-48, true);
+                c.Rotate(-48);
                 c.Resize(txt.Size() / 2);
             });
 
-            img.Mutate(context => context.DrawImage(txt, PixelBlenderMode.Normal, 1, txt.Size(), new Point(250, 18)));
-            //img.Save("test.png");
+            img.Mutate(context => context.DrawImage(txt, new Point(250, 18), PixelColorBlendingMode.Normal, 1));
 
             var ms = new MemoryStream();
             img.SaveAsPng(ms);

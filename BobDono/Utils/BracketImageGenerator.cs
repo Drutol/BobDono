@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Helpers;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using SixLabors.Primitives;
 
 namespace BobDono.Utils
@@ -72,8 +72,8 @@ namespace BobDono.Utils
                         context.Resize(new Size((int) (image.Width * scale), (int) (image.Height * scale))));
 
                     img.Mutate(context =>
-                        context.DrawImage(image, PixelBlenderMode.Normal, 1, image.Size(),
-                            new Point(currentX, UpperBarHeight + TopBottomMargin)));
+                        context.DrawImage(image, new Point(currentX, UpperBarHeight + TopBottomMargin),
+                            PixelColorBlendingMode.Normal, 1));
                     img.Mutate(context =>
                         context.DrawText($"{i++}", _font, Rgba32.White,
                             new Point(currentX + image.Width / 2 - FontSize / 2,
