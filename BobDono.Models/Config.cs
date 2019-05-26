@@ -18,7 +18,7 @@ namespace BobDono.Models
             var config = configRoot.Release;
 #endif
 
-            ServerId = ulong.Parse(config.ServerId);
+            ServerIds = config.ServerIds;
             BotId = ulong.Parse(config.BotId);
             Prefix = config.Prefix;
             AuthUsers = config.AuthUsers;
@@ -29,7 +29,7 @@ namespace BobDono.Models
             DatabaseConnectionString = config.DatabaseConnectionString;
         }
 
-        public static ulong ServerId { get; }
+        public static ulong[] ServerIds { get; }
         public static ulong BotId { get; }
         public static string Prefix { get; }
         public static List<ulong> AuthUsers { get; }
@@ -47,7 +47,6 @@ namespace BobDono.Models
 
         class ConfigDto
         {
-            public string ServerId { get; set; }
             public string BotId { get; set; }
             public string Prefix { get; set; }
             public List<ulong> AuthUsers { get; set; }
@@ -56,6 +55,7 @@ namespace BobDono.Models
             public List<string> ExcludedModules { get; set; }
             public string BotKey { get; set; }
             public string DatabaseConnectionString { get; set; }
+            public ulong[] ServerIds { get; set; }
         }
     }
 }

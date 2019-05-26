@@ -30,7 +30,7 @@ namespace BobDono.Core.Extensions
         {
 #if DEBUG
             return _currentGuild ??
-                   (_currentGuild = client.Guilds.First(pair => pair.Value.Id == Config.ServerId).Value);
+                   (_currentGuild = client.Guilds.First(pair => pair.Value.Id == Config.ServerIds[0]).Value);
 #else
             return _currentGuild ??
                    (_currentGuild = client.Guilds.First(pair => pair.Value.Id == 343060137164144642).Value);
