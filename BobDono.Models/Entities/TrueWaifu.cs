@@ -9,6 +9,7 @@ namespace BobDono.Models.Entities
     {
         public long Id { get; set; }
 
+        public long UserId { get; set; }
         public User User { get; set; }
         public Waifu Waifu { get; set; }
         public string Description { get; set; }
@@ -17,7 +18,7 @@ namespace BobDono.Models.Entities
 
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<TrueWaifu>().HasOne(w => w.User).WithOne(u => u.TrueWaifu);
+
         }
     }
 }

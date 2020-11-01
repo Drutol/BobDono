@@ -35,12 +35,12 @@ namespace BobDono.Models.Entities
 
         public TrueWaifu TrueWaifu { get; set; }
 
-
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
                 .HasOne(u => u.TrueWaifu)
-                .WithOne(w => w.User);
+                .WithOne(w => w.User)
+                .HasForeignKey<TrueWaifu>(w => w.UserId);
 
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Elections)

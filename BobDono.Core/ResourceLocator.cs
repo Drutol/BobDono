@@ -16,7 +16,6 @@ using BobDono.Interfaces.Services;
 using BobDono.MalHell.Comm;
 using BobDono.MalHell.Queries;
 using DSharpPlus;
-using Microsoft.Practices.ServiceLocation;
 
 namespace BobDono.Core
 {

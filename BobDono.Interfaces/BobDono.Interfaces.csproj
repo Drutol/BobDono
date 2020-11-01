@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <Configurations>Debug;Release;MigrateDb</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="DSharpPlus" Version="3.2.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.9" />
   </ItemGroup>
 
   <ItemGroup>
